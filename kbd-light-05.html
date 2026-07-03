@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rhythmic Typing Keyboard - Design for Basic Initial Keyboard Functioning</title>
+    <style>
+        :root {
+            --lp-color: #ffadad; /* Left Pinky */
+            --lr-color: #ffd6a5; /* Left Ring */
+            --lm-color: #fdffb6; /* Left Middle */
+            --li-color: #caffbf; /* Left Index */
+            --ri-color: #9bf6ff; /* Right Index */
+            --rm-color: #a0c4ff; /* Right Middle */
+            --rr-color: #bdb2ff; /* Right Ring */
+            --rp-color: #ffc6ff; /* Right Pinky */
+            --thumb-color: #eeeeee; /* Thumbs */
+        }
+
+        body {
+            font-family: sans-serif;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+            user-select: none;
+            overflow-x: hidden;
+        }
+
+        h1, h2 {
+            margin: 5px 0;
+            text-align: center;
+            font-weight: normal;
+        }
+
+        h1 { font-size: 24px; }
+        h2 { font-size: 18px; color: #555; }
+
+        #controls {
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        #start-btn {
+            padding: 10px 30px;
+            font-size: 20px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        #target-container {
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 25px;
+            margin: 30px 0;
+            width: 100%;
+            max-width: 800px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .target-beat {
+            font-size: 32px;
+            font-weight: bold;
+            width: 60px;
+            text-align: center;
+            position: relative;
+            color: #ccc;
+        }
+
+        .target-beat.active {
+            color: #000;
+            transform: scale(1.2);
+            text-decoration: underline;
+        }
+
+        .target-beat.cleared {
+            visibility: hidden;
+        }
+
+        /* Keyboard Styles */
+        #keyboard {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .row {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .key {
+            width: 50px;
+            height: 50px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            background-color: white;
+            transition: background-color 0.1s, transform 0.1s;
+        }
+
+        .key.space {
+            width: 300px;
+        }
+
+        .key.highlight {
+            transform: scale(0.95);
+            filter: brightness(0.8);
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+        }
+
+        /* Visual Effects */
+        .effect-particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #555;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        @keyframes burst {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(3); opacity: 0; }
+        }
+
+        @keyframes flyUp {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-100px) scale(1.5); opacity: 0; }
+        }
+
+        @keyframes spinPop {
+            0% { transform: rotate(0deg) scale(1); opacity: 1; }
+            50% { transform: rotate(180deg) scale(2); opacity: 1; }
+            100% { transform: rotate(360deg) scale(0); opacity: 0; }
+        }
+
+        .anim-burst { animation: burst 0.4s ease-out forwards; }
+        .anim-flyUp { animation: flyUp 0.6s ease-in forwards; }
+        .anim-spinPop { animation: spinPop 0.5s ease-in-out forwards; }
+    </style>
+</head>
+<body>
+
+    <h1>Rhythmic Typing Keyboard</h1>
+    <h2>Design for Basic Initial Keyboard Functioning</h2>
+
+    <div id="controls">
+        <button id="start-btn">START</button>
+        <div id="settings" style="display: none;">
+            <label>Volume: <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5"></label>
+            <button id="mute-btn">Mute</button>
+        </div>
+    </div>
+
+    <div id="target-container"></div>
+
+    <div id="keyboard">
+        <div class="row" id="row1"></div>
+        <div class="row" id="row2"></div>
+        <div class="row" id="row3"></div>
+        <div class="row" id="row4"></div>
+    </div>
+
+    <script>
+        const SOUND_SETS = [
+            {
+                F: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/KICK1.mp3",
+                G: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/SNARE2.mp3",
+                SPACE: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Splash%2012%203.mp3"
+            },
+            {
+                F: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Electro%20kick%2001.mp3",
+                G: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/FM%20snare.mp3",
+                SPACE: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Chime%20percussion_BLASTWAVEFX_30615.mp3"
+            },
+            {
+                F: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Fuzz%20Kick.mp3",
+                G: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Smack%20Snare.mp3",
+                SPACE: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Maxi%20clap.mp3"
+            }
+        ];
+
+        const EFFECTS = ["burst", "flyUp", "spinPop"];
+        const PATTERN = ["F", "G", "F", "G", "F", "G", "F", "SPACE"];
+        
+        const fingerMapping = {
+            'Q':'lp', 'A':'lp', 'Z':'lp',
+            'W':'lr', 'S':'lr', 'X':'lr',
+            'E':'lm', 'D':'lm', 'C':'lm',
+            'R':'li', 'F':'li', 'T':'li', 'G':'li', 'V':'li', 'B':'li',
+            'Y':'ri', 'H':'ri', 'U':'ri', 'J':'ri', 'N':'ri', 'M':'ri',
+            'I':'rm', 'K':'rm',
+            'O':'rr', 'L':'rr',
+            'P':'rp',
+            'SPACE':'thumb'
+        };
+
+        const rows = [
+            ["Q","W","E","R","T","Y","U","I","O","P"],
+            ["A","S","D","F","G","H","J","K","L"],
+            ["Z","X","C","V","B","N","M"],
+            ["SPACE"]
+        ];
+
+        let setIndex = 0;
+        let beatIndex = 0;
+        let isMuted = false;
+        let isActive = false;
+        const audioCache = {};
+
+        // Initialize Keyboard
+        function createKeyboard() {
+            rows.forEach((row, i) => {
+                const rowEl = document.getElementById(`row${i+1}`);
+                row.forEach(key => {
+                    const keyEl = document.createElement('div');
+                    keyEl.className = `key ${key === 'SPACE' ? 'space' : ''}`;
+                    keyEl.id = `key-${key}`;
+                    keyEl.textContent = key;
+                    keyEl.style.backgroundColor = `var(--${fingerMapping[key]}-color)`;
+                    rowEl.appendChild(keyEl);
+                });
+            });
+        }
+
+        // Initialize Target Line
+        function drawTargetLine() {
+            const container = document.getElementById('target-container');
+            container.innerHTML = '';
+            PATTERN.forEach((char, i) => {
+                const span = document.createElement('span');
+                span.className = 'target-beat';
+                if (i === 0) span.classList.add('active');
+                span.textContent = char;
+                container.appendChild(span);
+            });
+            beatIndex = 0;
+        }
+
+        // Audio Handling
+        async function preloadAudio() {
+            for (const set of SOUND_SETS) {
+                for (const key in set) {
+                    const url = set[key];
+                    if (!audioCache[url]) {
+                        const audio = new Audio(url);
+                        audio.preload = 'auto';
+                        audioCache[url] = audio;
+                    }
+                }
+            }
+        }
+
+        function playSound(key) {
+            if (isMuted) return;
+            const currentSet = SOUND_SETS[setIndex % SOUND_SETS.length];
+            const url = currentSet[key];
+            if (audioCache[url]) {
+                const clone = audioCache[url].cloneNode();
+                clone.volume = document.getElementById('volume-slider').value;
+                clone.play();
+            }
+        }
+
+        // Effects Engine
+        function applyEffect(element, effectType) {
+            const rect = element.getBoundingClientRect();
+            
+            if (effectType === 'burst') {
+                for (let i = 0; i < 8; i++) {
+                    const p = document.createElement('div');
+                    p.className = 'effect-particle';
+                    p.style.left = `${rect.left + rect.width/2}px`;
+                    p.style.top = `${rect.top + rect.height/2}px`;
+                    document.body.appendChild(p);
+                    
+                    const angle = (i / 8) * Math.PI * 2;
+                    const velocity = 100;
+                    const tx = Math.cos(angle) * velocity;
+                    const ty = Math.sin(angle) * velocity;
+
+                    p.animate([
+                        { transform: 'translate(0, 0)', opacity: 1 },
+                        { transform: `translate(${tx}px, ${ty}px)`, opacity: 0 }
+                    ], { duration: 400, easing: 'ease-out' }).onfinish = () => p.remove();
+                }
+                element.classList.add('anim-burst');
+            } else if (effectType === 'flyUp') {
+                element.classList.add('anim-flyUp');
+            } else if (effectType === 'spinPop') {
+                element.classList.add('anim-spinPop');
+            }
+
+            setTimeout(() => {
+                element.classList.add('cleared');
+                element.classList.remove('active', `anim-${effectType}`);
+            }, 500);
+        }
+
+        // Logic
+        function handleInput(key) {
+            if (!isActive) return;
+            const targetKey = PATTERN[beatIndex];
+            const inputKey = key === ' ' ? 'SPACE' : key.toUpperCase();
+
+            if (inputKey === targetKey) {
+                // Feedback
+                playSound(targetKey);
+                
+                const keyEl = document.getElementById(`key-${targetKey}`);
+                keyEl.classList.add('highlight');
+                setTimeout(() => keyEl.classList.remove('highlight'), 100);
+
+                const targetElements = document.querySelectorAll('.target-beat');
+                const currentTarget = targetElements[beatIndex];
+                const effect = EFFECTS[setIndex % EFFECTS.length];
+                
+                applyEffect(currentTarget, effect);
+
+                // Advance
+                beatIndex++;
+                if (beatIndex < PATTERN.length) {
+                    targetElements[beatIndex].classList.add('active');
+                } else {
+                    // New Set
+                    setIndex++;
+                    setTimeout(drawTargetLine, 100);
+                }
+            }
+        }
+
+        // Events
+        document.getElementById('start-btn').addEventListener('click', async () => {
+            document.getElementById('start-btn').style.display = 'none';
+            document.getElementById('settings').style.display = 'block';
+            await preloadAudio();
+            drawTargetLine();
+            isActive = true;
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === ' ') e.preventDefault(); // Prevent scroll
+            handleInput(e.key);
+        });
+
+        document.getElementById('mute-btn').addEventListener('click', (e) => {
+            isMuted = !isMuted;
+            e.target.textContent = isMuted ? "Unmute" : "Mute";
+        });
+
+        // Initialize
+        createKeyboard();
+    </script>
+<script src="rhythmic-typing-lesson.js"></script>
+<script src="rhythmic-typing-back.js"></script>
+</body>
+</html>
