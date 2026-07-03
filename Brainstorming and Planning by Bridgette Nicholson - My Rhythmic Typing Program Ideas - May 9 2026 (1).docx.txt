@@ -1,0 +1,112 @@
+﻿Brainstorming and Planning by Bridgette Nicholson: My Rhythmic Typing Program Ideas — May 9, 2026
+First-person summary of my ideas, instructions, design direction, and requested changes for my rhythmic typing keyboard program.
+My Ownership of This Program and These Ideas
+This is my rhythmic typing program. The ideas described here came from my thinking, my instructions, and my ongoing discussion about what I wanted this activity to become. I wanted the program and the documentation to be clearly identified as mine, and I wanted the planning notes written in the first person as if I were describing my own ideas and design process.
+This document records what I said I wanted in the program, the changes I asked for, and the direction I wanted the project to take. It is not meant to be a code document. It is a written summary of my concept, my design intentions, and my requirements for the rhythmic typing keyboard activity.
+Original Concept
+I wanted to create a rhythmic typing activity for children that uses a physical keyboard while showing a visual keyboard on the screen. The activity is not just ordinary typing practice. It is meant to connect rhythm, movement, timing, sequencing, attention, hand function, and typing motor patterns.
+The child should press keys on the real physical keyboard. The keyboard shown on the screen should act as a visual guide, not as something the child clicks or taps. The point is for the child to look, respond, press the correct physical key, hear a sound, and see an immediate visual response.
+The core idea I liked was that letters should explode, disappear, burst, or go away as the child types them correctly. I wanted the child to experience each correct key press as clearing part of the sequence. The interaction should feel motivating and successful: the child sees the target, presses the key, hears the sound, watches the letter explode or disappear, and then moves to the next key.
+The Basic Interaction I Wanted
+• The app should show a rhythmic typing sequence.
+• The child should press the matching key on the physical keyboard.
+• Only the correct key should trigger a response.
+• Wrong keys should do nothing.
+• The correct key press should produce a sound.
+• The correct key press should trigger a visual effect.
+• The target letter should explode, burst, disappear, or fly away.
+• The activity should move immediately to the next target.
+• The keyboard should stay visible so the child can use it as a guide.
+• The whole activity should feel rhythmic, engaging, and visually rewarding.
+Important Instruction About the Keyboard
+I did not want the instructions to over-explain what a QWERTY keyboard is. Any AI or developer should understand a QWERTY keyboard without needing every key described in detail. I wanted the prompt and planning to focus more on the concept, the child experience, the rhythm, the sound, and the animation instead of over-describing obvious keyboard details.
+I wanted the on-screen keyboard to be visible and useful, but I also wanted the design of the keyboard to change from version to version. I did not want every version to look like the same basic keyboard with minor color changes. I wanted whole different visual themes, borders, key shapes, layout styling, backgrounds, and animation styles.
+The Sequence Structure I Wanted
+The early pattern was based on F and G, especially a repeated rhythm like F G F G F G F and then space. As the idea developed, I wanted the activity to use sets of eight beats at a time.
+I wanted the program to move through different patterns: first the F-G pattern, then the F-R pattern, and then the F-V pattern. Each pattern should have three sets of eight beats. That gives the child repeated practice while still changing the motor pattern.
+The set structure I described
+• FG pattern: three sets of eight beats.
+• FR pattern: three sets of eight beats.
+• FV pattern: three sets of eight beats.
+• Each set should be shown one at a time, not all at once.
+• When one set is completed, the next set should appear.
+• The child should always be able to see the keyboard and the current set on the same screen.
+Why I Wanted One Set at a Time
+I specifically did not want a long strip or long document of all the sets displayed across the top. That made it hard for children to see the keyboard and the exploding letters at the same time. I wanted the program to show only one set of eight beats at a time. The current set should be large, clear, and close enough to the keyboard that the child can see both the sequence and the keyboard without visual overload.
+The child should complete one set of eight, then the program should change to the next set. The next set should feel fresh, with a new visual and sound experience, while keeping the same basic rhythmic typing structure.
+Sound Design Requirements
+Sound became a major part of the idea. I did not want simple generic sounds forever. I wanted different sound sets and different versions of the keyboard using different sound themes, including drum sounds, cute voice sounds, animal sounds, and other sound libraries that I created or collected.
+A major requirement was that the sounds should not all be the same. Within a set, the F key and the paired key should have different sounds. For example, in an F-R set, every F in that set should use the same F sound, and every R in that set should use the same R sound, but the F sound and the R sound should be different from each other. Then in the next set, the sound pair should change again.
+The sound pattern I wanted
+• Within one set of eight, F should have one consistent sound.
+• The paired key, such as G, R, or V, should have its own different consistent sound.
+• The F sound and the paired-letter sound must be clearly different.
+• When the next set starts, the sound pair can change.
+• The sound should match the rhythm and make the child feel the alternating pattern.
+• Sounds should be immediate and connected to the correct key press.
+• When using longer sounds, the sound should stop after about one second so it does not overlap too much or become distracting.
+Use of My Own Sound Files
+I wanted the program to use my own sound files. I shared Dropbox links and later discussed moving files into Cloudflare/R2 so the sound files could be used more reliably. I wanted the code to use sound files from the links I provided, not just sounds generated by the browser.
+I asked for versions using cute sounds, one-second drum sounds, and animal sounds. I wanted the sound files to be organized so the keyboard programs could use them in different ways. I also wanted to be able to give a base public URL and a list of file names, rather than having to provide every full URL one by one.
+I also asked whether many different versions could be created using my sound library. The goal is to eventually create many rhythmic keyboard activities that all use the sounds I provide, with each version having a different look and a different experience.
+Visual Design Requirements
+I repeatedly said that the designs needed to be much more visually interesting and much more different from each other. I did not want the same basic keyboard look reused with only small changes. I wanted the whole design to change: the border, the key design, the letter display, the background, the overall theme, and the explosion animations.
+I wanted the letters at the top to look different from the keyboard itself. The sequence display should not just look like another row of keyboard keys. It should have its own visual identity so the child can understand the difference between the target rhythm sequence and the visual keyboard guide.
+Specific design points I asked for
+• The keyboard should stay visible while the child works through the set.
+• The letters or beat targets should be visually different from the keyboard keys.
+• The space bar must be long enough to clearly look like a space bar.
+• The design should not feel boring.
+• Each new version should look truly different, not just recolored.
+• The overall theme should change between versions.
+• The borders, key shapes, backgrounds, and animations should be redesigned, not lightly adjusted.
+• The activity should still be clean enough for a child to use without confusion.
+Animation Requirements
+The exploding letters were one of the main parts of the idea. I wanted the animations to be bigger, cuter, more interesting, and more rewarding. A small fade-out or tiny burst was not enough. I wanted a child to feel that something fun happened when they pressed the correct key.
+I asked for the letters to explode, burst, pop, fly away, or disappear. I wanted each set of eight to be able to have a different visual effect. I also wanted the effects to be larger and more playful, while still keeping the activity functional and rhythmic.
+The animation experience I wanted
+• The active letter should be obvious.
+• When the child presses the correct key, that letter should dramatically clear away.
+• The animation should show progress through the set.
+• The child should feel success with every correct press.
+• The animation should be bigger than a simple flash.
+• Different versions can use different animation styles such as bubbles, stars, shapes, sound waves, animal marks, confetti, bursts, or other playful effects.
+Different Versions and Experiments I Asked For
+The activity evolved through several versions. I asked for a simple first version, then versions with more interesting drum sounds, then versions that used my Dropbox sound files, then animal-sound versions, and then versions that looked completely different. I also asked whether it would be possible to eventually create ten or twenty different keyboard versions using my sound library.
+The purpose of having multiple versions is not just to make them decorative. Each version can give a different sensory and motivational experience while still supporting rhythmic typing, motor planning, sequencing, timing, and keyboard familiarity.
+Types of future versions I discussed or wanted
+• A basic rhythmic typing keyboard.
+• A drum-sound keyboard.
+• A cute voice-sound keyboard.
+• An animal-sound keyboard.
+• A keyboard where each set of eight has a different sound pair.
+• A keyboard with completely different themes and key designs.
+• A version using Cloudflare-hosted sound files.
+• Potentially many more rhythmic keyboarding games that all use the same core idea but feel different.
+Cloudflare and Sound Hosting
+I asked about using Cloudflare and whether sounds could be placed in a public bucket or subdomain. The idea was to host the sound files in a more reliable way so future keyboard programs could use direct public URLs. I wanted to avoid copying every sound URL one at a time.
+The plan was that if the sound files are hosted under a public base URL, I could provide the base URL and the file list. Then the program could automatically build or use the correct full sound paths. This would make it much easier to create many versions of the activity using my sound library.
+What I Wanted This Program To Do for Children
+The larger purpose of this program is to create a rhythmic, motivating, visually engaging typing activity for children. It should support children who benefit from structured repetition, clear feedback, sensory engagement, rhythm, motor planning practice, and success-based learning.
+The program should not feel like a worksheet or a typing test. It should feel like a responsive rhythmic activity. The child sees the target, presses the physical key, hears a sound, watches the letter disappear or explode, and moves on. That repeated loop should build confidence, timing, attention, hand use, and keyboard familiarity.
+Summary of My Core Requirements
+• This is my rhythmic typing program and should be clearly identified as my idea.
+• The child uses a physical keyboard, not clickable on-screen keys.
+• The on-screen keyboard is a visual guide.
+• Only one set of eight beats should appear at a time.
+• The keyboard and current beat set must be visible at the same time.
+• The main patterns are FG, FR, and FV, with three sets of eight for each pattern.
+• Correct key presses trigger sound and animation.
+• Incorrect key presses should do nothing.
+• F and the paired key must have different sounds within the same set.
+• The same F sound repeats within that set, and the same paired-key sound repeats within that set.
+• The sounds can change from one set to the next.
+• Sound files should come from my sound library when possible.
+• Longer sounds should stop after about one second.
+• The exploding letters should be large, fun, and visually rewarding.
+• The designs should be truly different across versions, including keyboard shapes, borders, letter displays, background styles, and animations.
+• The space bar must be long and clearly visible as a space bar.
+• The program should eventually be able to support many different rhythmic keyboard games using my sounds.
+Closing Statement
+This document is a summary of what I said I wanted for my rhythmic typing keyboard program. These are my ideas, my design directions, and my requirements for how the activity should work. The program should combine typing, rhythm, sound, visual feedback, and movement in a way that is motivating and meaningful for children.
+Brainstorming and Planning by Bridgette Nicholson — My Rhythmic Typing Program Ideas — May 9, 2026
