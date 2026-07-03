@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KeyStrike</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Space+Mono:wght@700&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; user-select: none; }
+
+    html, body {
+      margin: 0; width: 100%; height: 100%;
+      overflow: hidden; background: #000;
+      font-family: 'Space Mono', monospace;
+    }
+
+    /* ── LAYER 1: Background stage ── */
+    #stage {
+      position: fixed; inset: 0; z-index: 0;
+      background: radial-gradient(ellipse at 50% 60%, #07091a 0%, #000003 100%);
+    }
+
+    #particleCanvas {
+      position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1;
+    }
+
+    /* Video slots — swap src to R2 URLs (Dropbox hotlinks are blocked by browsers) */
+    .bg-video {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; opacity: 0; pointer-events: none; z-index: 2;
+      transition: opacity 120ms ease;
+    }
+    .bg-video.active { opacity: 1; }
+
+    /* ── LAYER 2: CSS burst overlay ── */
+    #burstLayer {
+      position: fixed; inset: 0; z-index: 3; pointer-events: none; overflow: hidden;
+    }
+    .ring {
+      position: absolute; border-radius: 50%; pointer-events: none;
+      transform: translate(-50%,-50%) scale(0);
+      animation: ringOut 0.7s cubic-bezier(0.2,0.8,0.4,1) forwards;
+    }
+    @keyframes ringOut {
+      0%   { transform: translate(-50%,-50%) scale(0);  opacity: 0.9; }
+      100% { transform: translate(-50%,-50%) scale(7);  opacity: 0;   }
+    }
+    .screenFlash {
+      position: absolute; inset: 0; pointer-events: none;
+      animation: flashOut 0.45s ease forwards;
+    }
+    @keyframes flashOut {
+      0%  { opacity: 0.5; } 30% { opacity: 0.25; } 100% { opacity: 0; }
+    }
+    .laser {
+      position: absolute; height: 2px; transform-origin: left center;
+      animation: laserOut 0.42s ease forwards;
+    }
+    @keyframes laserOut {
+      0%  { opacity: 1;   transform: scaleX(0); }
+      45% { opacity: 0.8; transform: scaleX(1); }
+      100%{ opacity: 0;   transform: scaleX(1); }
+    }
+
+    /* Scanlines */
+    #scanlines {
+      position: fixed; inset: 0; z-index: 4; pointer-events: none;
+      background: repeating-linear-gradient(0deg,
+        rgba(0,0,0,0.06) 0px, rgba(0,0,0,0.06) 1px,
+        transparent 1px, transparent 4px);
+    }
+
+    /* ── LAYER 3: Floating key — fixed top, never overlaps keyboard ── */
+    #floatingKey {
+      position: fixed;
+      top: 15vh;          /* upper third of screen — clearly above keyboard */
+      left: 50%;
+      transform: translateX(-50%) scale(0.55) translateY(-25px);
+      z-index: 20;
+      pointer-events: none;
+      min-width: clamp(108px, 15vw, 185px);
+      min-height: clamp(108px, 15vw, 185px);
+      padding: 0 18px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 26px;
+      border: 2px solid rgba(140, 200, 255, 0.55);
+      background: rgba(3, 7, 22, 0.76);
+      backdrop-filter: blur(10px);
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(50px, 9.5vw, 98px);
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: -0.02em;
+      box-shadow:
+        0 0 42px rgba(80, 160, 255, 0.7),
+        0 0 100px rgba(80, 130, 255, 0.25),
+        0 28px 80px rgba(0,0,0,0.75);
+      opacity: 0;
+      transition: opacity 80ms ease, transform 120ms cubic-bezier(0.18,1.2,0.4,1);
+    }
+    #floatingKey.show {
+      opacity: 1;
+      transform: translateX(-50%) scale(1) translateY(0);
+    }
+    #floatingKey.hide {
+      opacity: 0;
+      transform: translateX(-50%) scale(0.8) translateY(-22px);
+      transition: opacity 170ms ease, transform 170ms ease;
+    }
+
+    /* ── LAYER 4: Keyboard panel — SOLID background, nothing bleeds through ── */
+    #keyboard {
+      position: fixed; bottom: 2vh; left: 50%; transform: translateX(-50%);
+      z-index: 30; width: min(1020px, 97vw);
+      background: #05070f;   /* solid — no transparency anywhere */
+      border-radius: 20px;
+      padding: 13px 15px 15px;
+      border: 1.5px solid rgba(60, 120, 255, 0.3);
+      box-shadow:
+        0 0 0 1.5px #000,
+        0 0 55px rgba(30,60,255,0.12),
+        0 -6px 60px rgba(0,0,0,0.92),
+        0 32px 80px rgba(0,0,0,0.99),
+        inset 0 1px 0 rgba(255,255,255,0.05);
+      pointer-events: none;
+    }
+    #keyboard::before {
+      content: '';
+      position: absolute; top: 0; left: 8%; right: 8%; height: 2px;
+      border-radius: 2px;
+      background: linear-gradient(90deg,
+        transparent, rgba(60,140,255,0.9) 25%,
+        rgba(180,80,255,0.9) 75%, transparent);
+      filter: blur(1px);
+    }
+
+    .kb-row {
+      display: flex; justify-content: center; gap: 5px; margin-bottom: 5px;
+    }
+    .kb-row:last-child { margin-bottom: 0; }
+
+    .key {
+      display: flex; align-items: center; justify-content: center;
+      height: clamp(33px, 4.7vw, 53px);
+      min-width: clamp(29px, 4.7vw, 53px);
+      padding: 0 3px;
+      border-radius: 8px;
+      border: 1.5px solid rgba(255,255,255,0.09);
+      background: linear-gradient(155deg, #161b2e 0%, #0b0e1d 100%);
+      color: rgba(185, 208, 255, 0.78);
+      font-family: 'Space Mono', monospace;
+      font-weight: 700;
+      font-size: clamp(8px, 1.3vw, 14px);
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.07),
+        inset 0 -2px 0 rgba(0,0,0,0.4),
+        0 3px 8px rgba(0,0,0,0.5);
+      transition: transform 55ms ease, background 55ms ease,
+                  box-shadow 55ms ease, border-color 55ms ease, color 55ms ease;
+    }
+    /* Wide keys */
+    .key[data-key="tab"]      { min-width: clamp(56px,7.2vw,84px);   font-size: clamp(7px,1vw,11px); }
+    .key[data-key="caps"]     { min-width: clamp(64px,8.6vw,98px);   font-size: clamp(7px,1vw,11px); }
+    .key[data-key="shift-l"]  { min-width: clamp(76px,10vw,116px);   font-size: clamp(7px,1vw,11px); }
+    .key[data-key="shift-r"]  { min-width: clamp(76px,10vw,116px);   font-size: clamp(7px,1vw,11px); }
+    .key[data-key="backspace"]{ min-width: clamp(66px,9vw,104px);    font-size: clamp(7px,1vw,12px); }
+    .key[data-key="enter"]    { min-width: clamp(76px,10vw,116px);   font-size: clamp(7px,1vw,11px); }
+    .key[data-key="space"]    { min-width: clamp(185px,27vw,350px); }
+    .key[data-key="ctrl-l"],.key[data-key="ctrl-r"],
+    .key[data-key="alt-l"],.key[data-key="alt-r"],
+    .key[data-key="fn"]       { min-width: clamp(38px,5.6vw,66px);   font-size: clamp(7px,1vw,11px); }
+
+    .key.active {
+      transform: translateY(-5px) scale(1.09);
+      border-color: rgba(150,205,255,0.82);
+      color: #fff;
+      background: linear-gradient(155deg, rgba(65,145,255,0.92), rgba(115,60,255,0.92));
+      box-shadow:
+        0 0 16px rgba(85,165,255,0.88),
+        0 0 40px rgba(85,145,255,0.4),
+        inset 0 1px 0 rgba(255,255,255,0.22),
+        0 7px 20px rgba(0,0,0,0.6);
+    }
+
+    /* Finger colour stripe at base of key */
+    .key[data-f="lp"] { border-bottom-color: rgba(255,80,80,0.55); }
+    .key[data-f="lr"] { border-bottom-color: rgba(255,155,50,0.55); }
+    .key[data-f="lm"] { border-bottom-color: rgba(255,220,50,0.55); }
+    .key[data-f="li"] { border-bottom-color: rgba(70,215,100,0.55); }
+    .key[data-f="ri"] { border-bottom-color: rgba(70,215,100,0.55); }
+    .key[data-f="rm"] { border-bottom-color: rgba(255,220,50,0.55); }
+    .key[data-f="rr"] { border-bottom-color: rgba(255,155,50,0.55); }
+    .key[data-f="rp"] { border-bottom-color: rgba(255,80,80,0.55); }
+  </style>
+</head>
+<body>
+
+<div id="stage">
+  <canvas id="particleCanvas"></canvas>
+  <!--
+    ════════════════════════════════════════════════════
+    VIDEO SLOTS — Dropbox hotlinks are blocked by CORS.
+    Replace each src="" with your R2 bucket URL, e.g.:
+      src="https://pub-XXXXXXXX.r2.dev/Energy-CFX-1.mp4"
+    ════════════════════════════════════════════════════
+  -->
+  <video class="bg-video" id="vid-f"     preload="auto" playsinline muted loop src=""></video>
+  <video class="bg-video" id="vid-g"     preload="auto" playsinline muted loop src=""></video>
+  <video class="bg-video" id="vid-r"     preload="auto" playsinline muted loop src=""></video>
+  <video class="bg-video" id="vid-v"     preload="auto" playsinline muted loop src=""></video>
+  <video class="bg-video" id="vid-space" preload="auto" playsinline muted loop src=""></video>
+</div>
+
+<div id="burstLayer"></div>
+<div id="scanlines"></div>
+
+<!-- Floating key — top 15vh, never over the keyboard -->
+<div id="floatingKey"></div>
+
+<section id="keyboard" aria-label="On-screen keyboard">
+  <div class="kb-row">
+    <div class="key" data-key="backtick"  data-f="lp">`</div>
+    <div class="key" data-key="1"         data-f="lp">1</div>
+    <div class="key" data-key="2"         data-f="lr">2</div>
+    <div class="key" data-key="3"         data-f="lm">3</div>
+    <div class="key" data-key="4"         data-f="li">4</div>
+    <div class="key" data-key="5"         data-f="li">5</div>
+    <div class="key" data-key="6"         data-f="ri">6</div>
+    <div class="key" data-key="7"         data-f="ri">7</div>
+    <div class="key" data-key="8"         data-f="rm">8</div>
+    <div class="key" data-key="9"         data-f="rr">9</div>
+    <div class="key" data-key="0"         data-f="rp">0</div>
+    <div class="key" data-key="backspace" data-f="rp">⌫</div>
+  </div>
+  <div class="kb-row">
+    <div class="key" data-key="tab"   data-f="">Tab</div>
+    <div class="key" data-key="q"     data-f="lp">Q</div>
+    <div class="key" data-key="w"     data-f="lr">W</div>
+    <div class="key" data-key="e"     data-f="lm">E</div>
+    <div class="key" data-key="r"     data-f="li">R</div>
+    <div class="key" data-key="t"     data-f="li">T</div>
+    <div class="key" data-key="y"     data-f="ri">Y</div>
+    <div class="key" data-key="u"     data-f="ri">U</div>
+    <div class="key" data-key="i"     data-f="rm">I</div>
+    <div class="key" data-key="o"     data-f="rr">O</div>
+    <div class="key" data-key="p"     data-f="rp">P</div>
+    <div class="key" data-key="enter" data-f="rp">↵</div>
+  </div>
+  <div class="kb-row">
+    <div class="key" data-key="caps"      data-f="">Caps</div>
+    <div class="key" data-key="a"         data-f="lp">A</div>
+    <div class="key" data-key="s"         data-f="lr">S</div>
+    <div class="key" data-key="d"         data-f="lm">D</div>
+    <div class="key" data-key="f"         data-f="li">F</div>
+    <div class="key" data-key="g"         data-f="li">G</div>
+    <div class="key" data-key="h"         data-f="ri">H</div>
+    <div class="key" data-key="j"         data-f="ri">J</div>
+    <div class="key" data-key="k"         data-f="rm">K</div>
+    <div class="key" data-key="l"         data-f="rr">L</div>
+    <div class="key" data-key="semicolon" data-f="rp">;</div>
+  </div>
+  <div class="kb-row">
+    <div class="key" data-key="shift-l" data-f="">⇧</div>
+    <div class="key" data-key="z"       data-f="lp">Z</div>
+    <div class="key" data-key="x"       data-f="lr">X</div>
+    <div class="key" data-key="c"       data-f="lm">C</div>
+    <div class="key" data-key="v"       data-f="li">V</div>
+    <div class="key" data-key="b"       data-f="li">B</div>
+    <div class="key" data-key="n"       data-f="ri">N</div>
+    <div class="key" data-key="m"       data-f="rm">M</div>
+    <div class="key" data-key="comma"   data-f="rm">,</div>
+    <div class="key" data-key="period"  data-f="rr">.</div>
+    <div class="key" data-key="shift-r" data-f="">⇧</div>
+  </div>
+  <div class="kb-row">
+    <div class="key" data-key="fn"     data-f="">Fn</div>
+    <div class="key" data-key="ctrl-l" data-f="">Ctrl</div>
+    <div class="key" data-key="alt-l"  data-f="">Alt</div>
+    <div class="key" data-key="space"  data-f="">SPACE</div>
+    <div class="key" data-key="alt-r"  data-f="">Alt</div>
+    <div class="key" data-key="ctrl-r" data-f="">Ctrl</div>
+  </div>
+</section>
+
+<script>
+// ────────────────────────────────────────────
+//  PARTICLE CANVAS
+// ────────────────────────────────────────────
+const canvas = document.getElementById('particleCanvas');
+const ctx = canvas.getContext('2d');
+let W, H;
+function resize() { W = canvas.width = innerWidth; H = canvas.height = innerHeight; }
+resize();
+window.addEventListener('resize', resize);
+
+const ambient = [];
+class AP {
+  constructor(init) {
+    this.x = Math.random()*W;
+    this.y = init ? Math.random()*H : H+5;
+    this.vy = -(Math.random()*0.55+0.12);
+    this.vx = (Math.random()-0.5)*0.28;
+    this.r  = Math.random()*1.7+0.3;
+    this.a  = Math.random()*0.45+0.05;
+    this.hue= [200,215,245,265,185][Math.floor(Math.random()*5)];
+  }
+  tick() {
+    this.x+=this.vx; this.y+=this.vy; this.a-=0.0005;
+    if (this.y<-5||this.a<=0) Object.assign(this,new AP());
+  }
+  draw() {
+    ctx.beginPath(); ctx.arc(this.x,this.y,this.r,0,Math.PI*2);
+    ctx.fillStyle=`hsla(${this.hue},100%,70%,${this.a})`; ctx.fill();
+  }
+}
+for (let i=0;i<100;i++) ambient.push(new AP(true));
+
+const bursts=[];
+function addBurst(x,y,hue) {
+  for (let i=0;i<24;i++) {
+    const a=(Math.PI*2*i/24)+Math.random()*0.22;
+    const s=Math.random()*8+2;
+    bursts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-2,r:Math.random()*2.8+0.7,a:0.95,hue});
+  }
+}
+
+(function loop() {
+  requestAnimationFrame(loop);
+  ctx.clearRect(0,0,W,H);
+  ambient.forEach(p=>{p.tick();p.draw();});
+  for (let i=bursts.length-1;i>=0;i--) {
+    const b=bursts[i];
+    b.x+=b.vx; b.y+=b.vy; b.vy+=0.18; b.a-=0.03;
+    if (b.a<=0){bursts.splice(i,1);continue;}
+    ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
+    ctx.fillStyle=`hsla(${b.hue},100%,68%,${b.a})`; ctx.fill();
+  }
+})();
+
+
+// ────────────────────────────────────────────
+//  CSS BURST  (rings + flash + lasers)
+// ────────────────────────────────────────────
+const burstLayer = document.getElementById('burstLayer');
+
+function cssBurst(hue) {
+  const sat=88, li=65;
+  // Ring 1
+  const r1=document.createElement('div'); r1.className='ring';
+  r1.style.cssText=`left:50%;top:52%;width:100px;height:100px;
+    border:3px solid hsla(${hue},${sat}%,${li}%,0.85);
+    box-shadow:0 0 18px hsla(${hue},${sat}%,${li}%,0.5);`;
+  // Ring 2 (smaller, slight delay)
+  const r2=document.createElement('div'); r2.className='ring';
+  r2.style.cssText=`left:50%;top:52%;width:55px;height:55px;
+    border:2px solid hsla(${hue},${sat}%,80%,0.6);
+    animation-duration:0.5s;animation-delay:0.07s;`;
+  // Flash
+  const fl=document.createElement('div'); fl.className='screenFlash';
+  fl.style.background=`radial-gradient(ellipse at 50% 52%,
+    hsla(${hue},${sat}%,${li}%,0.3) 0%,
+    hsla(${hue},${sat}%,${li}%,0.08) 42%,transparent 70%)`;
+  // 4 lasers
+  const lasers=[];
+  for (let i=0;i<4;i++) {
+    const ang=(90*i)+Math.random()*28-14;
+    const len=Math.random()*180+70;
+    const lz=document.createElement('div'); lz.className='laser';
+    lz.style.cssText=`left:50%;top:52%;width:${len}px;
+      background:linear-gradient(90deg,
+        hsla(${hue},${sat}%,88%,0.9),
+        hsla(${hue+35},${sat}%,70%,0));
+      transform:rotate(${ang}deg) scaleX(0);
+      animation-duration:${0.32+Math.random()*0.18}s;`;
+    lasers.push(lz);
+  }
+  [r1,r2,fl,...lasers].forEach(el=>{
+    burstLayer.appendChild(el);
+    el.addEventListener('animationend',()=>el.remove(),{once:true});
+  });
+}
+
+
+// ────────────────────────────────────────────
+//  VIDEO  (fill src="" with R2 URLs)
+// ────────────────────────────────────────────
+const videos = {
+  f:document.getElementById('vid-f'), g:document.getElementById('vid-g'),
+  r:document.getElementById('vid-r'), v:document.getElementById('vid-v'),
+  space:document.getElementById('vid-space'),
+};
+const vidAlias={t:'f',b:'v',y:'g',h:'space',n:'r'};
+let activeVid=null, vidTmr=null;
+
+function playVideo(dk) {
+  const key=vidAlias[dk]||dk;
+  const vid=videos[key];
+  if (!vid||!vid.src) return;
+  if (vid===activeVid){vid.currentTime=0;return;}
+  if (activeVid) activeVid.classList.remove('active');
+  vid.currentTime=0; vid.play().catch(()=>{}); vid.classList.add('active');
+  activeVid=vid;
+  clearTimeout(vidTmr);
+  vidTmr=setTimeout(()=>{vid.classList.remove('active');if(activeVid===vid)activeVid=null;},2800);
+}
+
+
+// ────────────────────────────────────────────
+//  WEB AUDIO — 5 completely distinct sound families
+//
+//  xyl    = xylophone ping      (sine, sharp attack, fast decay, HIGH pitch)
+//  pluck  = string pluck        (sawtooth → bandpass filter, MID pitch)
+//  pad    = warm pad chord      (2x detuned triangle, soft attack, SLOW decay)
+//  bass   = sub bass thud       (sine pitch-drop + noise click, LOW pitch)
+//  whoosh = filtered noise sweep (noise → bandpass sweep, AIRY)
+// ────────────────────────────────────────────
+let AC=null;
+function getAC(){
+  if (!AC) AC=new (window.AudioContext||window.webkitAudioContext)();
+  if (AC.state==='suspended') AC.resume();
+  return AC;
+}
+
+// Each key: { g: group, f: base frequency }
+const SND={
+  // Number row — xylophone (highest pitches)
+  backtick:{g:'xyl',f:1200},'1':{g:'xyl',f:1047},'2':{g:'xyl',f:1109},
+  '3':{g:'xyl',f:1175},'4':{g:'xyl',f:1245},'5':{g:'xyl',f:1319},
+  '6':{g:'xyl',f:1397},'7':{g:'xyl',f:1480},'8':{g:'xyl',f:1568},
+  '9':{g:'xyl',f:1661},'0':{g:'xyl',f:1760},backspace:{g:'xyl',f:880},
+  // QWERTY row — plucked string (mid-high)
+  tab:{g:'pluck',f:392},q:{g:'pluck',f:415},w:{g:'pluck',f:440},
+  e:{g:'pluck',f:466},r:{g:'pluck',f:494},t:{g:'pluck',f:523},
+  y:{g:'pluck',f:554},u:{g:'pluck',f:587},i:{g:'pluck',f:622},
+  o:{g:'pluck',f:659},p:{g:'pluck',f:698},enter:{g:'pad',f:523},
+  // Home row — warm pad (mid)
+  caps:{g:'pad',f:196},a:{g:'pad',f:220},s:{g:'pad',f:233},
+  d:{g:'pad',f:247},f:{g:'pad',f:262},g:{g:'pad',f:277},
+  h:{g:'pad',f:294},j:{g:'pad',f:311},k:{g:'pad',f:330},
+  l:{g:'pad',f:349},semicolon:{g:'pad',f:370},
+  // Bottom alpha — bass thud (low)
+  'shift-l':{g:'bass',f:98},z:{g:'bass',f:98},x:{g:'bass',f:110},
+  c:{g:'bass',f:117},v:{g:'bass',f:124},b:{g:'bass',f:131},
+  n:{g:'bass',f:139},m:{g:'bass',f:147},comma:{g:'bass',f:156},
+  period:{g:'bass',f:165},'shift-r':{g:'bass',f:175},
+  // Bottom bar — whoosh (airiest)
+  fn:{g:'whoosh',f:80},'ctrl-l':{g:'whoosh',f:70},'alt-l':{g:'whoosh',f:90},
+  space:{g:'whoosh',f:55},'alt-r':{g:'whoosh',f:90},'ctrl-r':{g:'whoosh',f:70},
+};
+
+// Hue per sound group (for CSS burst colour)
+const GRP_HUE={xyl:195,pluck:270,pad:130,bass:25,whoosh:185};
+
+function playSound(dk){
+  const def=SND[dk]; if(!def) return;
+  const ac=getAC(), now=ac.currentTime, {g,f}=def;
+
+  if (g==='xyl') {
+    // Pure sine ping — very short, bright, crisp
+    const o=ac.createOscillator(), gn=ac.createGain();
+    o.type='sine';
+    o.frequency.setValueAtTime(f,now);
+    o.frequency.exponentialRampToValueAtTime(f*0.65,now+0.15);
+    gn.gain.setValueAtTime(0.52,now);
+    gn.gain.exponentialRampToValueAtTime(0.001,now+0.18);
+    o.connect(gn); gn.connect(ac.destination);
+    o.start(now); o.stop(now+0.2);
+  }
+  else if (g==='pluck') {
+    // Sawtooth through tight bandpass — guitar-like pluck
+    const o=ac.createOscillator(), filt=ac.createBiquadFilter(), gn=ac.createGain();
+    o.type='sawtooth';
+    o.frequency.setValueAtTime(f,now);
+    filt.type='bandpass'; filt.Q.value=5;
+    filt.frequency.setValueAtTime(f*4,now);
+    filt.frequency.exponentialRampToValueAtTime(f,now+0.32);
+    gn.gain.setValueAtTime(0.42,now);
+    gn.gain.exponentialRampToValueAtTime(0.001,now+0.36);
+    o.connect(filt); filt.connect(gn); gn.connect(ac.destination);
+    o.start(now); o.stop(now+0.38);
+  }
+  else if (g==='pad') {
+    // Two slightly detuned triangles — warm, organ-like, sustained
+    const master=ac.createGain();
+    master.gain.setValueAtTime(0,now);
+    master.gain.linearRampToValueAtTime(0.32,now+0.05); // soft attack
+    master.gain.exponentialRampToValueAtTime(0.001,now+0.75);
+    master.connect(ac.destination);
+    [0,10].forEach(det=>{
+      const o=ac.createOscillator();
+      o.type='triangle'; o.frequency.setValueAtTime(f,now); o.detune.value=det;
+      o.connect(master); o.start(now); o.stop(now+0.78);
+    });
+  }
+  else if (g==='bass') {
+    // Sub sine with pitch drop + sharp noise click transient
+    const gn=ac.createGain();
+    gn.gain.setValueAtTime(0.65,now);
+    gn.gain.exponentialRampToValueAtTime(0.001,now+0.26);
+    gn.connect(ac.destination);
+    const sub=ac.createOscillator();
+    sub.type='sine';
+    sub.frequency.setValueAtTime(f,now);
+    sub.frequency.exponentialRampToValueAtTime(f*0.35,now+0.22);
+    sub.connect(gn); sub.start(now); sub.stop(now+0.28);
+    // Click
+    const buf=ac.createBuffer(1,Math.floor(ac.sampleRate*0.025),ac.sampleRate);
+    const d=buf.getChannelData(0);
+    for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*(1-i/d.length);
+    const src=ac.createBufferSource(), cg=ac.createGain();
+    src.buffer=buf; cg.gain.setValueAtTime(0.22,now); cg.gain.exponentialRampToValueAtTime(0.001,now+0.03);
+    src.connect(cg); cg.connect(ac.destination); src.start(now);
+  }
+  else if (g==='whoosh') {
+    // Noise through bandpass sweep — airy space sound
+    const dur=0.58;
+    const buf=ac.createBuffer(1,Math.floor(ac.sampleRate*dur),ac.sampleRate);
+    const d=buf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+    const src=ac.createBufferSource(), filt=ac.createBiquadFilter(), gn=ac.createGain();
+    src.buffer=buf;
+    filt.type='bandpass'; filt.Q.value=1.6;
+    filt.frequency.setValueAtTime(f*14,now);
+    filt.frequency.exponentialRampToValueAtTime(f*2,now+dur);
+    gn.gain.setValueAtTime(0.55,now);
+    gn.gain.exponentialRampToValueAtTime(0.001,now+dur);
+    src.connect(filt); filt.connect(gn); gn.connect(ac.destination);
+    src.start(now);
+  }
+}
+
+
+// ────────────────────────────────────────────
+//  KEY ELEMENTS + FINGER HUE MAP
+// ────────────────────────────────────────────
+const keyEls={};
+document.querySelectorAll('.key').forEach(el=>{ keyEls[el.dataset.key]=el; });
+const FHUE={lp:0,lr:28,lm:52,li:120,ri:150,rm:52,rr:28,rp:0,'':210};
+
+
+// ────────────────────────────────────────────
+//  FLOATING KEY  (top:15vh, never over keyboard)
+// ────────────────────────────────────────────
+const fkEl=document.getElementById('floatingKey');
+let fkA,fkB;
+function showFK(label){
+  clearTimeout(fkA); clearTimeout(fkB);
+  fkEl.classList.remove('show','hide');
+  fkEl.textContent=label;
+  void fkEl.offsetWidth; // force reflow
+  fkEl.classList.add('show');
+  fkA=setTimeout(()=>{
+    fkEl.classList.replace('show','hide');
+    fkB=setTimeout(()=>fkEl.classList.remove('hide'),200);
+  },480);
+}
+
+function codeToKey(e){
+  const{code,key}=e;
+  if(code==='Space')       return 'space';
+  if(code==='Backspace')   return 'backspace';
+  if(code==='Enter')       return 'enter';
+  if(code==='Tab')         return 'tab';
+  if(code==='CapsLock')    return 'caps';
+  if(code==='ShiftLeft')   return 'shift-l';
+  if(code==='ShiftRight')  return 'shift-r';
+  if(code==='ControlLeft') return 'ctrl-l';
+  if(code==='ControlRight')return 'ctrl-r';
+  if(code==='AltLeft')     return 'alt-l';
+  if(code==='AltRight')    return 'alt-r';
+  if(code==='Backquote')   return 'backtick';
+  if(code==='Semicolon')   return 'semicolon';
+  if(code==='Comma')       return 'comma';
+  if(code==='Period')      return 'period';
+  if(key.length===1)       return key.toLowerCase();
+  return null;
+}
+function keyLabel(code,key){
+  if(code==='Space')    return 'SPACE';
+  if(code==='Backspace')return '⌫';
+  if(code==='Enter')    return '↵';
+  if(code==='Tab')      return 'TAB';
+  if(code==='CapsLock') return 'CAPS';
+  if(code.startsWith('Shift'))   return '⇧';
+  if(code.startsWith('Control')) return 'CTRL';
+  if(code.startsWith('Alt'))     return 'ALT';
+  return key.toUpperCase().slice(0,3);
+}
+
+
+// ────────────────────────────────────────────
+//  KEYDOWN
+// ────────────────────────────────────────────
+window.addEventListener('keydown', e=>{
+  if(e.repeat) return;
+  e.preventDefault();
+  const dk=codeToKey(e); if(!dk) return;
+
+  // 1. Light up key
+  const el=keyEls[dk];
+  const finger=el?(el.dataset.f||''):'';
+  if(el) el.classList.add('active');
+
+  // 2. Floating key popup (top of screen)
+  showFK(keyLabel(e.code,e.key));
+
+  // 3. Canvas burst from key
+  if(el){
+    const r=el.getBoundingClientRect();
+    addBurst(r.left+r.width/2, r.top+r.height/2, FHUE[finger]??200);
+  }
+
+  // 4. CSS rings + flash + lasers
+  const snd=SND[dk];
+  cssBurst(snd ? GRP_HUE[snd.g] : (FHUE[finger]??200));
+
+  // 5. Distinct sound
+  playSound(dk);
+
+  // 6. Video (needs R2 src)
+  playVideo(dk);
+});
+
+window.addEventListener('keyup', e=>{
+  const dk=codeToKey(e); if(!dk) return;
+  const el=keyEls[dk]; if(el) el.classList.remove('active');
+});
+
+window.addEventListener('contextmenu', e=>e.preventDefault());
+</script>
+<script src="rhythmic-typing-lesson.js"></script>
+<script src="rhythmic-typing-back.js"></script>
+</body>
+</html>
