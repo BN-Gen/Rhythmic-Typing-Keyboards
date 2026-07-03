@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rhythmic Typing Control Panel</title>
+<style>
+:root {
+  --navy:#17335f;
+  --ink:#182131;
+  --muted:#647084;
+  --line:#9faabd;
+  --cream:#fff4df;
+  --panel:#ffffff;
+
+  --lp:#ff686d;
+  --lr:#ff9f3d;
+  --lm:#ffd84d;
+  --li:#a9d85a;
+  --ri:#5998cc;
+  --rm:#b37ccc;
+  --rr:#f36aa4;
+  --rp:#45b7a8;
+  --th:#e8e8ed;
+}
+
+* { box-sizing:border-box; }
+
+html, body {
+  margin:0;
+  min-height:100%;
+  background:var(--cream);
+  color:var(--ink);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body { overflow:auto; }
+
+.page {
+  width:min(1440px, 100%);
+  min-height:100vh;
+  margin:0 auto;
+  padding:clamp(12px, 1.7vw, 24px);
+}
+
+.app {
+  min-height:calc(100vh - 48px);
+  border:2px solid var(--navy);
+  border-radius:30px;
+  background:#fffdf7;
+  overflow:hidden;
+  box-shadow:0 8px 22px rgba(23,51,95,.10);
+}
+
+.header {
+  display:grid;
+  grid-template-columns:minmax(250px, 360px) 1fr 40px;
+  gap:clamp(10px, 1.4vw, 20px);
+  align-items:center;
+  padding:10px clamp(16px, 2vw, 28px);
+  border-bottom:1.5px solid var(--line);
+  background:#fff;
+}
+
+.logo {
+  width:100%;
+  height:clamp(92px, 8.8vw, 126px);
+  object-fit:contain;
+  object-position:left center;
+}
+
+.title-area { text-align:center; }
+
+.title {
+  margin:0;
+  font-size:clamp(32px, 3vw, 46px);
+  line-height:1.02;
+  font-weight:700;
+  letter-spacing:.1px;
+  color:var(--navy);
+}
+
+/* title intentionally stays one solid brand color */
+
+.hand-logo {
+  justify-self:end;
+  width:min(185px, 100%);
+  height:clamp(82px, 8vw, 108px);
+  object-fit:contain;
+}
+
+.workspace {
+  display:grid;
+  grid-template-columns:minmax(285px, 380px) 1fr;
+  min-height:716px;
+}
+
+.sidebar {
+  padding:clamp(14px, 1.5vw, 22px) clamp(12px, 1.4vw, 20px);
+  border-right:1.5px solid var(--line);
+  background:#fff;
+}
+
+.side-top {
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:14px;
+}
+
+.side-title {
+  margin:0;
+  color:var(--navy);
+  font-size:20px;
+  font-weight:650;
+}
+
+.video-preview-card {
+  position:relative;
+  display:block;
+  margin:0 0 16px;
+  border-radius:16px;
+  overflow:hidden;
+  border:1.5px solid var(--line);
+  box-shadow:0 8px 22px rgba(23,51,95,.12);
+  background:#fff;
+  text-decoration:none;
+}
+
+.video-preview-card img {
+  display:block;
+  width:100%;
+  height:126px;
+  object-fit:cover;
+}
+
+.video-preview-card::after {
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(180deg,rgba(0,0,0,.02),rgba(0,0,0,.38));
+}
+
+.play-dot {
+  position:absolute;
+  left:50%;
+  top:48%;
+  transform:translate(-50%,-50%);
+  z-index:2;
+  width:58px;
+  height:58px;
+  border-radius:999px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding-left:4px;
+  background:rgba(255,255,255,.92);
+  color:var(--navy);
+  font-size:26px;
+  font-weight:900;
+  box-shadow:0 8px 28px rgba(0,0,0,.24);
+}
+
+.video-label {
+  position:absolute;
+  left:12px;
+  right:12px;
+  bottom:10px;
+  z-index:2;
+  color:#fff;
+  font-size:16px;
+  font-weight:900;
+  text-shadow:0 2px 8px rgba(0,0,0,.7);
+}
+
+.theme-grid {
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0, 1fr));
+  gap:14px;
+  max-height:calc(100vh - 340px);
+  overflow:auto;
+  padding:4px;
+}
+
+.theme-card {
+  border:0;
+  background:transparent;
+  padding:0;
+  cursor:pointer;
+}
+
+.theme-card img {
+  display:block;
+  width:100%;
+  height:clamp(112px, 9.8vw, 145px);
+  object-fit:cover;
+  border-radius:12px;
+  border:1px solid transparent;
+  box-shadow:0 4px 12px rgba(23,51,95,.10);
+}
+
+.theme-card.selected img {
+  border:3px solid var(--navy);
+  box-shadow:0 0 0 3px rgba(23,51,95,.12), 0 6px 16px rgba(23,51,95,.18);
+}
+
+.main {
+  padding:clamp(14px, 1.8vw, 26px);
+  min-width:0;
+  background:var(--main-bg, #eef1f5);
+  transition:background .18s ease;
+}
+
+.top-grid {
+  display:block;
+  margin-bottom:12px;
+}
+
+.box {
+  border:1.5px solid var(--line);
+  border-radius:18px;
+  background:var(--panel);
+  box-shadow:0 9px 24px rgba(23,51,95,.11);
+}
+
+.hand-card {
+  padding:14px;
+}
+
+.hand-card h2 {
+  margin:0 0 10px;
+  color:var(--navy);
+  font-size:22px;
+  font-weight:800;
+}
+
+.hand-card img {
+  width:100%;
+  max-height:175px;
+  object-fit:contain;
+  display:block;
+}
+
+.hand-card p {
+  margin:10px 0 0;
+  color:var(--muted);
+  font-size:15px;
+  line-height:1.35;
+}
+
+.program-card {
+  padding:12px 16px;
+}
+
+.program-title {
+  margin:0 0 10px;
+  color:var(--navy);
+  font-size:clamp(20px, 1.65vw, 25px);
+  font-weight:650;
+}
+
+.controls {
+  display:grid;
+  grid-template-columns:1fr 1.2fr;
+  gap:16px;
+}
+
+.field {
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+}
+
+.field.full { grid-column:1/-1; }
+
+label {
+  color:var(--navy);
+  font-size:15px;
+  font-weight:700;
+}
+
+select, input {
+  height:38px;
+  border:1.5px solid #7f8a9c;
+  border-radius:8px;
+  background:#fff;
+  color:var(--ink);
+  font-size:16px;
+  font-weight:500;
+  padding:0 10px;
+  outline:none;
+}
+
+select:focus, input:focus {
+  border-color:var(--navy);
+  box-shadow:0 0 0 3px rgba(23,51,95,.10);
+}
+
+.quick-selects {
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:12px;
+}
+
+.quick-selects button {
+  border:1.5px solid var(--line);
+  border-radius:10px;
+  background:#fff;
+  color:var(--navy);
+  box-shadow:0 4px 12px rgba(23,51,95,.06);
+  padding:7px 11px;
+  font-size:15px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.quick-selects button:hover {
+  border-color:var(--navy);
+  background:#f8fbff;
+}
+
+.status-row {
+  display:grid;
+  grid-template-columns:1fr 104px;
+  gap:12px;
+  align-items:stretch;
+  margin-bottom:12px;
+}
+
+.status-card {
+  min-height:150px;
+  padding:10px 12px;
+}
+
+.stat-label {
+  color:var(--muted);
+  font-size:12px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.35px;
+  margin-bottom:5px;
+}
+
+.stat-value {
+  color:var(--navy);
+  font-size:22px;
+  font-weight:700;
+}
+
+.active-pills {
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+}
+
+.pill {
+  min-width:34px;
+  height:32px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:0 8px;
+  border:1.5px solid #8792a3;
+  border-radius:8px;
+  background:#fff;
+  font-size:18px;
+  font-weight:700;
+  color:#243850;
+}
+
+.empty-active {
+  color:#8a94a5;
+  font-size:17px;
+  padding-top:5px;
+}
+
+.go-button {
+  height:100%;
+  min-height:150px;
+  border:0;
+  border-radius:12px;
+  background:var(--navy);
+  color:#fff;
+  font-size:23px;
+  font-weight:750;
+  cursor:pointer;
+  box-shadow:0 4px 0 #0f2142;
+}
+
+.go-button:active {
+  transform:translateY(3px);
+  box-shadow:0 3px 0 #0f2142;
+}
+
+.active-section {
+  overflow:hidden;
+}
+
+.active-head {
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:18px;
+  padding:10px 16px 9px;
+  background:rgba(255,255,255,.96);
+  border-bottom:1.5px solid var(--line);
+}
+
+.active-head h2 {
+  margin:0;
+  color:var(--navy);
+  font-size:25px;
+  font-weight:700;
+}
+
+.active-head p {
+  margin:4px 0 0;
+  color:#45546a;
+  font-size:15px;
+  line-height:1.3;
+  text-align:left;
+  max-width:560px;
+}
+
+
+.preview-stage {
+  position:relative;
+  min-height:345px;
+  padding:clamp(8px, 1.2vw, 14px);
+  background:var(--stage-bg);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.keyboard-preview {
+  width:min(930px, 100%);
+  padding:12px;
+  border-radius:14px;
+  background:linear-gradient(180deg,#f9fbff,#dfe5ef);
+  border:2px solid #aeb8c8;
+  box-shadow:0 8px 0 #b5becc, 0 14px 28px rgba(23,51,95,.16), inset 0 1px 0 rgba(255,255,255,.95);
+}
+
+.preview-title {
+  display:none;
+}
+
+.keyboard {
+  width:100%;
+  margin:0 auto;
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+}
+
+.key-row {
+  display:grid;
+  gap:7px;
+}
+
+.row-numbers {
+  grid-template-columns: 1fr repeat(13, 1fr) 1.9fr;
+}
+
+.row-top {
+  grid-template-columns: 1.45fr repeat(12, 1fr) 1.45fr;
+}
+
+.row-home {
+  grid-template-columns: 1.9fr repeat(11, 1fr) 1.9fr;
+}
+
+.row-bottom {
+  grid-template-columns: 1.6fr repeat(10, 1fr) 2.1fr;
+}
+
+.row-space {
+  grid-template-columns: 1fr 1fr 1fr 5.6fr 1fr 1fr 1fr;
+}
+
+.key {
+  min-height:43px;
+  border-radius:8px;
+  border:1.5px solid #b9c2d1;
+  background:linear-gradient(180deg,#ffffff,#f4f6fa);
+  color:#1b3463;
+  font-size:clamp(14px, 1.3vw, 18px);
+  font-weight:800;
+  cursor:pointer;
+  box-shadow:0 3px 0 #c5ccd8, inset 0 1px 0 rgba(255,255,255,.95);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  line-height:1.05;
+  user-select:none;
+}
+
+.key.small-text {
+  font-size:13px;
+  font-weight:800;
+}
+
+.key.double {
+  flex-direction:column;
+  gap:1px;
+  font-size:13px;
+}
+
+.key.nonletter {
+  color:#17335f;
+  background:linear-gradient(180deg,#ffffff,#f6f8fb);
+}
+
+.key.inactive.letter {
+  background:linear-gradient(180deg,#ffffff,#f4f6fa);
+  color:#16335f;
+  border-color:#c1cad8;
+}
+
+.key.left-pinky { --finger:var(--lp); }
+.key.left-ring { --finger:var(--lr); }
+.key.left-middle { --finger:var(--lm); }
+.key.left-index { --finger:var(--li); }
+.key.right-index { --finger:var(--ri); }
+.key.right-middle { --finger:var(--rm); }
+.key.right-ring { --finger:var(--rr); }
+.key.right-pinky { --finger:var(--rp); }
+.key.thumb { --finger:var(--th); }
+
+.key.letter:not(.inactive) {
+  background:var(--finger);
+  color:#111827;
+  border-color:rgba(17,24,39,.24);
+  box-shadow:0 3px 0 rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.32);
+}
+
+.key:active {
+  transform:translateY(2px);
+  box-shadow:0 1px 0 #c5ccd8, inset 0 1px 0 rgba(255,255,255,.95);
+}
+
+.key.space {
+  position:relative;
+  font-size:0;
+}
+
+.key.space::before {
+  content:"";
+  width:112px;
+  height:30px;
+  display:block;
+  background:
+    linear-gradient(90deg,
+      var(--lp) 0 10px, transparent 10px 18px,
+      var(--lr) 18px 28px, transparent 28px 36px,
+      var(--lm) 36px 46px, transparent 46px 54px,
+      var(--li) 54px 64px, transparent 64px 72px,
+      var(--ri) 72px 82px, transparent 82px 90px,
+      var(--rm) 90px 100px, transparent 100px 108px,
+      var(--rr) 108px 112px);
+  border-radius:8px;
+  opacity:.95;
+  transform:scale(.75);
+}
+
+
+.preview-stage.ocean { --stage-bg:linear-gradient(180deg,#edf8ff,#ffffff); }
+.preview-stage.space { --stage-bg:linear-gradient(180deg,#eef2ff,#ffffff); }
+.preview-stage.neon { --stage-bg:linear-gradient(180deg,#ecfff5,#ffffff); }
+.preview-stage.fireworks { --stage-bg:linear-gradient(180deg,#f4efff,#ffffff); }
+.preview-stage.bright { --stage-bg:linear-gradient(180deg,#fff6df,#ffffff); }
+.preview-stage.colorpop { --stage-bg:linear-gradient(135deg,#effceb,#ffffff); }
+.preview-stage.dark2 { --stage-bg:linear-gradient(180deg,#eef3ff,#ffffff); }
+.preview-stage.dark3 { --stage-bg:linear-gradient(180deg,#f3efff,#ffffff); }
+
+.preview-stage.light-neutral,
+.preview-stage.light-blue,
+.preview-stage.light-pastel,
+.preview-stage.light-warm {
+  --stage-bg:linear-gradient(180deg,#ffffff,#f4f7fb);
+}
+
+.preview-stage.light-blue {
+  --stage-bg:linear-gradient(180deg,#edf8ff,#ffffff);
+}
+
+.preview-stage.light-pastel {
+  --stage-bg:linear-gradient(135deg,#fff5fb,#eff9ff 55%,#fffbea);
+}
+
+.preview-stage.light-warm {
+  --stage-bg:linear-gradient(180deg,#fff7df,#ffffff);
+}
+
+.preview-stage.dark-blue,
+.preview-stage.dark-purple,
+.preview-stage.dark-green,
+.preview-stage.dark-warm,
+.preview-stage.green {
+  --stage-bg:linear-gradient(180deg,#eef2f7,#ffffff);
+}
+
+
+.video-section {
+  margin-bottom:16px;
+}
+
+.video-section .side-title {
+  margin-bottom:9px;
+}
+
+
+
+.preview-stage.no-theme {
+  --stage-bg:linear-gradient(180deg,#ffffff,#f4f7fb);
+}
+
+.preview-stage.no-theme .keyboard-preview {
+  opacity:.72;
+}
+
+.preview-stage.no-theme .preview-title {
+  display:block;
+  font-size:22px;
+  color:#6f7b8d;
+  font-weight:650;
+  margin-bottom:14px;
+}
+
+
+.active-letters-inline {
+  min-width:260px;
+  max-width:420px;
+  border:1.5px solid var(--line);
+  border-radius:14px;
+  padding:8px 10px;
+  background:#fff;
+  box-shadow:0 4px 12px rgba(23,51,95,.07);
+}
+
+.active-letters-inline .active-pills {
+  max-height:68px;
+  overflow:auto;
+}
+
+.active-letters-inline .pill {
+  height:28px;
+  min-width:30px;
+  font-size:16px;
+}
+
+.active-letters-inline .empty-active {
+  font-size:15px;
+  padding-top:2px;
+}
+
+@media (max-width: 900px) {
+  .status-row {
+    grid-template-columns:1fr;
+  }
+
+  
+
+  .active-head {
+    display:block;
+  }
+
+  .active-letters-inline {
+    margin-top:10px;
+    max-width:none;
+  }
+}
+
+
+.selected-keyboard-layout {
+  display:grid;
+  grid-template-columns:1fr 170px;
+  gap:14px;
+  align-items:stretch;
+}
+
+.selected-preview-block {
+  min-width:0;
+}
+
+.selected-preview-block .stat-value {
+  margin-bottom:7px;
+}
+
+.selected-thumb {
+  width:100%;
+  max-width:520px;
+  height:auto;
+  max-height:142px;
+  object-fit:contain;
+  display:block;
+  border-radius:12px;
+  box-shadow:none;
+}
+
+.thumb-placeholder {
+  color:#7a8495;
+  font-size:16px;
+  font-weight:600;
+  text-align:left;
+  padding:20px 0;
+}
+
+.preset-buttons {
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  justify-content:center;
+}
+
+.preset-buttons button {
+  min-height:50px;
+  border:1.5px solid var(--line);
+  border-radius:12px;
+  background:#fff;
+  color:var(--navy);
+  box-shadow:0 3px 8px rgba(23,51,95,.06);
+  padding:8px 10px;
+  font-size:15px;
+  font-weight:700;
+  cursor:pointer;
+  text-align:center;
+}
+
+.preset-buttons button:hover {
+  border-color:var(--navy);
+  background:#f8fbff;
+}
+
+@media (max-width: 900px) {
+  .selected-keyboard-layout {
+    grid-template-columns:1fr;
+  }
+
+  .preset-buttons {
+    flex-direction:row;
+  }
+
+  .selected-thumb {
+  width:100%;
+  max-width:520px;
+  height:auto;
+  max-height:142px;
+  object-fit:contain;
+  display:block;
+  border-radius:12px;
+  box-shadow:none;
+}
+}
+
+
+.main.theme-ocean { --main-bg:#eaf7ff; --go-bg:#159ac4; --go-shadow:#0b6f91; }
+.main.theme-space { --main-bg:#edf2ff; --go-bg:#3157c9; --go-shadow:#1f3584; }
+.main.theme-neon { --main-bg:#ecfff5; --go-bg:#16a06d; --go-shadow:#0d6b49; }
+.main.theme-fireworks { --main-bg:#f4efff; --go-bg:#7b39d5; --go-shadow:#4a2183; }
+.main.theme-bright { --main-bg:#fff6df; --go-bg:#f59e0b; --go-shadow:#9b6508; }
+.main.theme-colorpop { --main-bg:#effceb; --go-bg:#5aa832; --go-shadow:#346c1d; }
+.main.theme-dark2 { --main-bg:#eef3ff; --go-bg:#3b82f6; --go-shadow:#1d4ed8; }
+.main.theme-dark3 { --main-bg:#f3efff; --go-bg:#8b5cf6; --go-shadow:#5b21b6; }
+.main.theme-light1 { --main-bg:#f3f4f6; --go-bg:#64748b; --go-shadow:#334155; }
+.main.theme-light2 { --main-bg:#edf8ff; --go-bg:#0ea5e9; --go-shadow:#0369a1; }
+.main.theme-light3 { --main-bg:#fff1f7; --go-bg:#ec4899; --go-shadow:#9d174d; }
+.main.theme-light4 { --main-bg:#f5f5f5; --go-bg:#4b5563; --go-shadow:#1f2937; }
+.main.theme-light5 { --main-bg:#fff7e6; --go-bg:#f97316; --go-shadow:#9a3412; }
+.main.theme-light6 { --main-bg:#eef6ff; --go-bg:#2563eb; --go-shadow:#1e3a8a; }
+
+.go-button {
+  background:var(--go-bg, var(--navy)) !important;
+  box-shadow:0 4px 0 var(--go-shadow, #0f2142) !important;
+}
+
+.selected-keyboard-card {
+  background:#fff;
+}
+
+
+.selected-preview-block .stat-value,
+.selected-keyboard-content .stat-value,
+#selectedTheme {
+  text-align:center;
+}
+
+.go-button:disabled {
+  background:#9aa5b5 !important;
+  box-shadow:0 4px 0 #6f7988 !important;
+  cursor:not-allowed;
+  opacity:.72;
+}
+
+.launch-note {
+  margin-top:6px;
+  color:#647084;
+  font-size:12px;
+  text-align:center;
+}
+
+@media (max-width: 1180px) {
+  .workspace { grid-template-columns:280px 1fr; }
+  .theme-grid { grid-template-columns:1fr; }
+  .top-grid { display:block; }
+}
+
+@media (max-width: 900px) {
+  .header { grid-template-columns:1fr; text-align:center; }
+  .logo, .hand-logo { justify-self:center; object-position:center; }
+  .workspace { grid-template-columns:1fr; }
+  .sidebar { border-right:0; border-bottom:1.5px solid var(--line); }
+  .theme-grid { grid-template-columns:repeat(3, minmax(0,1fr)); max-height:none; }
+  .controls, .status-row { grid-template-columns:1fr; }
+  .active-head { display:block; }
+  .active-head p { text-align:left; margin-top:8px; }
+  .keyboard-preview { overflow-x:auto; }
+  .keyboard { min-width:760px; }
+}
+
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="app">
+    <header class="header">
+      <img class="logo" src="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Flogo-rhythmic-typing.png" alt="Rhythmic Typing logo">
+      <div class="title-area">
+        <h1 class="title">Control Panel</h1>
+      </div>
+      <div></div>
+    </header>
+
+    <div class="workspace">
+      <aside class="sidebar">
+        <section class="video-section">
+          <h2 class="side-title">Keyboard Style Video</h2>
+          <a class="video-preview-card" href="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2FImages%20and%20Video%20clips%20of%20keyboards.mp4" target="_blank" rel="noopener">
+            <img src="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fthumb-kbd-ocean.png" alt="Keyboard preview video thumbnail">
+            <span class="play-dot">▶</span>
+            <span class="video-label">Preview Video</span>
+          </a>
+        </section>
+
+        <div class="side-top">
+          <h2 class="side-title">Choose Keyboard</h2>
+        </div>
+
+        <div class="theme-grid">
+          <button class="theme-card" data-theme="Ocean" data-thumb="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fthumb-kbd-ocean.png" data-url="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fkbd-ocean.html" data-style="ocean">
+          <img src="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fthumb-kbd-ocean.png" alt="Ocean keyboard thumbnail">
+        </button>
+<button class="theme-card " data-theme="Space Circles" data-thumb="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fthumb-kbd-space-circles.png" data-url="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fkbd-space-circles.html" data-style="space">
+          <img src="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fthumb-kbd-space-circles.png" alt="Space Circles keyboard thumbnail">
+        </button>
+<button class="theme-card " data-theme="Neon Beats" data-thumb="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fthumb-kbd-neon-beats.png" data-url="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fkbd-neon-beats.html" data-style="neon">
+          <img src="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fthumb-kbd-neon-beats.png" alt="Neon Beats keyboard thumbnail">
+        </button>
+<button class="theme-card " data-theme="Fireworks" data-thumb="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fthumb-kbd-fireworks.png" data-url="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fkbd-fireworks.html" data-style="fireworks">
+          <img src="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fthumb-kbd-fireworks.png" alt="Fireworks keyboard thumbnail">
+        </button>
+<button class="theme-card " data-theme="Bright Lights" data-thumb="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fthumb-kbd-bright-lights.png" data-url="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fkbd-bright-lights.html" data-style="bright">
+          <img src="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fthumb-kbd-bright-lights.png" alt="Bright Lights keyboard thumbnail">
+        </button>
+<button class="theme-card " data-theme="Color Pop" data-thumb="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fthumb-kbd-color-pop.png" data-url="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fkbd-color-pop.html" data-style="colorpop">
+          <img src="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fthumb-kbd-color-pop.png" alt="Color Pop keyboard thumbnail">
+        </button>
+<button class="theme-card " data-theme="Dark 02" data-thumb="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fthumb-kbd-dark-02.png" data-url="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fkbd-dark-02.html" data-style="dark2">
+          <img src="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fthumb-kbd-dark-02.png" alt="Dark 02 keyboard thumbnail">
+        </button>
+<button class="theme-card " data-theme="Dark 03" data-thumb="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fthumb-kbd-dark-03.png" data-url="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fkbd-dark-03.html" data-style="dark3">
+          <img src="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fthumb-kbd-dark-03.png" alt="Dark 03 keyboard thumbnail">
+        </button>
+<button class="theme-card " data-theme="Light 01" data-thumb="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fthumb-kbd-light-01.png" data-url="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fkbd-light-01.html" data-style="light-neutral">
+          <img src="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fthumb-kbd-light-01.png" alt="Light 01 keyboard thumbnail">
+        </button>
+<button class="theme-card " data-theme="Light 02" data-thumb="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fthumb-kbd-light-02.png" data-url="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fkbd-light-02.html" data-style="light-blue">
+          <img src="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fthumb-kbd-light-02.png" alt="Light 02 keyboard thumbnail">
+        </button>
+<button class="theme-card " data-theme="Light 03" data-thumb="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fthumb-kbd-light-03.png" data-url="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fkbd-light-03.html" data-style="light-pastel">
+          <img src="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fthumb-kbd-light-03.png" alt="Light 03 keyboard thumbnail">
+        </button>
+<button class="theme-card " data-theme="Light 04" data-thumb="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fthumb-kbd-light-04.png" data-url="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fkbd-light-04.html" data-style="light-neutral">
+          <img src="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fthumb-kbd-light-04.png" alt="Light 04 keyboard thumbnail">
+        </button>
+<button class="theme-card " data-theme="Light 05" data-thumb="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fthumb-kbd-light-05.png" data-url="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fkbd-light-05.html" data-style="light-warm">
+          <img src="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fthumb-kbd-light-05.png" alt="Light 05 keyboard thumbnail">
+        </button>
+<button class="theme-card " data-theme="Light 06" data-thumb="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fthumb-kbd-light-06.png" data-url="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fkbd-light-06.html" data-style="light-blue">
+          <img src="https://shared-view-files.general-241.workers.dev/file?key=Keyboards%2Fthumb-kbd-light-06.png" alt="Light 06 keyboard thumbnail">
+        </button>
+        </div>
+      </aside>
+
+      <main class="main" id="mainPanel">
+        <div class="top-grid"><section class="program-card box">
+            <h2 class="program-title">Choose Your Activity:</h2>
+            <div class="controls">
+              <div class="field">
+                <label for="activityLesson">Activity / Lesson</label>
+                <select id="activityLesson">
+                  <option value="">Choose activity/lesson...</option>
+                  <option value="two">Letter Sequences</option>
+                  <option value="multi">Multiple-Letter Sequences</option>
+                  <option value="easy">Easy Words</option>
+                  <option value="hard">Hard Words</option>
+                  <option value="custom">Custom Letters</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="practiceSet">Sequence or Word Set</label>
+                <select id="practiceSet" disabled>
+                  <option>Choose activity/lesson first...</option>
+                </select>
+              </div>
+
+              <div class="field full" id="customField" style="display:none;">
+                <label for="customLetters">Custom Letters</label>
+                <input id="customLetters" placeholder="Example: F G J H">
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <section class="status-row">
+          <div class="status-card selected-keyboard-card box">
+            <div class="stat-label">Selected Keyboard</div>
+            <div class="selected-keyboard-layout">
+              <div class="selected-preview-block">
+                <div class="stat-value" id="selectedTheme">Choose keyboard</div>
+                <img id="selectedThumb" class="selected-thumb" alt="" hidden>
+                <div class="thumb-placeholder" id="thumbPlaceholder">Choose a keyboard on the left</div><div class="launch-note">GO opens the selected keyboard in a new window.</div>
+              </div>
+              <div class="preset-buttons">
+                <button data-quick="easy">Easy-to-Type Keys</button>
+                <button data-quick="hard">Hard-to-Type Keys</button>
+              </div>
+            </div>
+          </div>
+
+          <button class="go-button" id="goButton" disabled>GO</button>
+        </section>
+
+        <section class="active-section box">
+          <div class="active-head">
+            <div>
+              <h2>Active Keys</h2>
+              <p>Choose the activity above or choose the letters you want on the keyboard here.</p>
+            </div>
+            <div class="active-letters-inline">
+              <div class="stat-label">Active Letters</div>
+              <div class="active-pills" id="activeLetters"><div class="empty-active">No active letters selected</div></div>
+            </div>
+          </div>
+
+          <div class="preview-stage no-theme" id="previewStage">
+            <div class="keyboard-preview">
+              <h3 class="preview-title" id="previewTitle">Choose keyboard on the left</h3>
+              <div class="keyboard">
+                <div class="key-row row-numbers" id="row0"></div>
+                <div class="key-row row-top" id="row1"></div>
+                <div class="key-row row-home" id="row2"></div>
+                <div class="key-row row-bottom" id="row3"></div>
+                <div class="key-row row-space" id="row4"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+</div>
+
+<script>
+const keyboardRows = [
+  [
+    {label:"~", cls:"nonletter double", top:"~", bottom:"`"},
+    {label:"!", cls:"nonletter double", top:"!", bottom:"1"},
+    {label:"@", cls:"nonletter double", top:"@", bottom:"2"},
+    {label:"#", cls:"nonletter double", top:"#", bottom:"3"},
+    {label:"$", cls:"nonletter double", top:"$", bottom:"4"},
+    {label:"%", cls:"nonletter double", top:"%", bottom:"5"},
+    {label:"^", cls:"nonletter double", top:"^", bottom:"6"},
+    {label:"&", cls:"nonletter double", top:"&", bottom:"7"},
+    {label:"*", cls:"nonletter double", top:"*", bottom:"8"},
+    {label:"(", cls:"nonletter double", top:"(", bottom:"9"},
+    {label:")", cls:"nonletter double", top:")", bottom:"0"},
+    {label:"-", cls:"nonletter double", top:"-", bottom:"_"},
+    {label:"=", cls:"nonletter double", top:"=", bottom:"+"},
+    {label:"Backspace", cls:"nonletter small-text"}
+  ],
+  [
+    {label:"Tab", cls:"nonletter small-text"},
+    "Q","W","E","R","T","Y","U","I","O","P",
+    {label:"{", cls:"nonletter double", top:"{", bottom:"["},
+    {label:"}", cls:"nonletter double", top:"}", bottom:"]"}
+  ],
+  [
+    {label:"Caps Lock", cls:"nonletter small-text"},
+    "A","S","D","F","G","H","J","K","L",
+    {label:":", cls:"nonletter double", top:":", bottom:";"},
+    {label:"“ ”", cls:"nonletter small-text"}
+  ],
+  [
+    {label:"Shift", cls:"nonletter small-text"},
+    "Z","X","C","V","B","N","M",
+    {label:"<", cls:"nonletter double", top:"<", bottom:","},
+    {label:">", cls:"nonletter double", top:">", bottom:"."},
+    {label:"?", cls:"nonletter double", top:"?", bottom:"/"},
+    {label:"Shift", cls:"nonletter small-text"}
+  ],
+  [
+    {label:"Ctrl", cls:"nonletter small-text"},
+    {label:"▦", cls:"nonletter"},
+    {label:"Alt", cls:"nonletter small-text"},
+    {label:"SPACE", key:" ", cls:"nonletter space"},
+    {label:"Alt", cls:"nonletter small-text"},
+    {label:"Fn", cls:"nonletter small-text"},
+    {label:"Ctrl", cls:"nonletter small-text"}
+  ]
+];
+
+const fingerMap = {
+  Q:"left-pinky", A:"left-pinky", Z:"left-pinky",
+  W:"left-ring", S:"left-ring", X:"left-ring",
+  E:"left-middle", D:"left-middle", C:"left-middle",
+  R:"left-index", F:"left-index", T:"left-index", G:"left-index", V:"left-index", B:"left-index",
+  Y:"right-index", H:"right-index", U:"right-index", J:"right-index", N:"right-index", M:"right-index",
+  I:"right-middle", K:"right-middle",
+  O:"right-ring", L:"right-ring",
+  P:"right-pinky",
+  " ":"thumb"
+};
+
+const sets = {
+  two: [
+    ["Choose letter sequence...", ""],
+    ["FG - Left index", "FG "],
+    ["FR - Left index", "FR "],
+    ["FV - Left index", "FV "],
+    ["FT - Left index", "FT "],
+    ["FC - Left index + middle", "FC "],
+    ["FB - Left index", "FB "],
+    ["JH - Right index", "JH "],
+    ["JU - Right index", "JU "],
+    ["JN - Right index", "JN "],
+    ["JY - Right index", "JY "],
+    ["JM - Right index", "JM "],
+    ["DE - Left middle", "DE "],
+    ["DC - Left middle", "DC "],
+    ["KI - Right middle", "KI "],
+    ["SW - Left ring", "SW "],
+    ["SX - Left ring", "SX "],
+    ["LO - Right ring", "LO "],
+    ["AQ - Left little", "AQ "],
+    ["AZ - Left little", "AZ "],
+    ["P - Right little", "P "]
+  ],
+  multi: [
+    ["Choose multiple-letter sequence...", ""],
+    ["FGFRFVF", "FGFRFVF "],
+    ["FTFBFCF", "FTFBFCF "],
+    ["JHJUNJN", "JHJUNJN "],
+    ["JYJMJHN", "JYJMJHN "],
+    ["DEDCDED", "DEDCDED "],
+    ["DEDDECE", "DEDDECE "],
+    ["KIKJKIK", "KIKJKIK "],
+    ["KIKIKIN", "KIKIKIN "],
+    ["SWSXSWS", "SWSXSWS "],
+    ["SWSWXSX", "SWSWXSX "],
+    ["LOLOLON", "LOLOLON "],
+    ["AQAQAZA", "AQAQAZA "],
+    ["AZAQAZA", "AZAQAZA "],
+    ["PPPPPPP", "P "]
+  ],
+  easy: [
+    ["Choose easy word set...", ""],
+    ["Easy 3-letter words", "BBCDEFGHIJKMNRTUVY "],
+    ["Easy 4-letter words", "BBCDEFGHIJKMNRTUVY "],
+    ["Easy 5-letter words", "BBCDEFGHIJKMNRTUVY "],
+    ["All easy words", "BBCDEFGHIJKMNRTUVY "]
+  ],
+  hard: [
+    ["Choose hard word set...", ""],
+    ["Hard 3-letter words", "QAZWSXOLP "],
+    ["Hard 4-letter words", "QAZWSXOLP "],
+    ["Hard 5-letter words", "QAZWSXOLP "],
+    ["All hard words", "QAZWSXOLP "]
+  ],
+  custom: [
+    ["Use custom letters below", ""]
+  ]
+};
+
+const quickSets = {
+  easy: "BBCDEFGHIJKMNRTUVY ",
+  hard: "QAZWSXOLP "
+};
+
+let activeLetters = new Set();
+let selectedKeyboardUrl = "";
+
+function buildKeyboard() {
+  const ids = ["row0","row1","row2","row3","row4"];
+
+  keyboardRows.forEach((row, idx) => {
+    document.getElementById(ids[idx]).innerHTML = row.map(item => {
+      if (typeof item === "string") {
+        return `<button class="key letter inactive" data-key="${item}" data-finger="${fingerMap[item]}">${item}</button>`;
+      }
+
+      const label = item.top
+        ? `<span>${item.top}</span><span>${item.bottom}</span>`
+        : item.label;
+
+      const key = item.key || "";
+      const data = key ? `data-key="${key}" data-finger="${fingerMap[key]}"` : "";
+      return `<button class="key ${item.cls || "nonletter"}" ${data}>${label}</button>`;
+    }).join("");
+  });
+
+  document.querySelectorAll(".key[data-key]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const key = btn.dataset.key;
+      if (activeLetters.has(key)) activeLetters.delete(key);
+      else activeLetters.add(key);
+      if ([...activeLetters].some(k => /[A-Z]/.test(k))) activeLetters.add(" ");
+      renderActive();
+    });
+  });
+}
+
+function normalize(str) {
+  const s = new Set();
+  (str || "").toUpperCase().split("").forEach(ch => {
+    if (/[A-Z]/.test(ch)) s.add(ch);
+  });
+  if (s.size > 0) s.add(" ");
+  return s;
+}
+
+function populatePracticeSets() {
+  const area = document.getElementById("activityLesson").value;
+  const menu = document.getElementById("practiceSet");
+  if (!area) {
+    menu.innerHTML = "<option>Choose activity/lesson first...</option>";
+    menu.disabled = true;
+    activeLetters = new Set();
+    document.getElementById("customField").style.display = "none";
+    renderActive();
+    return;
+  }
+  menu.disabled = false;
+  menu.innerHTML = sets[area].map((item, i) => `<option value="${i}">${item[0]}</option>`).join("");
+  document.getElementById("customField").style.display = area === "custom" ? "flex" : "none";
+  updateFromSelection();
+}
+
+function updateFromSelection() {
+  const area = document.getElementById("activityLesson").value;
+  if (!area) return;
+  if (area === "custom") {
+    activeLetters = normalize(document.getElementById("customLetters").value);
+  } else {
+    const idx = Number(document.getElementById("practiceSet").value || 0);
+    activeLetters = normalize(sets[area][idx][1]);
+  }
+  renderActive();
+}
+
+function renderActive() {
+  document.querySelectorAll(".key[data-key]").forEach(btn => {
+    const key = btn.dataset.key;
+    btn.classList.remove("inactive", "left-pinky", "left-ring", "left-middle", "left-index", "right-index", "right-middle", "right-ring", "right-pinky", "thumb");
+
+    if (activeLetters.has(key)) {
+      btn.classList.add(fingerMap[key]);
+    } else {
+      btn.classList.add("inactive");
+    }
+  });
+
+  const items = [...activeLetters].filter(x => x !== " ").sort();
+  if (activeLetters.has(" ")) items.push("Space");
+  document.getElementById("activeLetters").innerHTML =
+    items.length
+      ? items.map(v => `<span class="pill">${v}</span>`).join("")
+      : `<div class="empty-active">No active letters selected</div>`;
+}
+
+document.querySelectorAll(".theme-card").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".theme-card").forEach(b => b.classList.remove("selected"));
+    btn.classList.add("selected");
+
+    document.getElementById("selectedTheme").textContent = btn.dataset.theme;
+    document.getElementById("previewTitle").textContent = btn.dataset.theme;
+    selectedKeyboardUrl = btn.dataset.url;
+    document.getElementById("goButton").disabled = false;
+
+    const selectedThumb = document.getElementById("selectedThumb");
+    selectedThumb.src = btn.dataset.thumb;
+    selectedThumb.alt = btn.dataset.theme + " thumbnail";
+    selectedThumb.hidden = false;
+    const placeholder = document.getElementById("thumbPlaceholder");
+    if (placeholder) placeholder.hidden = true;
+
+    const stage = document.getElementById("previewStage");
+    stage.className = "preview-stage " + btn.dataset.style;
+
+    const mainPanel = document.getElementById("mainPanel");
+    mainPanel.className = "main theme-" + btn.dataset.style;
+  });
+});
+
+document.querySelectorAll(".preset-buttons button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    activeLetters = normalize(quickSets[btn.dataset.quick]);
+    document.getElementById("activityLesson").value = "";
+    document.getElementById("practiceSet").innerHTML = "<option>Choose activity/lesson first...</option>";
+    document.getElementById("practiceSet").disabled = true;
+    document.getElementById("customField").style.display = "none";
+    renderActive();
+  });
+});
+
+document.getElementById("activityLesson").addEventListener("change", populatePracticeSets);
+document.getElementById("practiceSet").addEventListener("change", updateFromSelection);
+document.getElementById("customLetters").addEventListener("input", updateFromSelection);
+
+document.getElementById("goButton").addEventListener("click", () => {
+  if (!selectedKeyboardUrl) return;
+  window.open(selectedKeyboardUrl, "_blank", "noopener");
+});
+
+buildKeyboard();
+renderActive();
+</script>
+</body>
+</html>
