@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TypeBeat — Feel the Rhythm. Type the Beat.</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --purple: #7B61FF;
+    --blue: #00B6FF;
+    --green: #2ECC71;
+    --yellow: #FFC107;
+    --orange: #FF6B3D;
+    --pink: #FF4DB8;
+    --teal: #00E0BB;
+    --dark: #0D132B;
+    --dark2: #111827;
+    --card: #1a2240;
+    --card2: #1f2b4a;
+    --text: #ffffff;
+    --subtext: #a0aec0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--dark);
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 40% at 20% 10%, rgba(123,97,255,0.15) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(0,182,255,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 30% at 50% 50%, rgba(46,204,113,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container { position: relative; z-index: 1; }
+
+  /* ─── HEADER ─── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 32px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    background: rgba(13,19,43,0.85);
+    backdrop-filter: blur(12px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2rem;
+    line-height: 1;
+  }
+  .logo span.type { color: #fff; }
+  .logo span.beat { color: var(--yellow); }
+
+  .tagline {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-top: 2px;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+
+  .score-badge {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: rgba(255,193,7,0.15);
+    border: 1.5px solid var(--yellow);
+    border-radius: 999px;
+    padding: 6px 16px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.2rem;
+    color: var(--yellow);
+  }
+  .score-badge .star { font-size: 1.3rem; }
+
+  /* ─── MAIN GAME AREA ─── */
+  main { max-width: 900px; margin: 0 auto; padding: 30px 20px 60px; }
+
+  /* set progress */
+  .set-info {
+    text-align: center;
+    margin-bottom: 18px;
+  }
+  .set-label {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1rem;
+    color: var(--subtext);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .set-dots {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 8px;
+  }
+  .set-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    transition: all 0.3s;
+  }
+  .set-dot.done { background: var(--green); }
+  .set-dot.active { background: var(--yellow); box-shadow: 0 0 8px var(--yellow); transform: scale(1.2); }
+
+  /* ─── SEQUENCE CARD ─── */
+  .sequence-card {
+    background: var(--card);
+    border: 1.5px solid rgba(255,255,255,0.09);
+    border-radius: 20px;
+    padding: 22px 24px 18px;
+    margin-bottom: 22px;
+    position: relative;
+    overflow: hidden;
+  }
+  .sequence-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(123,97,255,0.06), transparent 50%);
+    pointer-events: none;
+  }
+
+  /* burst behind active key */
+  #burst {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%,-50%) scale(0);
+    width: 180px; height: 180px;
+    pointer-events: none;
+    z-index: 0;
+    transition: transform 0.1s ease;
+  }
+  #burst.pop {
+    animation: burstPop 0.45s ease-out forwards;
+  }
+  @keyframes burstPop {
+    0%   { transform: translate(-50%,-50%) scale(0); opacity:1; }
+    60%  { transform: translate(-50%,-50%) scale(1.2); opacity:0.9; }
+    100% { transform: translate(-50%,-50%) scale(1.5); opacity:0; }
+  }
+
+  .key-sequence {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 1;
+    min-height: 90px;
+  }
+
+  .seq-key {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 68px; height: 68px;
+    border-radius: 14px;
+    background: #0d132b;
+    border: 2px solid rgba(255,255,255,0.12);
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.6rem;
+    color: rgba(255,255,255,0.5);
+    transition: all 0.2s;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .seq-key.space-key {
+    width: 120px;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+  }
+
+  .seq-key.done {
+    background: rgba(46,204,113,0.2);
+    border-color: var(--green);
+    color: var(--green);
+    transform: scale(0.92);
+  }
+
+  .seq-key.active {
+    background: var(--yellow);
+    border-color: var(--yellow);
+    color: var(--dark);
+    transform: scale(1.15);
+    box-shadow: 0 0 28px rgba(255,193,7,0.7), 0 0 60px rgba(255,193,7,0.3);
+    animation: activePulse 0.6s ease-in-out infinite alternate;
+  }
+
+  .seq-key.space-key.active {
+    width: 130px;
+    background: var(--purple);
+    border-color: var(--purple);
+    color: #fff;
+    box-shadow: 0 0 28px rgba(123,97,255,0.7);
+  }
+
+  @keyframes activePulse {
+    from { box-shadow: 0 0 20px rgba(255,193,7,0.6), 0 0 50px rgba(255,193,7,0.2); }
+    to   { box-shadow: 0 0 36px rgba(255,193,7,0.9), 0 0 80px rgba(255,193,7,0.4); }
+  }
+
+  .seq-key.explode {
+    animation: explodeKey 0.35s ease-out forwards;
+  }
+
+  @keyframes explodeKey {
+    0%   { transform: scale(1.15); }
+    40%  { transform: scale(1.35); filter: brightness(1.8); }
+    100% { transform: scale(0.92); opacity: 0.4; }
+  }
+
+  /* floating letter pop */
+  .float-letter {
+    position: fixed;
+    font-family: 'Fredoka One', cursive;
+    font-size: 3.5rem;
+    font-weight: 900;
+    pointer-events: none;
+    z-index: 9999;
+    animation: floatUp 0.8s ease-out forwards;
+  }
+  @keyframes floatUp {
+    0%   { opacity:1; transform: translate(-50%,-50%) scale(0.5); }
+    40%  { opacity:1; transform: translate(-50%,-120%) scale(1.2); }
+    100% { opacity:0; transform: translate(-50%,-220%) scale(0.8); }
+  }
+
+  /* ─── KEYBOARD ─── */
+  .keyboard-wrap {
+    background: #080e1f;
+    border-radius: 20px;
+    padding: 18px 16px 16px;
+    border: 1.5px solid rgba(255,255,255,0.08);
+    margin-bottom: 24px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+  }
+
+  .kb-row {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin-bottom: 5px;
+  }
+
+  .kb-key {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 42px; height: 42px;
+    border-radius: 9px;
+    background: #1a2240;
+    border: 1.5px solid rgba(255,255,255,0.08);
+    font-family: 'Fredoka One', cursive;
+    font-size: 0.95rem;
+    color: rgba(255,255,255,0.5);
+    cursor: default;
+    transition: all 0.15s;
+    position: relative;
+    user-select: none;
+  }
+
+  .kb-key.space-bar {
+    min-width: 260px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* Color by finger */
+  .kb-key[data-finger="LI"] { border-color: rgba(255,193,7,0.4); color: var(--yellow); }
+  .kb-key[data-finger="RI"] { border-color: rgba(255,75,184,0.4); color: var(--pink); }
+  .kb-key[data-finger="LM"] { border-color: rgba(0,182,255,0.4); color: var(--blue); }
+  .kb-key[data-finger="RM"] { border-color: rgba(0,224,187,0.4); color: var(--teal); }
+  .kb-key[data-finger="LR"] { border-color: rgba(46,204,113,0.4); color: var(--green); }
+  .kb-key[data-finger="RR"] { border-color: rgba(123,97,255,0.4); color: var(--purple); }
+  .kb-key[data-finger="LP"] { border-color: rgba(255,107,61,0.4); color: var(--orange); }
+  .kb-key[data-finger="RP"] { border-color: rgba(255,107,61,0.4); color: var(--orange); }
+  .kb-key[data-finger="TB"] { border-color: rgba(123,97,255,0.5); color: var(--purple); }
+
+  .kb-key.lit {
+    transform: scale(1.12) translateY(-3px);
+    box-shadow: 0 0 22px currentColor;
+    filter: brightness(1.6);
+    border-color: currentColor !important;
+    background: rgba(255,255,255,0.08);
+    z-index: 10;
+  }
+
+  /* ─── CONTROLS PANEL ─── */
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .ctrl-card {
+    background: var(--card2);
+    border: 1.5px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 16px 18px;
+  }
+
+  .ctrl-label {
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--subtext);
+    margin-bottom: 10px;
+  }
+
+  .sound-packs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+
+  .pack-btn {
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1.5px solid rgba(255,255,255,0.15);
+    background: transparent;
+    color: rgba(255,255,255,0.6);
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .pack-btn:hover { border-color: var(--purple); color: var(--purple); }
+  .pack-btn.active {
+    background: var(--purple);
+    border-color: var(--purple);
+    color: #fff;
+    box-shadow: 0 0 12px rgba(123,97,255,0.5);
+  }
+
+  /* Sets selector */
+  .sets-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+  .set-btn {
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1.5px solid rgba(255,255,255,0.15);
+    background: transparent;
+    color: rgba(255,255,255,0.6);
+    font-family: 'Fredoka One', cursive;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .set-btn:hover { border-color: var(--yellow); color: var(--yellow); }
+  .set-btn.active {
+    background: var(--yellow);
+    border-color: var(--yellow);
+    color: var(--dark);
+  }
+
+  /* ─── START BUTTON ─── */
+  .start-row {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    margin-bottom: 30px;
+  }
+
+  .btn-start {
+    padding: 16px 48px;
+    border-radius: 999px;
+    border: none;
+    background: linear-gradient(135deg, var(--green), #1a9e55);
+    color: #fff;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.4rem;
+    cursor: pointer;
+    box-shadow: 0 4px 24px rgba(46,204,113,0.45);
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+  }
+  .btn-start:hover { transform: translateY(-2px) scale(1.04); box-shadow: 0 8px 32px rgba(46,204,113,0.6); }
+  .btn-start:active { transform: scale(0.97); }
+
+  .btn-reset {
+    padding: 16px 28px;
+    border-radius: 999px;
+    border: 2px solid rgba(255,255,255,0.2);
+    background: transparent;
+    color: rgba(255,255,255,0.6);
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-reset:hover { border-color: var(--pink); color: var(--pink); }
+
+  /* ─── INSTRUCTIONS ─── */
+  .instructions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .tip-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 999px;
+    padding: 7px 14px;
+    font-size: 0.8rem;
+    color: var(--subtext);
+    font-weight: 600;
+  }
+  .tip-chip .icon { font-size: 1rem; }
+
+  /* ─── COMPLETION OVERLAY ─── */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(13,19,43,0.92);
+    backdrop-filter: blur(8px);
+    z-index: 500;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    gap: 18px;
+  }
+  .overlay.show { display: flex; }
+
+  .overlay h2 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 3rem;
+    color: var(--yellow);
+    text-shadow: 0 0 40px rgba(255,193,7,0.7);
+  }
+  .overlay p {
+    font-size: 1.1rem;
+    color: var(--subtext);
+    max-width: 340px;
+  }
+  .overlay .btn-next {
+    padding: 14px 40px;
+    border-radius: 999px;
+    border: none;
+    background: linear-gradient(135deg, var(--yellow), #e6930a);
+    color: var(--dark);
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.3rem;
+    cursor: pointer;
+    box-shadow: 0 4px 24px rgba(255,193,7,0.5);
+    transition: all 0.2s;
+  }
+  .overlay .btn-next:hover { transform: scale(1.05); }
+
+  /* confetti */
+  .confetti-piece {
+    position: fixed;
+    width: 10px; height: 10px;
+    top: -20px;
+    pointer-events: none;
+    z-index: 9999;
+    animation: confettiFall linear forwards;
+  }
+  @keyframes confettiFall {
+    0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+
+  /* ─── FINGER LEGEND ─── */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.73rem;
+    font-weight: 700;
+    color: var(--subtext);
+  }
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+  }
+
+  @media (max-width: 600px) {
+    header { padding: 12px 16px; }
+    .logo { font-size: 1.5rem; }
+    .kb-key { min-width: 30px; height: 32px; font-size: 0.75rem; border-radius: 6px; }
+    .kb-key.space-bar { min-width: 160px; }
+    .controls { grid-template-columns: 1fr; }
+    .seq-key { width: 52px; height: 52px; font-size: 1.3rem; }
+    main { padding: 16px 10px 40px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div>
+    <div class="logo"><span class="type">Type</span><span class="beat">Beat</span></div>
+    <div class="tagline">Feel the Rhythm. Type the Beat.</div>
+  </div>
+  <div class="header-right">
+    <div class="score-badge"><span class="star">⭐</span><span id="scoreDisplay">0</span></div>
+  </div>
+</header>
+
+<div class="container">
+<main>
+
+  <!-- SET PROGRESS -->
+  <div class="set-info">
+    <div class="set-label" id="setLabel">SET 1 OF 9</div>
+    <div class="set-dots" id="setDots"></div>
+  </div>
+
+  <!-- SEQUENCE CARD -->
+  <div class="sequence-card">
+    <div id="burst">
+      <svg viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg">
+        <g id="burstPaths" fill="none">
+          <line x1="90" y1="90" x2="90" y2="10" stroke="#FFC107" stroke-width="5" stroke-linecap="round"/>
+          <line x1="90" y1="90" x2="155" y2="35" stroke="#FF4DB8" stroke-width="4" stroke-linecap="round"/>
+          <line x1="90" y1="90" x2="170" y2="90" stroke="#2ECC71" stroke-width="5" stroke-linecap="round"/>
+          <line x1="90" y1="90" x2="155" y2="145" stroke="#00B6FF" stroke-width="4" stroke-linecap="round"/>
+          <line x1="90" y1="90" x2="90" y2="170" stroke="#7B61FF" stroke-width="5" stroke-linecap="round"/>
+          <line x1="90" y1="90" x2="25" y2="145" stroke="#FF6B3D" stroke-width="4" stroke-linecap="round"/>
+          <line x1="90" y1="90" x2="10" y2="90" stroke="#FFC107" stroke-width="5" stroke-linecap="round"/>
+          <line x1="90" y1="90" x2="25" y2="35" stroke="#FF4DB8" stroke-width="4" stroke-linecap="round"/>
+        </g>
+      </svg>
+    </div>
+    <div class="key-sequence" id="keySequence"></div>
+  </div>
+
+  <!-- KEYBOARD -->
+  <div class="keyboard-wrap">
+    <div class="kb-row" id="kbRow1"></div>
+    <div class="kb-row" id="kbRow2"></div>
+    <div class="kb-row" id="kbRow3"></div>
+    <div class="kb-row" id="kbRow4"></div>
+    <div class="kb-row" id="kbRowSpace"></div>
+  </div>
+
+  <!-- FINGER LEGEND -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--yellow)"></div> Index (L)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--pink)"></div> Index (R)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div> Middle (L)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--teal)"></div> Middle (R)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> Ring (L)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div> Ring (R)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div> Pinky</div>
+    <div class="legend-item"><div class="legend-dot" style="background:rgba(123,97,255,0.6)"></div> Thumb</div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls">
+    <div class="ctrl-card">
+      <div class="ctrl-label">🎵 Sound Pack</div>
+      <div class="sound-packs" id="soundPacks"></div>
+    </div>
+    <div class="ctrl-card">
+      <div class="ctrl-label">📚 Jump to Set</div>
+      <div class="sets-list" id="setsList"></div>
+    </div>
+  </div>
+
+  <!-- START -->
+  <div class="start-row">
+    <button class="btn-start" id="btnStart">▶ START</button>
+    <button class="btn-reset" id="btnReset">↺ Reset</button>
+  </div>
+
+  <!-- TIPS -->
+  <div class="instructions">
+    <div class="tip-chip"><span class="icon">👁️</span> See the letter</div>
+    <div class="tip-chip"><span class="icon">⌨️</span> Press the key</div>
+    <div class="tip-chip"><span class="icon">🎵</span> Hear the sound</div>
+    <div class="tip-chip"><span class="icon">💥</span> Watch it explode</div>
+    <div class="tip-chip"><span class="icon">➡️</span> Move to the next</div>
+  </div>
+
+</main>
+</div>
+
+<!-- COMPLETION OVERLAY -->
+<div class="overlay" id="overlay">
+  <div style="font-size:4rem">🏆</div>
+  <h2 id="overlayTitle">Set Complete!</h2>
+  <p id="overlayMsg">Amazing rhythm! Ready for the next beat?</p>
+  <button class="btn-next" id="btnNext">Next Set ▶</button>
+</div>
+
+<script>
+// ─── SETS ───────────────────────────────────────────────────────────────────
+const SETS = [
+  { id: 1, pattern: ['F','G','F','G','F','SPACE'] },
+  { id: 2, pattern: ['F','R','F','R','F','SPACE'] },
+  { id: 3, pattern: ['F','V','F','V','F','SPACE'] },
+  { id: 4, pattern: ['G','F','G','F','SPACE'] },
+  { id: 5, pattern: ['F','G','R','F','G','SPACE'] },
+  { id: 6, pattern: ['R','F','V','G','F','SPACE'] },
+  { id: 7, pattern: ['F','G','F','V','R','SPACE'] },
+  { id: 8, pattern: ['G','R','V','F','G','SPACE'] },
+  { id: 9, pattern: ['F','G','R','V','G','F','SPACE'] },
+];
+
+// ─── SOUND PACKS ─────────────────────────────────────────────────────────────
+const PACKS = {
+  animals: {
+    label: "🐾 Animals",
+    sounds: {
+      F: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/animal%20sounds%20%200.5%20sec/Single%20deep%20snort%20from%20a%20pig_AOS01003.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/animal%20sounds%20%200.5%20sec/0%20Wild%20lion%20growl%2001_SFXBible_ss00377.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/animal%20sounds%20%200.5%20sec/Pig%20oink%2005_SFXBible_ss00354.mp3"
+      ],
+      G: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/animal%20sounds%20%200.5%20sec/9%20SeaLion_SanFranciscoFeb2007a%201.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/animal%20sounds%20%200.5%20sec/1q%20Colobus%20monkey%20hoot%20happy_BLASTWAVEFX_20487.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/animal%20sounds%20%200.5%20sec/Turkey%20squawk%2004_SFXBible_ss00152.mp3"
+      ],
+      R: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/animal%20sounds%20%200.5%20sec/1w%20Frog%20croaking%20x1.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/animal%20sounds%20%200.5%20sec/Monkey_1.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/animal%20sounds%20%200.5%20sec/3%20Monkey%20screech%20single_BLASTWAVEFX_10247.mp3"
+      ],
+      V: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/animal%20sounds%20%200.5%20sec/hoolock%20gibbon%20calls-%20burma%20120495%202.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/animal%20sounds%20%200.5%20sec/Pig%20squeal_BLASTWAVEFX_20535.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/animal%20sounds%20%200.5%20sec/Leopard%20growl_BLASTWAVEFX_00143%201.mp3"
+      ],
+      SPACE: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/animal%20sounds%20%200.5%20sec/zz%20Multiple%20birds%20chirping_AOS00051.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/animal%20sounds%20%200.5%20sec/Puppy.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/animal%20sounds%20%200.5%20sec/8%20Rooster%20bawk%2008_SFXBible_ss00141.mp3"
+      ]
+    }
+  },
+  oneSecondDrums: {
+    label: "🥁 1-Sec Drums",
+    sounds: {
+      F: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/1%20sec%20Drums/a.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/1%20sec%20Drums/c.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/1%20sec%20Drums/e.mp3"
+      ],
+      G: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/1%20sec%20Drums/b.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/1%20sec%20Drums/d.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/1%20sec%20Drums/f.mp3"
+      ],
+      R: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/1%20sec%20Drums/h.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/1%20sec%20Drums/j.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/1%20sec%20Drums/r.mp3"
+      ],
+      V: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/1%20sec%20Drums/v.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/1%20sec%20Drums/g.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/1%20sec%20Drums/i.mp3"
+      ],
+      SPACE: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/1%20sec%20Drums/k.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/1%20sec%20Drums/1.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/1%20sec%20Drums/10.mp3"
+      ]
+    }
+  },
+  drumKit: {
+    label: "🎸 Drum Kit",
+    sounds: {
+      F: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/KICK1.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Electro%20kick%2001.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Fuzz%20Kick.mp3"
+      ],
+      G: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/SNARE2.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/FM%20snare.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Smack%20Snare.mp3"
+      ],
+      R: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Hi%20Hat%202.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Closing%20HH.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Hihat%20033.mp3"
+      ],
+      V: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/TOM%201.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Tom%202_Kalavrezos_2011.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/woodbloc.mp3"
+      ],
+      SPACE: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Splash%2012%203.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Chime%20percussion_BLASTWAVEFX_30615.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Maxi%20clap.mp3"
+      ]
+    }
+  },
+  funny: {
+    label: "😂 Funny",
+    sounds: {
+      F: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Funny%20sounds/Boing-High.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Funny%20sounds/CARTOON%20SQUEAK%20HIGH%2001.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Funny%20sounds/squeaky_toy_1.mp3"
+      ],
+      G: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Funny%20sounds/Boing-Low.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Funny%20sounds/Cartoon%20accent%20sproing.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Funny%20sounds/Rubber%20band%20pluck%20twang%2003_SFXBible_ss01047.mp3"
+      ],
+      R: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Funny%20sounds/Cartoon%20zip%20accent%20smooth%20fast.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Funny%20sounds/Sound%20design%20cartoon%20accent%20laser%20shot%2002_SFXBible_ss05516.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Funny%20sounds/Rollover%20cartoon%20beep%20short_BLASTWAVEFX_20269.mp3"
+      ],
+      V: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Funny%20sounds/Balloon%20squicking%20funny.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Funny%20sounds/Funny%20little%20cartoon%20sound_AOS01793.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Funny%20sounds/spring%20-%20up.mp3"
+      ],
+      SPACE: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Funny%20sounds/Bells%20ring%20jingle%2001_SFXBible_ss00816.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Funny%20sounds/High-Brass-Hit.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Funny%20sounds/Sound%20design%20beep%20chime%2001_SFXBible_ss05271.mp3"
+      ]
+    }
+  },
+  human: {
+    label: "🗣️ Voice",
+    sounds: {
+      F: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Human%20voice/HUMAN%20VOICE%20CLIP%20CARTOON%20MALE%20YAY%20AIRY%2001.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Human%20voice/A%20man%20says%20cool%20-excited-_Nightingale%20Music%20Productions_14287.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Human%20voice/25%20year%20old%20man%20says%20awesome_BLASTWAVEFX_03964.mp3"
+      ],
+      G: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Human%20voice/A%20toddler%20says%20-whoa-%20-very%20cute-_Nightingale%20Music%20Productions_12321.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Human%20voice/HUMAN%20VOICE%20CLIP%20MALE%20HA%20SNICKER%2001.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Human%20voice/HUMAN%20VOICE%20CLIP%20GIRL%20YOUNG%20HOWDY%20SHORT%2001.mp3"
+      ],
+      R: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Human%20voice/HUMAN%20ELEMENT%20MALE%20FEMALE%20AH%20HA%2001.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Human%20voice/HUMAN%20VOICE%20FAST%20HELLO%2001.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Human%20voice/Male%20cartoon%20voice%20says%20hooray%20shout_BLASTWAVEFX_10482.mp3"
+      ],
+      V: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Human%20voice/Young%20male%20cartoon%20voice%20says%20booyah_BLASTWAVEFX_21305.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Human%20voice/Twelve%20year%20old%20boy%20says%20yahoo_BLASTWAVEFX_13646.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Human%20voice/Three%20year%20old%20girl%20says%20nice_BLASTWAVEFX_03874.mp3"
+      ],
+      SPACE: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Human%20voice/A%20woman%20quickly%20says%20Thanks_AOS00927.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Human%20voice/Six%20year%20old%20boy%20says%20cool_BLASTWAVEFX_13453.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Human%20voice/Ten%20year%20old%20boy%20says%20hi%20cheerful_BLASTWAVEFX_03736.mp3"
+      ]
+    }
+  },
+  soundArt: {
+    label: "✨ Sound Art",
+    sounds: {
+      F: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Sound%20art/Sound%20design%20accent%20digital%20bright%20chirp%20delay_BLASTWAVEFX_20083.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Sound%20art/Sound%20design%20accent%20electronic%20ascend_BLASTWAVEFX_20099.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Sound%20art/Sound%20design%20accent%20hi-tech%20bright%20warble%20short_BLASTWAVEFX_20110.mp3"
+      ],
+      G: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Sound%20art/Sound%20design%20accent%20digital%20click%20message_BLASTWAVEFX_20085.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Sound%20art/Sound%20design%20accent%20electronic%20glitch%20fast_BLASTWAVEFX_20102.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Sound%20art/Sound%20design%20ascending%20accent%20warble%20chirp_BLASTWAVEFX_20592.mp3"
+      ],
+      R: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Sound%20art/Sound%20design%20accent%20electronic%20warp%20sweeper_BLASTWAVEFX_20104.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Sound%20art/Sound%20design%20sweeper%20ascend_BLASTWAVEFX_20279.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Sound%20art/Delay%20Theremin%2001.mp3"
+      ],
+      V: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Sound%20art/Sound%20design%20accent%20synth%20hit%20musical_BLASTWAVEFX_20138.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Sound%20art/Sound%20design%20accent%20pixie%20dust%20tiny%20shimmer%20hit_BLASTWAVEFX_19097.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Sound%20art/Noise%20Theremin%2022.mp3"
+      ],
+      SPACE: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Sound%20art/Sound%20design%20shimmer%20accent%20swells%20reverb_BLASTWAVEFX_18592.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Sound%20art/Sound%20design%20sweeper%20airy%20shimmer%20fast_BLASTWAVEFX_18525.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Sound%20art/Engine%20wind%20down.mp3"
+      ]
+    }
+  }
+};
+
+// ─── KEYBOARD LAYOUT ─────────────────────────────────────────────────────────
+const KB_ROWS = [
+  ['`','1','2','3','4','5','6','7','8','9','0','-','=','BACKSPACE'],
+  ['TAB','Q','W','E','R','T','Y','U','I','O','P','[',']','\\'],
+  ['CAPS','A','S','D','F','G','H','J','K','L',';',"'",'ENTER'],
+  ['SHIFT','Z','X','C','V','B','N','M',',','.','/','SHIFT'],
+];
+
+// finger assignment
+const FINGER_MAP = {
+  '`':'LP','1':'LP','2':'LR','3':'LM','4':'LI','5':'LI','6':'RI','7':'RI','8':'RM','9':'RR','0':'RP','-':'RP','=':'RP','BACKSPACE':'RP',
+  'TAB':'LP','Q':'LP','W':'LR','E':'LM','R':'LI','T':'LI','Y':'RI','U':'RI','I':'RM','O':'RR','P':'RP','[':'RP',']':'RP','\\':'RP',
+  'CAPS':'LP','A':'LP','S':'LR','D':'LM','F':'LI','G':'LI','H':'RI','J':'RI','K':'RM','L':'RR',';':'RP',"'":'RP','ENTER':'RP',
+  'SHIFT':'LP','Z':'LP','X':'LR','C':'LM','V':'LI','B':'LI','N':'RI','M':'RI',',':'RR','.':'RR','/':'RP',
+  'SPACE':'TB'
+};
+
+const KEY_COLORS = {
+  LI:'#FFC107', RI:'#FF4DB8', LM:'#00B6FF', RM:'#00E0BB',
+  LR:'#2ECC71', RR:'#7B61FF', LP:'#FF6B3D', RP:'#FF6B3D', TB:'rgba(123,97,255,0.8)'
+};
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let setIndex = 0;
+let beatIndex = 0;
+let started = false;
+let packId = 'animals';
+let score = 0;
+
+// ─── AUDIO ───────────────────────────────────────────────────────────────────
+const audioPools = new Map();
+let stopTimers = [];
+
+function allSoundsForPack(pack){
+  const urls = new Set();
+  Object.values(pack.sounds).flat().forEach(url => urls.add(url));
+  return [...urls];
+}
+
+function preloadPack(pack){
+  allSoundsForPack(pack).forEach(url => {
+    if(audioPools.has(url)) return;
+    const pool = [];
+    for(let i = 0; i < 4; i++){
+      const audio = new Audio(url);
+      audio.preload = 'auto';
+      audio.load();
+      pool.push(audio);
+    }
+    audioPools.set(url, pool);
+  });
+}
+
+function playOneSecond(url){
+  const pool = audioPools.get(url);
+  if(!pool){ fallbackClick(); return; }
+  let audio = pool.find(a => a.paused || a.ended) || pool[0];
+  audio.pause();
+  try{ audio.currentTime = 0; }catch(e){}
+  const p = audio.play();
+  if(p && p.catch) p.catch(() => fallbackClick());
+  const timer = setTimeout(() => {
+    audio.pause();
+    try{ audio.currentTime = 0; }catch(e){}
+  }, 1000);
+  stopTimers.push(timer);
+}
+
+function stopAllAudio(){
+  stopTimers.forEach(clearTimeout);
+  stopTimers = [];
+  audioPools.forEach(pool => {
+    pool.forEach(audio => {
+      audio.pause();
+      try{ audio.currentTime = 0; }catch(e){}
+    });
+  });
+}
+
+function fallbackClick(){
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(190, now);
+    osc.frequency.exponentialRampToValueAtTime(80, now + .16);
+    gain.gain.setValueAtTime(.001, now);
+    gain.gain.exponentialRampToValueAtTime(.25, now + .015);
+    gain.gain.exponentialRampToValueAtTime(.001, now + .18);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now); osc.stop(now + .2);
+  } catch(e){}
+}
+
+function currentPack(){ return PACKS[packId]; }
+
+function soundFor(target){
+  const pack = currentPack();
+  const list = pack.sounds[target] || pack.sounds.F;
+  return list[setIndex % list.length];
+}
+
+function switchPack(id){
+  packId = id;
+  stopAllAudio();
+  preloadPack(currentPack());
+  renderPackButtons();
+}
+
+// ─── RENDER KEYBOARD ─────────────────────────────────────────────────────────
+function buildKeyboard(){
+  KB_ROWS.forEach((row, ri) => {
+    const el = document.getElementById(`kbRow${ri+1}`);
+    el.innerHTML = '';
+    row.forEach(k => {
+      const div = document.createElement('div');
+      div.className = 'kb-key';
+      const finger = FINGER_MAP[k] || '';
+      div.dataset.finger = finger;
+      div.dataset.key = k;
+      const label = k === 'BACKSPACE' ? '⌫' : k === 'SHIFT' ? '⇧' : k === 'CAPS' ? '⇪' : k === 'TAB' ? '⇥' : k;
+      div.textContent = label;
+      if(['BACKSPACE','TAB','CAPS','ENTER','SHIFT'].includes(k)){
+        div.style.minWidth = k==='BACKSPACE'?'70px': k==='TAB'?'55px': k==='CAPS'?'65px': k==='ENTER'?'75px': '80px';
+        div.style.fontSize = '0.7rem';
+      }
+      el.appendChild(div);
+    });
+  });
+  // space bar row
+  const spaceRow = document.getElementById('kbRowSpace');
+  spaceRow.innerHTML = '';
+  ['CTRL','ALT','SPACE','ALT','CTRL'].forEach(k => {
+    const div = document.createElement('div');
+    div.className = 'kb-key' + (k==='SPACE' ? ' space-bar' : '');
+    div.dataset.key = k;
+    div.dataset.finger = FINGER_MAP[k] || '';
+    div.textContent = k;
+    if(k !== 'SPACE') div.style.minWidth = '52px';
+    spaceRow.appendChild(div);
+  });
+}
+
+function lightKey(k, on){
+  document.querySelectorAll(`.kb-key[data-key="${k}"]`).forEach(el => {
+    if(on) el.classList.add('lit');
+    else el.classList.remove('lit');
+  });
+}
+
+// ─── SEQUENCE UI ─────────────────────────────────────────────────────────────
+function currentSet(){ return SETS[setIndex]; }
+function currentTarget(){ return currentSet().pattern[beatIndex]; }
+
+function renderSet(){
+  // update set label & dots
+  document.getElementById('setLabel').textContent = `SET ${setIndex+1} OF ${SETS.length}`;
+  const dots = document.getElementById('setDots');
+  dots.innerHTML = '';
+  SETS.forEach((s, i) => {
+    const d = document.createElement('div');
+    d.className = 'set-dot' + (i < setIndex ? ' done' : i === setIndex ? ' active' : '');
+    dots.appendChild(d);
+  });
+
+  // render key sequence
+  const seq = document.getElementById('keySequence');
+  seq.innerHTML = '';
+  currentSet().pattern.forEach((k, i) => {
+    const div = document.createElement('div');
+    div.className = 'seq-key' + (k==='SPACE' ? ' space-key' : '');
+    div.dataset.beat = i;
+    div.textContent = k;
+    if(i < beatIndex) div.classList.add('done');
+    if(i === beatIndex) div.classList.add('active');
+    seq.appendChild(div);
+  });
+
+  // light active key on keyboard
+  const allKeys = ['F','G','R','V','SPACE'];
+  allKeys.forEach(k => lightKey(k, false));
+  lightKey(currentTarget(), true);
+
+  // update set jump buttons
+  renderSetButtons();
+}
+
+function triggerBurst(){
+  const burst = document.getElementById('burst');
+  burst.classList.remove('pop');
+  void burst.offsetWidth;
+  burst.classList.add('pop');
+}
+
+function floatLetter(key, x, y){
+  const colors = ['#FFC107','#FF4DB8','#2ECC71','#00B6FF','#7B61FF','#FF6B3D'];
+  const color = colors[Math.floor(Math.random() * colors.length)];
+  const el = document.createElement('div');
+  el.className = 'float-letter';
+  el.textContent = key;
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  el.style.color = color;
+  el.style.textShadow = `0 0 20px ${color}`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 900);
+}
+
+function spawnConfetti(){
+  const colors = ['#FFC107','#FF4DB8','#2ECC71','#00B6FF','#7B61FF','#FF6B3D','#fff'];
+  for(let i = 0; i < 60; i++){
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'confetti-piece';
+      el.style.left = Math.random() * 100 + 'vw';
+      el.style.background = colors[Math.floor(Math.random()*colors.length)];
+      el.style.width = (6 + Math.random()*10) + 'px';
+      el.style.height = (6 + Math.random()*10) + 'px';
+      el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+      const dur = 1.5 + Math.random() * 2;
+      el.style.animationDuration = dur + 's';
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), dur * 1000 + 100);
+    }, i * 30);
+  }
+}
+
+// ─── GAME LOGIC ──────────────────────────────────────────────────────────────
+function handleCorrect(e){
+  const target = currentTarget();
+  playOneSecond(soundFor(target));
+
+  // explode the active seq-key
+  const activeEl = document.querySelector('.seq-key.active');
+  if(activeEl){
+    activeEl.classList.remove('active');
+    activeEl.classList.add('explode');
+  }
+
+  triggerBurst();
+
+  // float letter from keyboard key position
+  const kbEl = document.querySelector(`.kb-key[data-key="${target}"]`);
+  if(kbEl){
+    const rect = kbEl.getBoundingClientRect();
+    floatLetter(target === 'SPACE' ? '⎵' : target, rect.left + rect.width/2, rect.top + rect.height/2);
+  }
+
+  lightKey(target, false);
+  score += 10;
+  document.getElementById('scoreDisplay').textContent = score;
+
+  beatIndex++;
+
+  if(beatIndex >= currentSet().pattern.length){
+    // set complete
+    setTimeout(() => showSetComplete(), 350);
+  } else {
+    setTimeout(() => updateActiveUI(), 200);
+  }
+}
+
+function updateActiveUI(){
+  // update seq display
+  document.querySelectorAll('.seq-key').forEach((el, i) => {
+    el.className = 'seq-key' + (currentSet().pattern[i]==='SPACE' ? ' space-key' : '');
+    if(i < beatIndex) el.classList.add('done');
+    if(i === beatIndex) el.classList.add('active');
+  });
+  // update keyboard light
+  const allKeys = ['F','G','R','V','SPACE'];
+  allKeys.forEach(k => lightKey(k, false));
+  lightKey(currentTarget(), true);
+}
+
+function showSetComplete(){
+  const overlay = document.getElementById('overlay');
+  const isLast = setIndex === SETS.length - 1;
+  document.getElementById('overlayTitle').textContent = isLast ? '🎉 All Done!' : '🎵 Set Complete!';
+  document.getElementById('overlayMsg').textContent = isLast
+    ? `Amazing! You finished all ${SETS.length} sets! Score: ${score}`
+    : `Great rhythm! Ready for Set ${setIndex+2}?`;
+  document.getElementById('btnNext').textContent = isLast ? '🔄 Play Again' : `Next Set ▶`;
+  overlay.classList.add('show');
+  spawnConfetti();
+}
+
+function startGame(){
+  stopAllAudio();
+  preloadPack(currentPack());
+  beatIndex = 0;
+  started = true;
+  renderSet();
+  document.getElementById('btnStart').textContent = '▶ PLAYING...';
+}
+
+function resetGame(){
+  stopAllAudio();
+  setIndex = 0;
+  beatIndex = 0;
+  started = false;
+  score = 0;
+  document.getElementById('scoreDisplay').textContent = '0';
+  document.getElementById('btnStart').textContent = '▶ START';
+  document.getElementById('overlay').classList.remove('show');
+  renderSet();
+  const allKeys = ['F','G','R','V','SPACE'];
+  allKeys.forEach(k => lightKey(k, false));
+}
+
+function goToNextSet(){
+  if(setIndex < SETS.length - 1){
+    setIndex++;
+    beatIndex = 0;
+    document.getElementById('overlay').classList.remove('show');
+    renderSet();
+  } else {
+    // all done — restart
+    setIndex = 0;
+    beatIndex = 0;
+    started = false;
+    score = 0;
+    document.getElementById('scoreDisplay').textContent = '0';
+    document.getElementById('overlay').classList.remove('show');
+    document.getElementById('btnStart').textContent = '▶ START';
+    renderSet();
+  }
+}
+
+// ─── KEYBOARD INPUT ──────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if(!started) return;
+  e.preventDefault();
+
+  const target = currentTarget();
+  const pressed = e.code === 'Space' ? 'SPACE' : e.key.toUpperCase();
+
+  if(pressed === target){
+    handleCorrect(e);
+  }
+  // wrong key: silence (no feedback per Bridgette's method)
+});
+
+// ─── BUTTONS ─────────────────────────────────────────────────────────────────
+document.getElementById('btnStart').addEventListener('click', startGame);
+document.getElementById('btnReset').addEventListener('click', resetGame);
+document.getElementById('btnNext').addEventListener('click', goToNextSet);
+
+// ─── RENDER PACK BUTTONS ─────────────────────────────────────────────────────
+function renderPackButtons(){
+  const container = document.getElementById('soundPacks');
+  container.innerHTML = '';
+  Object.entries(PACKS).forEach(([id, pack]) => {
+    const btn = document.createElement('button');
+    btn.className = 'pack-btn' + (id === packId ? ' active' : '');
+    btn.textContent = pack.label;
+    btn.addEventListener('click', () => switchPack(id));
+    container.appendChild(btn);
+  });
+}
+
+function renderSetButtons(){
+  const container = document.getElementById('setsList');
+  container.innerHTML = '';
+  SETS.forEach((s, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'set-btn' + (i === setIndex ? ' active' : '');
+    btn.textContent = `Set ${s.id}`;
+    btn.addEventListener('click', () => {
+      if(started){
+        setIndex = i;
+        beatIndex = 0;
+        renderSet();
+      }
+    });
+    container.appendChild(btn);
+  });
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+buildKeyboard();
+renderPackButtons();
+renderSet();
+</script>
+<script src="rhythmic-typing-lesson.js"></script>
+<script src="rhythmic-typing-back.js"></script>
+</body>
+</html>
