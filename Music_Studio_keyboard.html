@@ -1,0 +1,2659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Music Studio</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Audiowide&family=Bangers&family=Black+Ops+One&family=Bungee+Inline&family=Caveat+Brush&family=Cinzel+Decorative:wght@700;900&family=Monoton&family=Orbitron:wght@700;900&family=Outfit:wght@500;700;900&family=Permanent+Marker&family=Press+Start+2P&family=Rajdhani:wght@600;700&family=Righteous&family=Rubik+Glitch&family=Rye&family=Special+Elite&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+    :root {
+      --bg0: #05050a;
+      --bg1: #071629;
+      --bg2: #102a52;
+      --hot: #00f0ff;
+      --hot2: #ff3df2;
+      --hot3: #ffe066;
+      --hot4: #78ff9a;
+      --panel: rgba(3, 7, 16, .74);
+      --panel2: rgba(255,255,255,.075);
+      --ink: #f7fbff;
+      --muted: rgba(245,250,255,.76);
+      --keyTop: #142037;
+      --keyBottom: #070a14;
+      --glow: rgba(0, 240, 255, .66);
+      --good: #65ffb5;
+    }
+    html, body {
+      margin: 0;
+      width: 100%;
+      min-height: 100%;
+      background: #030307;
+      color: var(--ink);
+      overflow: hidden;
+      font-family: 'Outfit', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    button { font: inherit; color: inherit; }
+
+    #studioStage {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 13% 16%, color-mix(in srgb, var(--hot2) 24%, transparent), transparent 26%),
+        radial-gradient(circle at 78% 18%, color-mix(in srgb, var(--hot) 22%, transparent), transparent 25%),
+        radial-gradient(circle at 48% 86%, color-mix(in srgb, var(--hot3) 14%, transparent), transparent 34%),
+        linear-gradient(155deg, var(--bg0), var(--bg1) 44%, var(--bg2));
+      transition: background 650ms ease;
+    }
+    #waveCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+    #studioStage::before {
+      content: '';
+      position: absolute;
+      inset: -20%;
+      z-index: 2;
+      pointer-events: none;
+      opacity: .26;
+      background:
+        linear-gradient(90deg, transparent, color-mix(in srgb, var(--hot) 30%, transparent), transparent),
+        repeating-linear-gradient(0deg, rgba(255,255,255,.05) 0 1px, transparent 1px 6px),
+        repeating-linear-gradient(90deg, transparent 0 58px, rgba(255,255,255,.05) 59px 60px, transparent 61px 120px);
+      animation: gridSlide 18s linear infinite;
+      transform: perspective(600px) rotateX(52deg) translateY(22%);
+      transform-origin: bottom;
+    }
+    #studioStage::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+      opacity: .18;
+      background: radial-gradient(ellipse at 50% 65%, transparent 0 44%, rgba(0,0,0,.75) 100%);
+    }
+    @keyframes gridSlide { to { background-position: 900px 0, 0 96px, 120px 0; } }
+
+    #fxLayer, #instrumentLayer {
+      position: fixed;
+      inset: 0;
+      z-index: 8;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    #instrumentLayer { z-index: 4; }
+    /* Dedicated pop-up letter layer.
+       Letters are no longer inserted into the old effects layer.
+       This layer sits above the keyboard and clips anything that tries to fall into the keyboard area. */
+    #letterStage {
+      position: fixed;
+      left: 50%;
+      top: 72px;
+      width: min(1040px, 96vw);
+      height: 36vh;
+      z-index: 2147483000;
+      pointer-events: none;
+      overflow: hidden;
+      transform: translateX(-50%);
+      border-radius: 30px;
+      isolation: isolate;
+      contain: layout paint;
+      display: none;
+    }
+    body.keyboardMode #letterStage { display: block; }
+
+    .page {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      display: none;
+      pointer-events: auto;
+      overflow: hidden;
+    }
+    .page.active { display: block; }
+
+    #menuPage {
+      padding: clamp(12px, 2vw, 26px);
+      overflow-y: auto;
+    }
+    #menuPage::-webkit-scrollbar { width: 10px; }
+    #menuPage::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--hot) 48%, transparent); border-radius: 999px; }
+
+    .menuShell {
+      width: min(1240px, 98vw);
+      min-height: 100%;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(310px, .8fr) minmax(360px, 1.2fr);
+      grid-template-rows: auto 1fr;
+      gap: clamp(12px, 2vw, 20px);
+      padding-bottom: 22px;
+    }
+    .panel {
+      border-radius: 34px;
+      border: 1.8px solid color-mix(in srgb, var(--hot) 42%, transparent);
+      background: linear-gradient(145deg, rgba(255,255,255,.13), rgba(255,255,255,.035)), var(--panel);
+      box-shadow:
+        0 24px 74px rgba(0,0,0,.48),
+        0 0 46px color-mix(in srgb, var(--hot) 16%, transparent),
+        inset 0 1px 0 rgba(255,255,255,.17);
+      backdrop-filter: blur(15px);
+    }
+    .heroPanel {
+      grid-column: 1 / 3;
+      position: relative;
+      overflow: hidden;
+      min-height: 260px;
+      padding: clamp(18px, 3vw, 34px);
+    }
+    .heroPanel::before {
+      content: '';
+      position: absolute;
+      inset: auto -5% -44px -5%;
+      height: 150px;
+      background:
+        linear-gradient(90deg, transparent, color-mix(in srgb, var(--hot2) 60%, transparent), color-mix(in srgb, var(--hot) 70%, transparent), color-mix(in srgb, var(--hot3) 60%, transparent), transparent),
+        repeating-linear-gradient(90deg, transparent 0 16px, rgba(255,255,255,.14) 17px 19px, transparent 20px 31px);
+      clip-path: polygon(0 92%, 4% 60%, 7% 78%, 11% 22%, 16% 80%, 21% 35%, 26% 65%, 31% 12%, 36% 82%, 41% 48%, 47% 65%, 53% 18%, 58% 83%, 63% 38%, 69% 58%, 74% 10%, 78% 75%, 83% 44%, 88% 69%, 93% 28%, 100% 88%, 100% 100%, 0 100%);
+      opacity: .42;
+      filter: drop-shadow(0 0 20px var(--hot));
+      animation: equalizerWave 1.5s ease-in-out infinite alternate;
+    }
+    .heroPanel::after {
+      content: 'Music Studio';
+      position: absolute;
+      right: -18px;
+      top: 28px;
+      font-family: 'Bungee Inline', cursive;
+      font-size: clamp(28px, 5vw, 86px);
+      letter-spacing: .08em;
+      color: rgba(255,255,255,.05);
+      transform: rotate(-4deg);
+      white-space: nowrap;
+    }
+    @keyframes equalizerWave {
+      from { transform: translateY(0) scaleY(.88); opacity: .32; }
+      to { transform: translateY(-14px) scaleY(1.18); opacity: .56; }
+    }
+    .heroInner {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: minmax(0, 1.08fr) minmax(260px, .72fr);
+      gap: 20px;
+      align-items: center;
+    }
+    .kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.09);
+      border: 1px solid rgba(255,255,255,.13);
+      color: var(--hot3);
+      font-family: 'Rajdhani', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: .14em;
+      font-weight: 700;
+    }
+    h1 {
+      margin: 12px 0 8px;
+      font-family: 'Bungee Inline', cursive;
+      font-size: clamp(42px, 7vw, 88px);
+      line-height: .9;
+      letter-spacing: .015em;
+      text-shadow: 0 0 18px var(--hot), 0 0 38px color-mix(in srgb, var(--hot2) 42%, transparent), 0 7px 0 rgba(0,0,0,.32);
+    }
+    .heroText {
+      max-width: 780px;
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(16px, 2vw, 22px);
+      line-height: 1.32;
+    }
+    .heroActions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 17px;
+    }
+    .launchButton, .toggleButton, .genreCard, .backButton {
+      border: 0;
+      cursor: pointer;
+      font-weight: 900;
+      color: #061018;
+      background: linear-gradient(135deg, color-mix(in srgb, var(--hot) 82%, white 10%), color-mix(in srgb, var(--hot2) 76%, white 8%));
+      box-shadow: 0 12px 30px rgba(0,0,0,.42), 0 0 28px color-mix(in srgb, var(--hot) 32%, transparent), inset 0 2px 0 rgba(255,255,255,.45);
+      transition: transform .13s ease, filter .13s ease, box-shadow .13s ease;
+    }
+    .launchButton { min-height: 58px; padding: 15px 24px; border-radius: 999px; font-size: clamp(17px, 2vw, 22px); }
+    .toggleButton { min-height: 48px; padding: 12px 18px; border-radius: 999px; font-size: 16px; }
+    .ghost { background: rgba(255,255,255,.1); color: #fff; border: 2px solid color-mix(in srgb, var(--hot3) 55%, transparent); }
+    .launchButton:hover, .toggleButton:hover, .genreCard:hover, .backButton:hover { transform: translateY(-3px) scale(1.025); filter: brightness(1.08); }
+    .launchButton:active, .toggleButton:active, .genreCard:active, .backButton:active { transform: translateY(1px) scale(.98); }
+
+    .visualPreview {
+      min-height: 214px;
+      position: relative;
+      overflow: hidden;
+      border-radius: 30px;
+      border: 1px solid rgba(255,255,255,.14);
+      background:
+        radial-gradient(circle at 50% 70%, color-mix(in srgb, var(--hot2) 26%, transparent), transparent 35%),
+        rgba(0,0,0,.22);
+    }
+    .previewWave {
+      position: absolute;
+      left: -12%;
+      right: -12%;
+      top: 50%;
+      height: 130px;
+      transform: translateY(-50%);
+      opacity: .82;
+      background:
+        linear-gradient(90deg, transparent, var(--hot), var(--hot2), var(--hot3), var(--hot4), transparent);
+      clip-path: polygon(0 50%, 5% 45%, 9% 55%, 14% 20%, 20% 62%, 25% 35%, 31% 50%, 36% 12%, 42% 58%, 48% 46%, 54% 66%, 60% 19%, 66% 52%, 72% 41%, 78% 70%, 85% 28%, 91% 54%, 96% 46%, 100% 50%, 100% 55%, 96% 55%, 91% 62%, 85% 34%, 78% 74%, 72% 46%, 66% 58%, 60% 24%, 54% 70%, 48% 51%, 42% 63%, 36% 18%, 31% 55%, 25% 40%, 20% 66%, 14% 24%, 9% 60%, 5% 50%, 0 55%);
+      filter: blur(.4px) drop-shadow(0 0 20px var(--hot));
+      animation: previewWaveMove 3.2s ease-in-out infinite alternate;
+    }
+    .previewWave.two {
+      top: 64%;
+      opacity: .54;
+      transform: translateY(-50%) scaleY(.55);
+      animation-duration: 4.8s;
+      animation-direction: alternate-reverse;
+      filter: blur(1px) drop-shadow(0 0 26px var(--hot2));
+    }
+    @keyframes previewWaveMove {
+      from { transform: translate(-7%, -50%) scaleY(.74); }
+      to { transform: translate(7%, -50%) scaleY(1.08); }
+    }
+    .previewOrb {
+      position: absolute;
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      left: 17%;
+      top: 30%;
+      background: radial-gradient(circle at 35% 28%, #fff, var(--hot3) 22%, var(--hot2) 62%, transparent 72%);
+      box-shadow: 0 0 30px var(--hot2);
+      animation: previewBall 1.1s ease-in-out infinite alternate;
+    }
+    .previewOrb.second { left: 68%; top: 52%; background: radial-gradient(circle at 35% 28%, #fff, var(--hot) 22%, var(--hot4) 62%, transparent 72%); animation-delay: .22s; }
+    @keyframes previewBall { to { transform: translateY(-48px) scale(1.1); } }
+
+    .sidePanel {
+      padding: clamp(16px, 2vw, 24px);
+      display: grid;
+      gap: 14px;
+      align-content: start;
+    }
+    .sectionTitle {
+      margin: 0;
+      font-family: 'Bungee Inline', cursive;
+      font-size: clamp(24px, 3.4vw, 42px);
+      letter-spacing: .02em;
+      line-height: 1;
+    }
+    .hint {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.35;
+      font-size: 16px;
+    }
+    .genreGrid {
+      grid-column: 2;
+      grid-row: 2;
+      padding: clamp(16px, 2vw, 24px);
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      align-content: start;
+    }
+    .genreGridHeader {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 2px;
+    }
+    .genreGridHeader p { margin: 0; color: var(--muted); max-width: 620px; }
+    .genreCard {
+      position: relative;
+      min-height: 145px;
+      border-radius: 26px;
+      padding: 14px;
+      text-align: left;
+      overflow: hidden;
+      color: #fff;
+      border: 1.5px solid rgba(255,255,255,.15);
+      background:
+        radial-gradient(circle at var(--gx, 26%) var(--gy, 24%), color-mix(in srgb, var(--hot3) 42%, transparent), transparent 25%),
+        linear-gradient(135deg, color-mix(in srgb, var(--hot) 22%, transparent), color-mix(in srgb, var(--hot2) 20%, transparent)),
+        rgba(255,255,255,.06);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.15), 0 12px 26px rgba(0,0,0,.22);
+    }
+    .genreCard::before {
+      content: '';
+      position: absolute;
+      left: -12%; right: -12%; bottom: 8px;
+      height: 50px;
+      opacity: .48;
+      background: linear-gradient(90deg, transparent, var(--cardA, var(--hot)), var(--cardB, var(--hot2)), transparent);
+      clip-path: polygon(0 50%, 6% 30%, 12% 72%, 18% 36%, 24% 60%, 30% 18%, 37% 70%, 44% 34%, 51% 54%, 58% 12%, 65% 70%, 72% 40%, 80% 58%, 88% 22%, 94% 68%, 100% 50%, 100% 100%, 0 100%);
+      animation: cardPulse 1.6s ease-in-out infinite alternate;
+    }
+    .genreCard::after {
+      content: '';
+      position: absolute;
+      right: 12px;
+      top: 14px;
+      width: 56px;
+      height: 56px;
+      border-radius: var(--shapeRadius, 50%);
+      border: 3px solid color-mix(in srgb, var(--cardA, var(--hot)) 72%, white 10%);
+      box-shadow: 0 0 24px var(--cardA, var(--hot)), inset 0 0 15px color-mix(in srgb, var(--cardB, var(--hot2)) 30%, transparent);
+      transform: rotate(var(--shapeRot, -8deg));
+    }
+    @keyframes cardPulse { to { transform: translateX(24px) scaleY(1.12); opacity: .7; } }
+    .genreCard.active {
+      outline: 3px solid color-mix(in srgb, var(--hot3) 68%, white 8%);
+      box-shadow: 0 0 0 2px rgba(255,255,255,.2), 0 0 34px color-mix(in srgb, var(--hot) 32%, transparent), inset 0 1px 0 rgba(255,255,255,.22);
+    }
+    .genreCard strong {
+      position: relative;
+      z-index: 1;
+      display: block;
+      width: calc(100% - 62px);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 22px;
+      line-height: .94;
+      letter-spacing: .03em;
+      text-transform: uppercase;
+    }
+    .genreCard span {
+      position: relative;
+      z-index: 1;
+      display: block;
+      margin-top: 8px;
+      color: rgba(255,255,255,.78);
+      font-size: 14px;
+      line-height: 1.25;
+      max-width: 210px;
+    }
+
+    .instrumentPanel {
+      min-height: 310px;
+      overflow: hidden;
+      position: relative;
+    }
+    .instrumentPanel::before {
+      content: '';
+      position: absolute;
+      inset: 14px;
+      border-radius: 28px;
+      background: radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--hot) 24%, transparent), transparent 32%), rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.1);
+    }
+    .instrumentName {
+      position: relative;
+      z-index: 2;
+      margin: 0 0 10px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 26px;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: var(--hot3);
+    }
+    .instrumentDemo {
+      position: relative;
+      z-index: 2;
+      height: 212px;
+      border-radius: 25px;
+      overflow: hidden;
+      background: rgba(0,0,0,.18);
+    }
+
+    .miniDrumSet { position: absolute; inset: 0; }
+    .miniDrumSet .drum {
+      position: absolute;
+      bottom: 22px;
+      width: 86px;
+      height: 48px;
+      border-radius: 50% 50% 28% 28%;
+      background: linear-gradient(180deg, color-mix(in srgb, var(--hot) 65%, white 8%), color-mix(in srgb, var(--hot2) 64%, black 10%));
+      border: 3px solid rgba(255,255,255,.58);
+      box-shadow: 0 0 28px var(--hot), inset 0 2px 0 rgba(255,255,255,.38);
+    }
+    .miniDrumSet .drum.one { left: 13%; }
+    .miniDrumSet .drum.two { left: calc(50% - 43px); width: 104px; height: 60px; }
+    .miniDrumSet .drum.three { right: 13%; }
+    .miniDrumBall {
+      position: absolute;
+      z-index: 5;
+      left: 50%;
+      bottom: 96px;
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 30% 24%, #fff 0 10%, var(--hot3) 11% 34%, var(--hot2) 66%, var(--hot) 100%);
+      box-shadow: 0 0 22px var(--hot3), 0 0 48px var(--hot2), 0 0 78px var(--hot);
+      animation: demoDrumHop .82s cubic-bezier(.2,.75,.25,1) infinite;
+    }
+    .miniDrumBall::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 88%;
+      width: 92px;
+      height: 24px;
+      border-radius: 50%;
+      border: 3px solid var(--hot);
+      transform: translateX(-50%);
+      opacity: .62;
+      box-shadow: 0 0 20px var(--hot);
+      animation: demoDrumRing .82s ease-in-out infinite;
+    }
+    @keyframes demoDrumHop {
+      0%, 100% { transform: translate(-50%, 40px) scale(1.18,.72); }
+      48% { transform: translate(-50%, -72px) scale(.86,1.18); }
+    }
+    @keyframes demoDrumRing {
+      0%, 100% { transform: translateX(-50%) scaleX(1.15); opacity: .84; }
+      48% { transform: translateX(-50%) scaleX(.58); opacity: .18; }
+    }
+    .miniPiano { position: absolute; left: 9%; right: 9%; bottom: 30px; height: 76px; display: flex; gap: 4px; }
+    .miniPiano i { flex: 1; border-radius: 10px; background: linear-gradient(180deg, #fff, color-mix(in srgb, var(--hot) 20%, #cddcff)); box-shadow: 0 0 16px color-mix(in srgb, var(--hot) 34%, transparent); animation: pianoGlow 1.1s ease-in-out infinite alternate; animation-delay: calc(var(--i) * .09s); }
+    @keyframes pianoGlow { to { transform: translateY(-12px); filter: brightness(1.25); } }
+    .miniSpeaker { position: absolute; left: 12%; top: 30px; width: 92px; height: 128px; border-radius: 24px; border: 2px solid rgba(255,255,255,.22); background: rgba(255,255,255,.08); box-shadow: 0 0 28px color-mix(in srgb, var(--hot) 35%, transparent); }
+    .miniSpeaker::before, .miniSpeaker::after { content:''; position:absolute; border-radius:50%; left:50%; transform:translateX(-50%); background: radial-gradient(circle, #fff 0 8%, var(--hot) 9% 31%, rgba(0,0,0,.35) 32% 50%, transparent 51%); box-shadow: 0 0 22px var(--hot); animation: speakerPulse .52s ease-in-out infinite alternate; }
+    .miniSpeaker::before { top: 14px; width: 44px; height: 44px; }
+    .miniSpeaker::after { bottom: 14px; width: 60px; height: 60px; }
+    @keyframes speakerPulse { to { transform: translateX(-50%) scale(1.12); } }
+    .miniStrings { position: absolute; inset: 38px 30px; }
+    .miniStrings i { position: absolute; left: 0; right: 0; top: calc(18px * var(--i)); height: 3px; border-radius: 99px; background: linear-gradient(90deg, transparent, var(--hot3), var(--hot), transparent); box-shadow: 0 0 16px var(--hot); animation: stringVibe .52s ease-in-out infinite alternate; animation-delay: calc(var(--i) * .06s); }
+    @keyframes stringVibe { to { transform: translateY(4px) scaleX(.94); filter: brightness(1.28); } }
+
+    #keyboardPage { padding: clamp(10px, 1.7vw, 22px); }
+    .keyboardShell {
+      height: 100%;
+      width: min(1120px, 99vw);
+      margin: 0 auto;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: clamp(10px, 2vh, 22px);
+      align-items: stretch;
+    }
+    .topBar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .backButton {
+      min-width: 112px;
+      min-height: 50px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.1);
+      color: #fff;
+      border: 2px solid color-mix(in srgb, var(--hot3) 72%, transparent);
+    }
+    .nowPlaying {
+      margin-left: auto;
+      min-width: 0;
+      max-width: 66vw;
+      text-align: right;
+      color: var(--muted);
+      font-family: 'Rajdhani', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .keyboardArea {
+      display: grid;
+      align-content: end;
+      justify-items: center;
+      min-height: 0;
+    }
+    #keyboard {
+      position: relative;
+      z-index: 30;
+      width: min(1020px, 98vw);
+      padding: clamp(12px, 1.7vw, 20px);
+      border-radius: 30px;
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--bg1) 70%, black 18%), rgba(0,0,0,.78)),
+        radial-gradient(circle at 20% 0%, color-mix(in srgb, var(--hot) 20%, transparent), transparent 30%);
+      border: 2px solid color-mix(in srgb, var(--hot) 38%, transparent);
+      box-shadow:
+        0 0 0 2px rgba(0,0,0,.7),
+        0 -10px 56px color-mix(in srgb, var(--hot) 15%, transparent),
+        0 32px 84px rgba(0,0,0,.85),
+        inset 0 1px 0 rgba(255,255,255,.12);
+    }
+    .kb-row {
+      display: flex;
+      justify-content: center;
+      gap: clamp(6px, .95vw, 11px);
+      margin-bottom: clamp(7px, .95vw, 12px);
+    }
+    .kb-row:last-child { margin-bottom: 0; }
+    .homeLetters { transform: translateX(3.4%); }
+    .bottomLetters { transform: translateX(-.8%); }
+    .key {
+      position: relative;
+      display: grid;
+      place-items: center;
+      min-width: clamp(44px, 7vw, 74px);
+      height: clamp(50px, 7vw, 74px);
+      padding: 0 6px;
+      border: 0;
+      border-radius: 18px;
+      color: rgba(248,252,255,.95);
+      background:
+        radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--hot) 24%, transparent), transparent 48%),
+        linear-gradient(155deg, var(--keyTop), var(--keyBottom));
+      font-family: 'Rajdhani', sans-serif;
+      font-size: clamp(22px, 2.7vw, 32px);
+      font-weight: 700;
+      letter-spacing: .04em;
+      cursor: pointer;
+      text-transform: uppercase;
+      box-shadow: inset 0 2px 0 rgba(255,255,255,.13), inset 0 -4px 0 rgba(0,0,0,.42), 0 10px 18px rgba(0,0,0,.45);
+      overflow: hidden;
+      transition: transform 70ms ease, box-shadow 90ms ease, filter 90ms ease, background 90ms ease;
+    }
+    .key::before {
+      content: '';
+      position: absolute;
+      left: 10px; right: 10px; bottom: 7px;
+      height: 3px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, transparent, var(--stripe, var(--hot)), transparent);
+      box-shadow: 0 0 10px var(--stripe, var(--hot));
+    }
+    .key::after {
+      content: '';
+      position: absolute;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 2px solid color-mix(in srgb, var(--stripe, var(--hot)) 70%, transparent);
+      opacity: .12;
+      transform: scale(.8);
+    }
+    .key.active {
+      transform: translateY(-8px) scale(1.08);
+      color: #fff;
+      filter: brightness(1.12);
+      background:
+        radial-gradient(circle at 50% 20%, rgba(255,255,255,.35), transparent 34%),
+        linear-gradient(155deg, color-mix(in srgb, var(--hot) 75%, #142037 22%), color-mix(in srgb, var(--hot2) 68%, #05070e 28%));
+      box-shadow: 0 0 20px var(--glow), 0 0 52px color-mix(in srgb, var(--hot2) 32%, transparent), inset 0 2px 0 rgba(255,255,255,.34), 0 12px 25px rgba(0,0,0,.54);
+    }
+    .key[data-key="space"] {
+      min-width: min(570px, 74vw);
+      font-size: clamp(17px, 2.2vw, 28px);
+      letter-spacing: .14em;
+    }
+    .numberKeys .key {
+      height: clamp(42px, 5.4vw, 58px);
+      min-width: clamp(38px, 6.1vw, 62px);
+      border-radius: 16px 16px 22px 22px;
+      font-size: clamp(18px, 2.25vw, 26px);
+      opacity: .96;
+    }
+    .key:nth-child(3n+1) { border-radius: 18px 12px 22px 16px; }
+    .key:nth-child(3n+2) { border-radius: 13px 22px 15px 22px; }
+    .key:nth-child(3n) { border-radius: 22px 18px 13px 20px; }
+    .key:nth-child(4n)::after { border-radius: 24%; transform: rotate(18deg) scale(.78); }
+    .key:nth-child(5n)::after { width: 38px; height: 38px; border-radius: 10px; transform: rotate(45deg) scale(.72); }
+    .key.active::before { height: 5px; }
+    .key[data-f="lp"] { --stripe:#ff426e; }
+    .key[data-f="lr"] { --stripe:#ff9b32; }
+    .key[data-f="lm"] { --stripe:#ffe25a; }
+    .key[data-f="li"] { --stripe:#68ff9d; }
+    .key[data-f="ri"] { --stripe:#5ff7ff; }
+    .key[data-f="rm"] { --stripe:#a78bff; }
+    .key[data-f="rr"] { --stripe:#ff78e7; }
+    .key[data-f="rp"] { --stripe:#ff426e; }
+
+    .drumStage {
+      display: none;
+      position: relative;
+      width: min(880px, 94vw);
+      height: clamp(150px, 23vh, 238px);
+      margin: 0 auto clamp(10px, 1.4vh, 16px);
+      border-radius: 34px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 18% 68%, color-mix(in srgb, var(--hot) 22%, transparent), transparent 26%),
+        radial-gradient(circle at 82% 68%, color-mix(in srgb, var(--hot2) 20%, transparent), transparent 26%),
+        linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,0,0,.18));
+      border: 2px solid color-mix(in srgb, var(--hot) 42%, transparent);
+      box-shadow: 0 0 34px color-mix(in srgb, var(--hot) 20%, transparent), inset 0 1px 0 rgba(255,255,255,.13);
+      isolation: isolate;
+    }
+    body[data-genre="drums"] .drumStage { display: block; }
+    .drumStage::before {
+      content: '';
+      display: none;
+    }
+    .drumStage::after {
+      content: '';
+      position: absolute;
+      inset: auto -6% 0 -6%;
+      height: 62%;
+      z-index: 0;
+      opacity: .5;
+      background:
+        linear-gradient(90deg, transparent, color-mix(in srgb, var(--hot) 44%, transparent), color-mix(in srgb, var(--hot2) 42%, transparent), transparent),
+        repeating-linear-gradient(90deg, transparent 0 18px, rgba(255,255,255,.12) 19px 21px, transparent 22px 36px);
+      clip-path: polygon(0 92%, 5% 56%, 10% 77%, 16% 42%, 22% 80%, 29% 36%, 35% 85%, 42% 48%, 50% 75%, 57% 28%, 64% 82%, 71% 40%, 78% 78%, 86% 34%, 94% 82%, 100% 58%, 100% 100%, 0 100%);
+      filter: drop-shadow(0 0 18px var(--hot));
+      animation: drumEqDance .5s ease-in-out infinite alternate;
+    }
+    @keyframes drumEqDance { to { transform: translateY(-8px) scaleY(1.15); opacity: .7; } }
+    .drumPad {
+      position: absolute;
+      z-index: 2;
+      bottom: 26px;
+      width: clamp(104px, 16vw, 160px);
+      height: clamp(46px, 7vw, 72px);
+      border-radius: 50% 50% 30px 30px;
+      background:
+        radial-gradient(ellipse at 50% 18%, rgba(255,255,255,.86), color-mix(in srgb, var(--hot) 56%, white 8%) 20%, transparent 42%),
+        linear-gradient(180deg, color-mix(in srgb, var(--hot) 72%, white 4%), color-mix(in srgb, var(--hot2) 70%, black 12%));
+      border: 3px solid rgba(255,255,255,.56);
+      box-shadow: 0 0 24px var(--hot), 0 0 46px color-mix(in srgb, var(--hot2) 40%, transparent), inset 0 2px 0 rgba(255,255,255,.42);
+      transform: translateX(-50%);
+    }
+    .drumPad::before {
+      content: '';
+      position: absolute;
+      left: 12%;
+      right: 12%;
+      top: 9px;
+      height: 14px;
+      border-radius: 50%;
+      border-top: 3px solid rgba(255,255,255,.68);
+      opacity: .8;
+    }
+    .drumPad.one { left: 19%; }
+    .drumPad.two { left: 50%; width: clamp(128px, 19vw, 192px); height: clamp(54px, 8vw, 84px); }
+    .drumPad.three { left: 81%; }
+    .drumStageBall {
+      position: absolute;
+      z-index: 4;
+      left: 19%;
+      bottom: 84px;
+      width: clamp(40px, 6vw, 66px);
+      height: clamp(40px, 6vw, 66px);
+      border-radius: 50%;
+      background: radial-gradient(circle at 28% 24%, #fff 0 10%, var(--hot3) 11% 32%, var(--hot2) 62%, var(--hot) 100%);
+      box-shadow: 0 0 22px var(--hot3), 0 0 48px var(--hot2), 0 0 86px var(--hot);
+      transform: translateX(-50%);
+      animation: drumTravel 2.05s cubic-bezier(.2,.72,.24,1) infinite;
+    }
+    .drumStageBall.two { width: clamp(28px, 4.4vw, 46px); height: clamp(28px, 4.4vw, 46px); animation-delay: -.68s; filter: hue-rotate(34deg); }
+    .drumStageBall.three { width: clamp(24px, 4vw, 40px); height: clamp(24px, 4vw, 40px); animation-delay: -1.36s; filter: hue-rotate(-40deg); }
+    @keyframes drumTravel {
+      0%, 100% { left: 19%; bottom: 82px; transform: translateX(-50%) scale(1.16,.76); }
+      15% { left: 31%; bottom: 172px; transform: translateX(-50%) scale(.9,1.12); }
+      33% { left: 50%; bottom: 94px; transform: translateX(-50%) scale(1.18,.78); }
+      50% { left: 62%; bottom: 184px; transform: translateX(-50%) scale(.88,1.16); }
+      66% { left: 81%; bottom: 82px; transform: translateX(-50%) scale(1.16,.78); }
+      82% { left: 54%; bottom: 160px; transform: translateX(-50%) scale(.94,1.08); }
+    }
+    .drumStageImpact {
+      position: absolute;
+      z-index: 5;
+      left: var(--hitX, 50%);
+      bottom: var(--hitY, 58px);
+      width: 96px;
+      height: 32px;
+      border-radius: 50%;
+      border: 4px solid var(--hot3);
+      transform: translateX(-50%) scale(.25);
+      box-shadow: 0 0 20px var(--hot3), 0 0 42px var(--hot);
+      pointer-events: none;
+      animation: drumImpactPop .55s ease-out forwards;
+    }
+    @keyframes drumImpactPop {
+      0% { opacity: 0; transform: translateX(-50%) scale(.2); }
+      20% { opacity: .95; }
+      100% { opacity: 0; transform: translateX(-50%) scale(1.7); }
+    }
+    .drumHitBall {
+      position: absolute;
+      z-index: 6;
+      left: var(--hitX, 50%);
+      bottom: var(--hitY, 82px);
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 28% 24%, #fff 0 10%, var(--hot3) 11% 32%, var(--hot2) 62%, var(--hot) 100%);
+      box-shadow: 0 0 22px var(--hot3), 0 0 48px var(--hot2), 0 0 86px var(--hot);
+      transform: translate(-50%, -170px) scale(.72);
+      pointer-events: none;
+      animation: drumHitDrop .62s cubic-bezier(.18,.86,.2,1) forwards;
+    }
+    @keyframes drumHitDrop {
+      0% { opacity: 0; transform: translate(-50%, -190px) scale(.48); }
+      18% { opacity: 1; }
+      68% { transform: translate(-50%, -28px) scale(1.08); }
+      82% { transform: translate(-50%, 0) scale(1.2,.72); }
+      100% { opacity: 0; transform: translate(-50%, -78px) scale(.7); }
+    }
+
+    .floatingLetter {
+      position: absolute;
+      z-index: 1;
+      left: var(--x);
+      top: var(--y);
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      font-family: 'Bungee Inline', cursive;
+      font-size: var(--size, clamp(58px, 10vw, 140px));
+      color: #fff;
+      text-shadow: 0 0 14px var(--hot), 0 0 36px var(--hot2), 0 10px 0 rgba(0,0,0,.32);
+      animation: floatLetterWave .88s cubic-bezier(.16,1.1,.34,1) forwards;
+    }
+    .floatingLetter.beat { animation-name: floatLetterBeat; }
+    .floatingLetter.slide { animation-name: floatLetterSlide; }
+    .floatingLetter.spin { animation-name: floatLetterSpin; }
+    .floatingLetter.soft { animation-name: floatLetterSoft; }
+    @keyframes floatLetterWave {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(.18) rotate(-8deg); }
+      22% { opacity: 1; transform: translate(-50%, -56%) scale(1.12) rotate(3deg); }
+      62% { transform: translate(calc(-50% + var(--dx, 12px)), calc(-50% - 84px)) scale(1.02) rotate(5deg); }
+      100% { opacity: 0; transform: translate(calc(-50% + var(--dx, 44px)), calc(-50% - 180px)) scale(.58) rotate(15deg); }
+    }
+    @keyframes floatLetterBeat {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(.16); }
+      28% { opacity: 1; transform: translate(-50%, -74%) scale(1.34); }
+      55% { transform: translate(-50%, -58%) scale(.92); }
+      100% { opacity: 0; transform: translate(-50%, -170%) scale(.62); }
+    }
+    @keyframes floatLetterSlide {
+      0% { opacity: 0; transform: translate(-190%, -58%) scale(.34); }
+      28% { opacity: 1; transform: translate(-50%, -66%) scale(1.14); }
+      100% { opacity: 0; transform: translate(72%, -142%) scale(.58); }
+    }
+    @keyframes floatLetterSpin {
+      0% { opacity: 0; transform: translate(-50%, -50%) rotate(-170deg) scale(.16); }
+      34% { opacity: 1; transform: translate(-50%, -66%) rotate(20deg) scale(1.24); }
+      100% { opacity: 0; transform: translate(-50%, -156%) rotate(560deg) scale(.14); }
+    }
+    @keyframes floatLetterSoft {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(.24); }
+      25%, 70% { opacity: 1; }
+      45% { transform: translate(calc(-50% + var(--dx, 22px)), calc(-50% - 66px)) scale(1.08); }
+      100% { opacity: 0; transform: translate(calc(-50% + var(--dx, 35px)), calc(-50% - 210px)) scale(.66); }
+    }
+
+    .waveBurst {
+      position: fixed;
+      z-index: 26;
+      pointer-events: none;
+      left: var(--x);
+      top: var(--y);
+      width: var(--w, 230px);
+      height: var(--h, 80px);
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      background: linear-gradient(90deg, transparent, var(--hot), var(--hot2), var(--hot3), transparent);
+      clip-path: polygon(0 50%, 8% 44%, 14% 61%, 21% 22%, 29% 68%, 36% 34%, 43% 55%, 51% 16%, 58% 66%, 66% 38%, 74% 55%, 82% 25%, 90% 62%, 100% 50%, 100% 56%, 90% 68%, 82% 30%, 74% 61%, 66% 43%, 58% 72%, 51% 20%, 43% 61%, 36% 39%, 29% 74%, 21% 27%, 14% 67%, 8% 49%, 0 56%);
+      filter: blur(.35px) drop-shadow(0 0 20px var(--hot));
+      animation: waveBurstOut .88s ease forwards;
+    }
+    @keyframes waveBurstOut {
+      0% { opacity: 0; transform: translate(-50%, -50%) scaleX(.25) scaleY(.4); }
+      20%, 60% { opacity: .9; }
+      100% { opacity: 0; transform: translate(calc(-50% + var(--dx, 0px)), calc(-50% + var(--dy, 0px))) scaleX(1.35) scaleY(.8); }
+    }
+    .soundRing {
+      position: fixed;
+      z-index: 25;
+      pointer-events: none;
+      left: var(--x);
+      top: var(--y);
+      width: var(--s, 28px);
+      height: var(--s, 28px);
+      border-radius: 50%;
+      border: 3px solid var(--ring, var(--hot));
+      box-shadow: 0 0 18px var(--ring, var(--hot)), inset 0 0 15px color-mix(in srgb, var(--ring, var(--hot)) 35%, transparent);
+      transform: translate(-50%, -50%) scale(.12);
+      opacity: .85;
+      animation: soundRingOut .75s ease-out forwards;
+    }
+    @keyframes soundRingOut { to { opacity: 0; transform: translate(-50%, -50%) scale(7.4); } }
+    .noteDot {
+      position: fixed;
+      z-index: 30;
+      pointer-events: none;
+      left: var(--x);
+      top: var(--y);
+      width: var(--s, 12px);
+      height: var(--s, 12px);
+      border-radius: var(--r, 50%);
+      background: var(--c, var(--hot3));
+      box-shadow: 0 0 14px var(--c, var(--hot3)), 0 0 30px var(--c, var(--hot3));
+      transform: translate(-50%, -50%);
+      animation: noteDotFly .75s ease-out forwards;
+    }
+    @keyframes noteDotFly {
+      0% { opacity: .95; transform: translate(-50%, -50%) scale(.4) rotate(0); }
+      100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.35) rotate(160deg); }
+    }
+    .drumHopFx {
+      position: fixed;
+      z-index: 32;
+      pointer-events: none;
+      left: var(--x);
+      top: var(--y);
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 28% 25%, #fff, var(--hot3) 24%, var(--hot2) 68%);
+      box-shadow: 0 0 20px var(--hot3), 0 0 40px var(--hot2);
+      animation: drumHopFx .72s ease forwards;
+    }
+    .drumHopFx::after {
+      content: '';
+      position: absolute;
+      left: 50%; top: 84%;
+      width: 96px; height: 34px;
+      border-radius: 50%;
+      border: 3px solid var(--hot);
+      transform: translateX(-50%);
+      box-shadow: 0 0 20px var(--hot);
+      opacity: .78;
+    }
+    @keyframes drumHopFx {
+      0% { opacity: 0; transform: translate(-50%, 28px) scale(.45); }
+      20% { opacity: 1; }
+      58% { transform: translate(-50%, -84px) scale(1.08); }
+      100% { opacity: 0; transform: translate(-50%, 20px) scale(.74); }
+    }
+    .typingBounceBall {
+      position: fixed;
+      z-index: 35;
+      pointer-events: none;
+      left: var(--x);
+      top: var(--y);
+      width: var(--s, 56px);
+      height: var(--s, 56px);
+      border-radius: var(--r, 50%);
+      background: radial-gradient(circle at 30% 24%, #fff 0 10%, var(--hot3) 11% 30%, var(--hot2) 58%, var(--hot) 100%);
+      box-shadow: 0 0 18px var(--hot3), 0 0 42px var(--hot2), 0 0 72px var(--hot);
+      transform: translate(-50%, 18px) scale(.55);
+      animation: typingBallBounce .78s cubic-bezier(.18,.88,.2,1) forwards;
+    }
+    .typingBounceBall.square { --r: 18px; }
+    .typingBounceBall.diamond { --r: 12px; animation-name: typingBallDiamond; }
+    .typingBounceBall.small { --s: 38px; }
+    .typingBounceBall::after {
+      content: '';
+      position: absolute;
+      left: 50%; top: 86%;
+      width: calc(var(--s, 56px) * 1.55);
+      height: calc(var(--s, 56px) * .42);
+      border-radius: 50%;
+      border: 3px solid var(--hot);
+      transform: translateX(-50%) scale(.56);
+      opacity: .7;
+      box-shadow: 0 0 18px var(--hot);
+      animation: typingBallShadow .78s ease-out forwards;
+    }
+    @keyframes typingBallBounce {
+      0% { opacity: 0; transform: translate(-50%, 18px) scale(.5); }
+      16% { opacity: 1; }
+      46% { transform: translate(calc(-50% + var(--dx, 0px)), -88px) scale(.9,1.12); }
+      70% { transform: translate(calc(-50% + var(--dx, 0px)), -8px) scale(1.18,.72); }
+      100% { opacity: 0; transform: translate(calc(-50% + var(--dx2, 0px)), -54px) scale(.65); }
+    }
+    @keyframes typingBallDiamond {
+      0% { opacity: 0; transform: translate(-50%, 18px) rotate(45deg) scale(.45); }
+      16% { opacity: 1; }
+      46% { transform: translate(calc(-50% + var(--dx, 0px)), -92px) rotate(90deg) scale(.9,1.12); }
+      70% { transform: translate(calc(-50% + var(--dx, 0px)), -8px) rotate(135deg) scale(1.16,.74); }
+      100% { opacity: 0; transform: translate(calc(-50% + var(--dx2, 0px)), -56px) rotate(210deg) scale(.6); }
+    }
+    @keyframes typingBallShadow {
+      0%, 70% { opacity: .7; transform: translateX(-50%) scale(.8); }
+      46% { opacity: .22; transform: translateX(-50%) scale(.46); }
+      100% { opacity: 0; transform: translateX(-50%) scale(1.2); }
+    }
+    .shapeSpark {
+      position: fixed;
+      z-index: 31;
+      pointer-events: none;
+      left: var(--x);
+      top: var(--y);
+      width: var(--s, 24px);
+      height: var(--s, 24px);
+      border-radius: var(--r, 50%);
+      background: var(--c, var(--hot3));
+      box-shadow: 0 0 16px var(--c, var(--hot3)), 0 0 34px var(--c, var(--hot3));
+      transform: translate(-50%, -50%);
+      animation: shapeSparkOut .72s ease-out forwards;
+    }
+    @keyframes shapeSparkOut {
+      0% { opacity: .95; transform: translate(-50%, -50%) scale(.36) rotate(0); }
+      100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.35) rotate(180deg); }
+    }
+
+    .stageInstrument {
+      position: absolute;
+      z-index: 4;
+      pointer-events: none;
+      opacity: .45;
+      filter: drop-shadow(0 0 18px var(--hot));
+      animation: driftInstrument var(--dur, 9s) ease-in-out infinite alternate;
+    }
+    @keyframes driftInstrument { to { transform: translate(var(--dx, 20px), var(--dy, -24px)) rotate(var(--rot, 8deg)) scale(1.08); opacity: .76; } }
+    .glyphDisc { width: 88px; height: 88px; border-radius: 50%; background: radial-gradient(circle, #fff 0 5%, rgba(0,0,0,.8) 6% 18%, var(--hot2) 19% 23%, transparent 24% 34%, var(--hot) 35% 38%, transparent 39% 48%, color-mix(in srgb, var(--hot) 25%, transparent) 49% 50%, transparent 51%); }
+    .glyphPad { width: 88px; height: 88px; border-radius: 24px; border: 3px solid var(--hot); background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--hot) 28%, transparent) 0 8px, transparent 9px 16px); }
+    .glyphSpeaker { width: 78px; height: 112px; border-radius: 22px; border: 3px solid var(--hot); background: radial-gradient(circle at 50% 28%, #fff 0 6%, var(--hot) 7% 18%, transparent 20%), radial-gradient(circle at 50% 72%, #fff 0 8%, var(--hot2) 9% 27%, transparent 29%); }
+    .glyphWave { width: 170px; height: 60px; background: linear-gradient(90deg, transparent, var(--hot), var(--hot2), transparent); clip-path: polygon(0 50%, 10% 30%, 20% 70%, 31% 18%, 44% 62%, 55% 37%, 67% 66%, 78% 24%, 91% 59%, 100% 50%, 100% 60%, 91% 69%, 78% 34%, 67% 76%, 55% 47%, 44% 72%, 31% 28%, 20% 80%, 10% 40%, 0 60%); }
+
+
+
+    /* Theme visual stage: decorative only, no words. Keeps the keyboard page clean while
+       each sound world still shows its own style above the keyboard. */
+    .themeStage {
+      display: block;
+      position: relative;
+      width: min(880px, 94vw);
+      height: clamp(150px, 23vh, 238px);
+      margin: 0 auto clamp(10px, 1.4vh, 16px);
+      border-radius: 34px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 22% 30%, color-mix(in srgb, var(--hot) 22%, transparent), transparent 30%),
+        radial-gradient(circle at 78% 72%, color-mix(in srgb, var(--hot2) 20%, transparent), transparent 32%),
+        linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,0,0,.2));
+      border: 2px solid color-mix(in srgb, var(--hot) 42%, transparent);
+      box-shadow: 0 0 34px color-mix(in srgb, var(--hot) 20%, transparent), inset 0 1px 0 rgba(255,255,255,.13);
+      isolation: isolate;
+    }
+    .themeStage:empty { display: none; }
+    body[data-genre="drums"] .themeStage { display: none; }
+    .themeVisual { position: absolute; inset: 0; overflow: hidden; }
+    .themeVisual::before {
+      content: '';
+      position: absolute;
+      inset: -20%;
+      opacity: .22;
+      background: radial-gradient(circle, rgba(255,255,255,.22) 0 2px, transparent 3px 44px);
+      animation: themeDrift 12s linear infinite;
+    }
+    @keyframes themeDrift { to { transform: translate(46px, -32px) rotate(8deg); } }
+    .themeStage.hit { animation: themeStageHit .34s ease-out; }
+    @keyframes themeStageHit { 0% { filter: brightness(1.35); } 100% { filter: brightness(1); } }
+
+    .pianoTileRail {
+      position: absolute;
+      left: 7%; right: 7%; bottom: 26px;
+      height: min(96px, 46%);
+      display: flex;
+      gap: clamp(3px, .8vw, 7px);
+      z-index: 3;
+    }
+    .pianoTile {
+      flex: 1;
+      border-radius: 0 0 15px 15px;
+      background: linear-gradient(180deg, #fff, color-mix(in srgb, var(--hot) 18%, #dbe9ff));
+      box-shadow: 0 0 16px color-mix(in srgb, var(--hot) 28%, transparent), inset 0 -8px 0 rgba(0,0,0,.16);
+      animation: pianoTileFloat 1.7s ease-in-out infinite alternate;
+      animation-delay: calc(var(--i) * .055s);
+    }
+    .pianoTile.active { animation: pianoTileHit .38s ease-out; }
+    .pianoBlackRail { position: absolute; left: 11%; right: 11%; bottom: 84px; height: 74px; z-index: 4; pointer-events:none; }
+    .pianoBlackRail i {
+      position: absolute;
+      left: calc(var(--i) * 9.4%);
+      width: 5.4%;
+      height: 100%;
+      border-radius: 0 0 10px 10px;
+      background: linear-gradient(180deg, #1a2035, #02030a);
+      box-shadow: 0 0 12px color-mix(in srgb, var(--hot2) 35%, transparent), inset 0 -4px 0 rgba(255,255,255,.06);
+      animation: blackKeyGlow 1.4s ease-in-out infinite alternate;
+      animation-delay: calc(var(--i) * .08s);
+    }
+    .pianoRippleBall {
+      position: absolute;
+      z-index: 6;
+      left: 13%; bottom: 96px;
+      width: clamp(42px, 6vw, 64px); height: clamp(42px, 6vw, 64px);
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 25%, #fff, var(--hot3) 23%, var(--hot) 66%, var(--hot2));
+      box-shadow: 0 0 22px var(--hot), 0 0 56px var(--hot2);
+      animation: pianoBallTravel 2.35s cubic-bezier(.18,.72,.24,1) infinite;
+    }
+    .pianoRippleBall::after {
+      content:''; position:absolute; left:50%; top:85%; width:120%; height:34%; border-radius:50%;
+      border: 3px solid var(--hot); transform:translateX(-50%); opacity:.54; box-shadow:0 0 18px var(--hot);
+    }
+    @keyframes pianoTileFloat { to { transform: translateY(-8px); filter: brightness(1.12); } }
+    @keyframes pianoTileHit { 0% { transform: translateY(-18px) scaleY(1.08); filter: brightness(1.5); } 100% { transform: translateY(0); filter: brightness(1); } }
+    @keyframes blackKeyGlow { to { filter: brightness(1.3); transform: translateY(-5px); } }
+    @keyframes pianoBallTravel {
+      0%,100% { left: 13%; bottom: 88px; transform: translateX(-50%) scale(1.14,.76); }
+      18% { left: 27%; bottom: 178px; transform: translateX(-50%) scale(.9,1.12); }
+      37% { left: 44%; bottom: 94px; transform: translateX(-50%) scale(1.14,.78); }
+      58% { left: 63%; bottom: 180px; transform: translateX(-50%) scale(.9,1.14); }
+      78% { left: 84%; bottom: 92px; transform: translateX(-50%) scale(1.15,.78); }
+    }
+
+    .themeSpeakers .speakerTower { position:absolute; top:24px; width:96px; height:154px; border:3px solid var(--hot); border-radius:25px; background:rgba(255,255,255,.08); box-shadow:0 0 24px var(--hot); }
+    .themeSpeakers .speakerTower.left { left:12%; } .themeSpeakers .speakerTower.right { right:12%; }
+    .themeSpeakers .speakerTower::before, .themeSpeakers .speakerTower::after { content:''; position:absolute; left:50%; transform:translateX(-50%); border-radius:50%; background:radial-gradient(circle, #fff 0 7%, var(--hot) 8% 26%, rgba(0,0,0,.4) 27% 52%, transparent 53%); box-shadow:0 0 20px var(--hot); animation:speakerBeat .52s ease-in-out infinite alternate; }
+    .themeSpeakers .speakerTower::before { top:16px; width:46px; height:46px; } .themeSpeakers .speakerTower::after { bottom:18px; width:66px; height:66px; animation-delay:.08s; }
+    .beatPadRail { position:absolute; left:31%; right:31%; bottom:36px; display:grid; grid-template-columns:repeat(4,1fr); gap:9px; }
+    .beatPadRail i { height:54px; border-radius:16px; background:linear-gradient(145deg, var(--hot2), color-mix(in srgb,var(--hot) 70%, #111)); box-shadow:0 0 18px var(--hot2); animation:padJump .75s ease-in-out infinite alternate; animation-delay:calc(var(--i) * .08s); }
+    @keyframes speakerBeat { to { transform:translateX(-50%) scale(1.14); filter:brightness(1.25); } }
+    @keyframes padJump { to { transform:translateY(-16px) rotate(3deg); filter:brightness(1.25); } }
+
+    .themeSynth .laserLine { position:absolute; left:-8%; right:-8%; top:calc(28% + var(--i) * 13%); height:16px; background:linear-gradient(90deg,transparent,var(--hot),var(--hot2),var(--hot3),transparent); clip-path:polygon(0 50%,12% 20%,25% 70%,40% 24%,58% 64%,73% 18%,88% 68%,100% 50%,100% 70%,88% 88%,73% 38%,58% 84%,40% 44%,25% 90%,12% 40%,0 70%); filter:drop-shadow(0 0 18px var(--hot)); animation:synthLine 1.4s ease-in-out infinite alternate; animation-delay:calc(var(--i)*.12s); }
+    .themeSynth .synthOrb { position:absolute; width:58px; height:58px; border-radius:50%; background:radial-gradient(circle at 30% 25%,#fff,var(--hot),var(--hot2)); box-shadow:0 0 35px var(--hot2); left:22%; top:35%; animation:orbFloat 1.2s ease-in-out infinite alternate; }
+    .themeSynth .synthOrb.two { left:auto; right:22%; top:52%; animation-delay:.3s; }
+    @keyframes synthLine { to { transform:translateX(42px) scaleY(1.5); filter:brightness(1.28) drop-shadow(0 0 24px var(--hot2)); } }
+    @keyframes orbFloat { to { transform:translateY(-46px) scale(1.09); } }
+
+    .themeJazz .jazzSpot { position:absolute; width:clamp(70px,12vw,130px); height:clamp(70px,12vw,130px); border-radius:50% 12% 50% 12%; background:radial-gradient(circle at 35% 25%,#fff,var(--hot3) 25%,var(--hot2) 64%,transparent 72%); box-shadow:0 0 35px var(--hot3); animation:jazzGlow 1.6s ease-in-out infinite alternate; }
+    .themeJazz .jazzSpot.one { left:14%; top:28%; } .themeJazz .jazzSpot.two { left:43%; top:18%; animation-delay:.2s; } .themeJazz .jazzSpot.three { right:13%; top:38%; animation-delay:.4s; }
+    @keyframes jazzGlow { to { transform:translateY(-26px) rotate(18deg) scale(1.08); filter:brightness(1.18); } }
+
+    .themeRock .rockString { position:absolute; left:9%; right:9%; top:calc(25% + var(--i) * 10%); height:4px; border-radius:99px; background:linear-gradient(90deg,transparent,var(--hot3),var(--hot),var(--hot2),transparent); box-shadow:0 0 16px var(--hot); animation:rockShake .42s ease-in-out infinite alternate; animation-delay:calc(var(--i)*.04s); }
+    .themeRock .rockPick { position:absolute; left:48%; top:22%; width:74px; height:74px; border-radius:12px; transform:rotate(45deg); background:linear-gradient(135deg,var(--hot),var(--hot2)); box-shadow:0 0 30px var(--hot2); animation:pickStrike .8s ease-in-out infinite alternate; }
+    @keyframes rockShake { to { transform:translateY(5px) scaleX(.96); filter:brightness(1.4); } }
+    @keyframes pickStrike { to { transform:translate(28px,42px) rotate(65deg) scale(.9); } }
+
+    .themeReggae .sunDisc { position:absolute; right:12%; top:26px; width:96px; height:96px; border-radius:50%; background:radial-gradient(circle,#fff 0 9%,var(--hot3) 10% 58%,var(--hot2) 60%); box-shadow:0 0 36px var(--hot3); animation:sunPulse 1.5s ease-in-out infinite alternate; }
+    .themeReggae .bubble { position:absolute; left:calc(12% + var(--i)*11%); bottom:calc(24px + (var(--i)%3)*26px); width:calc(28px + var(--i)*3px); height:calc(28px + var(--i)*3px); border-radius:50%; border:3px solid var(--hot); box-shadow:0 0 16px var(--hot); animation:bubbleRise 1.8s ease-in-out infinite alternate; animation-delay:calc(var(--i)*.12s); }
+    @keyframes sunPulse { to { transform:scale(1.12) rotate(14deg); } }
+    @keyframes bubbleRise { to { transform:translateY(-58px) scale(1.08); opacity:.55; } }
+
+    .themeStrings .stringLine { position:absolute; left:10%; right:10%; top:calc(23% + var(--i) * 10%); height:3px; border-radius:99px; background:linear-gradient(90deg,transparent,var(--hot3),var(--hot),transparent); box-shadow:0 0 15px var(--hot); animation:stringSway .9s ease-in-out infinite alternate; animation-delay:calc(var(--i)*.06s); }
+    .themeStrings .bowRibbon { position:absolute; left:18%; top:18%; width:66%; height:76%; background:linear-gradient(90deg,transparent,var(--hot2),var(--hot),transparent); clip-path:polygon(0 42%,15% 35%,32% 55%,50% 28%,70% 64%,86% 38%,100% 48%,100% 58%,86% 48%,70% 74%,50% 38%,32% 65%,15% 45%,0 52%); opacity:.68; filter:drop-shadow(0 0 22px var(--hot)); animation:ribbonFloat 1.7s ease-in-out infinite alternate; }
+    @keyframes stringSway { to { transform:translateY(7px) scaleX(.95); } }
+    @keyframes ribbonFloat { to { transform:translateY(-16px) scaleY(1.22); } }
+
+    .themeLofi .vinylDisc { position:absolute; left:14%; top:28px; width:138px; height:138px; border-radius:50%; background:radial-gradient(circle,#fff 0 5%,#111 6% 18%,var(--hot2) 19% 23%,#111 24% 44%,var(--hot) 45% 48%,#111 49%); box-shadow:0 0 28px var(--hot2); animation:vinylSpin 3.2s linear infinite; }
+    .themeLofi .cloud { position:absolute; right:12%; bottom:42px; width:280px; max-width:48%; height:82px; border-radius:999px; background:radial-gradient(circle at 18% 45%,var(--hot) 0 24%,transparent 25%),radial-gradient(circle at 45% 35%,var(--hot2) 0 28%,transparent 29%),radial-gradient(circle at 72% 50%,var(--hot3) 0 24%,transparent 25%); filter:blur(1px) drop-shadow(0 0 20px var(--hot)); opacity:.74; animation:cloudFloat 1.8s ease-in-out infinite alternate; }
+    @keyframes vinylSpin { to { transform:rotate(360deg); } }
+    @keyframes cloudFloat { to { transform:translateY(-24px) scale(1.05); } }
+
+    .themeChip .pixelGrid { position:absolute; inset:24px 9%; display:grid; grid-template-columns:repeat(12,1fr); grid-auto-rows:1fr; gap:7px; }
+    .themeChip .pixelGrid i { border-radius:6px; background:linear-gradient(145deg,var(--hot),var(--hot2)); box-shadow:0 0 14px var(--hot); animation:pixelBlink .7s steps(2,end) infinite; animation-delay:calc(var(--i)*.035s); }
+    @keyframes pixelBlink { 50% { opacity:.32; transform:translateY(9px) scale(.88); } }
+
+    .themeOcean .oceanWave { position:absolute; left:-10%; right:-10%; top:calc(28% + var(--i)*15%); height:56px; background:linear-gradient(90deg,transparent,var(--hot),var(--hot2),var(--hot3),transparent); clip-path:polygon(0 55%,8% 35%,16% 60%,25% 34%,35% 62%,45% 36%,55% 64%,65% 33%,75% 60%,85% 36%,100% 55%,100% 70%,85% 50%,75% 76%,65% 48%,55% 80%,45% 52%,35% 78%,25% 50%,16% 74%,8% 50%,0 70%); opacity:.74; filter:drop-shadow(0 0 18px var(--hot)); animation:oceanFlow 1.8s ease-in-out infinite alternate; animation-delay:calc(var(--i)*.15s); }
+    .themeOcean .oceanBubble { position:absolute; left:calc(16% + var(--i)*12%); bottom:28px; width:calc(24px + var(--i)*4px); height:calc(24px + var(--i)*4px); border-radius:50%; border:3px solid var(--hot3); box-shadow:0 0 14px var(--hot3); animation:bubbleRise 1.6s ease-in-out infinite alternate; animation-delay:calc(var(--i)*.12s); }
+    @keyframes oceanFlow { to { transform:translateX(58px) scaleY(1.18); } }
+
+    .themeCosmic .orbit { position:absolute; left:50%; top:50%; width:calc(120px + var(--i)*70px); height:calc(60px + var(--i)*34px); border:3px solid color-mix(in srgb,var(--hot) 75%,transparent); border-radius:50%; transform:translate(-50%,-50%) rotate(calc(var(--i)*22deg)); box-shadow:0 0 18px var(--hot); animation:orbitSpin 3s linear infinite; animation-delay:calc(var(--i)*-.35s); }
+    .themeCosmic .star { position:absolute; left:calc(16% + var(--i)*11%); top:calc(20% + (var(--i)%4)*15%); width:20px; height:20px; background:var(--hot3); clip-path:polygon(50% 0,61% 35%,98% 35%,68% 56%,79% 91%,50% 70%,21% 91%,32% 56%,2% 35%,39% 35%); box-shadow:0 0 20px var(--hot3); animation:starPulse .9s ease-in-out infinite alternate; animation-delay:calc(var(--i)*.09s); }
+    @keyframes orbitSpin { to { transform:translate(-50%,-50%) rotate(360deg); } }
+    @keyframes starPulse { to { transform:scale(1.6) rotate(22deg); filter:brightness(1.4); } }
+
+    .themeHitBall { position:absolute; z-index:9; left:var(--x); bottom:22px; width:42px; height:42px; border-radius:50%; background:radial-gradient(circle at 30% 24%,#fff,var(--hot3),var(--hot2) 62%,var(--hot)); box-shadow:0 0 20px var(--hot3),0 0 42px var(--hot); transform:translateX(-50%) scale(.5); animation:themeHitBall .62s cubic-bezier(.18,.88,.2,1) forwards; }
+    @keyframes themeHitBall { 0% { opacity:0; transform:translateX(-50%) translateY(18px) scale(.42); } 18% { opacity:1; } 55% { transform:translateX(-50%) translateY(-86px) scale(1.08); } 76% { transform:translateX(-50%) translateY(0) scale(1.18,.72); } 100% { opacity:0; transform:translateX(-50%) translateY(-48px) scale(.65); } }
+
+
+
+    /* Final theme interaction fixes: no global bouncing balls. Only drums use balls. */
+    .pianoRippleBall, .themeHitBall, .typingBounceBall { display: none !important; }
+    .themeStage { contain: layout paint; }
+    .themeStage.hit { animation: themeStageHit .28s ease-out; }
+
+    .themePiano::after {
+      content: '';
+      position: absolute;
+      left: 7%; right: 7%; bottom: 20px;
+      height: 22px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse at center, color-mix(in srgb, var(--hot) 35%, transparent), transparent 72%);
+      opacity: .55;
+      filter: blur(3px);
+    }
+    .pianoTile.active {
+      animation: pianoTileHit .34s ease-out !important;
+      box-shadow: 0 0 24px var(--hot), 0 0 44px var(--hot3), inset 0 -8px 0 rgba(0,0,0,.12);
+    }
+    .pianoBlackRail i.active {
+      animation: blackKeyTap .28s ease-out !important;
+      box-shadow: 0 0 24px var(--hot2), inset 0 -4px 0 rgba(255,255,255,.16);
+    }
+    @keyframes blackKeyTap {
+      0% { transform: translateY(0); filter: brightness(1); }
+      45% { transform: translateY(14px); filter: brightness(1.8); }
+      100% { transform: translateY(0); filter: brightness(1); }
+    }
+
+    .themeSpeakers .beatPadRail i.active {
+      animation: hipPadHit .32s cubic-bezier(.16,.92,.26,1) !important;
+      filter: brightness(1.7);
+    }
+    @keyframes hipPadHit {
+      0% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-34px) rotate(-8deg) scale(1.16); }
+      100% { transform: translateY(0) scale(1); }
+    }
+
+    .themeSynth .synthOrb { display: none !important; }
+    .themeSynth .synthPrism {
+      position: absolute;
+      width: 74px; height: 74px;
+      left: 22%; top: 35%;
+      border-radius: 12px;
+      transform: rotate(45deg);
+      background: linear-gradient(135deg, var(--hot), var(--hot2), var(--hot3));
+      box-shadow: 0 0 34px var(--hot2);
+      animation: prismFloat 1.2s ease-in-out infinite alternate;
+    }
+    .themeSynth .synthPrism.two { left: auto; right: 22%; top: 52%; animation-delay: .3s; }
+    @keyframes prismFloat { to { transform: translateY(-38px) rotate(70deg) scale(1.05); filter: brightness(1.25); } }
+    .themeSynth .laserLine.active { animation: synthLineHit .36s ease-out !important; }
+    @keyframes synthLineHit { 50% { transform: translateX(80px) scaleY(2.1); filter: brightness(1.8) drop-shadow(0 0 28px var(--hot3)); } }
+
+    .themeReggae .bubble, .themeOcean .oceanBubble { display:none !important; }
+    .themeReggae .skankBar {
+      position:absolute;
+      left:8%; right:20%;
+      top:calc(29% + var(--i)*8%);
+      height:10px;
+      border-radius:999px;
+      background:linear-gradient(90deg, transparent, var(--hot), var(--hot3), var(--hot2), transparent);
+      box-shadow:0 0 15px var(--hot3);
+      transform:skewX(-14deg);
+      animation: skankSlide 1.1s ease-in-out infinite alternate;
+      animation-delay:calc(var(--i)*.08s);
+    }
+    @keyframes skankSlide { to { transform: translateX(42px) skewX(14deg) scaleX(.9); filter: brightness(1.25); } }
+    .themeOcean .oceanDrop {
+      position:absolute;
+      left:calc(14% + var(--i)*12%); bottom:30px;
+      width:26px; height:42px;
+      border-radius: 60% 60% 60% 8px;
+      transform: rotate(-45deg);
+      background:linear-gradient(135deg, var(--hot3), transparent 68%);
+      border:2px solid var(--hot3);
+      box-shadow:0 0 14px var(--hot3);
+      animation:dropFloat 1.45s ease-in-out infinite alternate;
+      animation-delay:calc(var(--i)*.13s);
+    }
+    @keyframes dropFloat { to { transform: translateY(-42px) rotate(-45deg) scale(.9); opacity:.56; } }
+
+    .themePop {
+      position: absolute;
+      z-index: 12;
+      left: var(--x,50%);
+      bottom: var(--y,34px);
+      pointer-events: none;
+      transform: translateX(-50%);
+      filter: drop-shadow(0 0 18px var(--hot));
+    }
+    .themePop.pianoFinger {
+      width: 34px; height: 112px;
+      border-radius: 999px 999px 14px 14px;
+      background: linear-gradient(180deg, rgba(255,255,255,.9), var(--hot), transparent);
+      animation: pianoFingerTap .38s ease-out forwards;
+    }
+    @keyframes pianoFingerTap { 0% { opacity:0; transform:translateX(-50%) translateY(-70px) scaleY(.65); } 36% { opacity:.95; transform:translateX(-50%) translateY(20px) scaleY(1); } 100% { opacity:0; transform:translateX(-50%) translateY(-18px) scaleY(.76); } }
+    .themePop.hiphopBlock {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--hot2), var(--hot3));
+      box-shadow: 0 0 24px var(--hot2);
+      animation: hipBlockPop .52s cubic-bezier(.16,.9,.25,1) forwards;
+    }
+    @keyframes hipBlockPop { 0% { opacity:0; transform:translateX(-50%) translateY(24px) scale(.45) rotate(0); } 40% { opacity:1; transform:translateX(-50%) translateY(-58px) scale(1.22) rotate(10deg); } 100% { opacity:0; transform:translateX(-50%) translateY(-18px) scale(.7) rotate(24deg); } }
+    .themePop.synthSlice {
+      width: 118px; height: 24px;
+      background: linear-gradient(90deg, transparent, var(--hot), var(--hot2), transparent);
+      clip-path: polygon(0 50%,18% 20%,34% 70%,50% 22%,66% 74%,84% 18%,100% 50%,100% 76%,84% 44%,66% 100%,50% 48%,34% 96%,18% 46%,0 76%);
+      animation: synthSliceFlash .44s ease-out forwards;
+    }
+    @keyframes synthSliceFlash { 0% { opacity:0; transform:translateX(-50%) scaleX(.35); } 35% { opacity:1; transform:translateX(-50%) scaleX(1.15); } 100% { opacity:0; transform:translateX(calc(-50% + 38px)) scaleX(.72); } }
+    .themePop.jazzCard {
+      width: 66px; height: 74px;
+      border-radius: 50% 12% 50% 12%;
+      background: radial-gradient(circle at 30% 20%, #fff, var(--hot3), var(--hot2) 70%, transparent 72%);
+      animation: jazzCardGlow .62s ease-out forwards;
+    }
+    @keyframes jazzCardGlow { 0% { opacity:0; transform:translateX(-50%) translateY(12px) rotate(-18deg) scale(.6); } 45% { opacity:.95; transform:translateX(-50%) translateY(-44px) rotate(8deg) scale(1.08); } 100% { opacity:0; transform:translateX(-50%) translateY(-22px) rotate(22deg) scale(.78); } }
+    .themePop.rockBolt {
+      width: 76px; height: 110px;
+      background: var(--hot3);
+      clip-path: polygon(56% 0,18% 48%,47% 48%,32% 100%,84% 37%,54% 37%);
+      animation: rockBoltStrike .44s ease-out forwards;
+    }
+    @keyframes rockBoltStrike { 0% { opacity:0; transform:translateX(-50%) translateY(-80px) scale(.55) rotate(-10deg); } 38% { opacity:1; transform:translateX(-50%) translateY(-18px) scale(1.1) rotate(10deg); } 100% { opacity:0; transform:translateX(-50%) translateY(16px) scale(.75) rotate(22deg); } }
+    .themePop.reggaeStripe {
+      width: 128px; height: 32px;
+      border-radius: 999px;
+      background: repeating-linear-gradient(90deg, var(--hot) 0 24px, var(--hot3) 24px 48px, var(--hot2) 48px 72px);
+      animation: reggaeStripeKick .5s ease-out forwards;
+    }
+    @keyframes reggaeStripeKick { 0% { opacity:0; transform:translateX(-50%) scaleX(.25) skewX(-18deg); } 35% { opacity:1; transform:translateX(-50%) translateY(-24px) scaleX(1.1) skewX(14deg); } 100% { opacity:0; transform:translateX(calc(-50% + 34px)) translateY(-8px) scaleX(.7) skewX(-14deg); } }
+    .themePop.stringRibbon {
+      width: 148px; height: 48px;
+      background: linear-gradient(90deg, transparent, var(--hot2), var(--hot), var(--hot3), transparent);
+      clip-path: polygon(0 45%,18% 24%,36% 60%,54% 20%,72% 64%,90% 34%,100% 50%,100% 65%,90% 49%,72% 80%,54% 36%,36% 76%,18% 40%,0 60%);
+      animation: stringRibbonSway .62s ease-out forwards;
+    }
+    @keyframes stringRibbonSway { 0% { opacity:0; transform:translateX(-50%) translateY(10px) scaleX(.55); } 42% { opacity:1; transform:translateX(-50%) translateY(-42px) scaleX(1.16); } 100% { opacity:0; transform:translateX(calc(-50% - 32px)) translateY(-18px) scaleX(.72); } }
+    .themePop.lofiTape {
+      width: 86px; height: 42px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--hot), color-mix(in srgb, var(--hot2) 78%, #111));
+      box-shadow: inset 0 0 0 6px rgba(255,255,255,.14), 0 0 24px var(--hot2);
+      animation: lofiTapeDrift .72s ease-out forwards;
+    }
+    @keyframes lofiTapeDrift { 0% { opacity:0; transform:translateX(-50%) translateY(14px) rotate(-6deg) scale(.62); } 42% { opacity:1; transform:translateX(-50%) translateY(-28px) rotate(4deg) scale(1.04); } 100% { opacity:0; transform:translateX(calc(-50% + 22px)) translateY(-18px) rotate(8deg) scale(.78); } }
+    .themePop.pixelCube {
+      width: 42px; height: 42px;
+      border-radius: 7px;
+      background: var(--hot3);
+      box-shadow: 0 0 0 8px color-mix(in srgb, var(--hot) 45%, transparent), 0 0 26px var(--hot);
+      animation: pixelCubePop .45s steps(3,end) forwards;
+    }
+    @keyframes pixelCubePop { 0% { opacity:0; transform:translateX(-50%) translateY(20px) scale(.35); } 55% { opacity:1; transform:translateX(-50%) translateY(-48px) scale(1.25); } 100% { opacity:0; transform:translateX(-50%) translateY(-20px) scale(.65); } }
+    .themePop.oceanSplash {
+      width: 118px; height: 52px;
+      background: linear-gradient(90deg, transparent, var(--hot), var(--hot3), transparent);
+      clip-path: polygon(0 68%,12% 36%,24% 70%,36% 28%,49% 72%,62% 32%,74% 76%,86% 38%,100% 68%,100% 100%,0 100%);
+      animation: oceanSplashRise .54s ease-out forwards;
+    }
+    @keyframes oceanSplashRise { 0% { opacity:0; transform:translateX(-50%) translateY(22px) scaleY(.4); } 40% { opacity:1; transform:translateX(-50%) translateY(-34px) scaleY(1.15); } 100% { opacity:0; transform:translateX(-50%) translateY(-12px) scaleY(.62); } }
+    .themePop.cosmicStar {
+      width: 56px; height: 56px;
+      background: var(--hot3);
+      clip-path: polygon(50% 0,61% 35%,98% 35%,68% 56%,79% 91%,50% 70%,21% 91%,32% 56%,2% 35%,39% 35%);
+      animation: cosmicStarFlash .58s ease-out forwards;
+    }
+    @keyframes cosmicStarFlash { 0% { opacity:0; transform:translateX(-50%) rotate(-20deg) scale(.3); } 45% { opacity:1; transform:translateX(-50%) translateY(-42px) rotate(20deg) scale(1.28); } 100% { opacity:0; transform:translateX(-50%) translateY(-16px) rotate(70deg) scale(.62); } }
+
+    @media (max-width: 940px) {
+      html, body { overflow: auto; }
+      .page { position: absolute; min-height: 100dvh; overflow: auto; }
+      .menuShell { grid-template-columns: 1fr; }
+      .heroPanel, .genreGrid { grid-column: 1; grid-row: auto; }
+      .genreGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .heroInner { grid-template-columns: 1fr; }
+      .visualPreview { min-height: 160px; }
+      .keyboardShell { min-height: 100dvh; }
+    }
+    @media (max-width: 620px) {
+      #menuPage, #keyboardPage { padding: 8px; }
+      .genreGrid { grid-template-columns: 1fr; }
+      .genreCard { min-height: 118px; }
+      .topBar { align-items: flex-start; }
+      #keyboard { width: 99vw; padding: 8px; border-radius: 20px; }
+      .kb-row { gap: 4px; margin-bottom: 5px; }
+      .key { min-width: clamp(30px, 8.6vw, 42px); height: clamp(42px, 10vw, 54px); border-radius: 12px; font-size: clamp(16px, 4vw, 20px); }
+      .homeLetters, .bottomLetters { transform: none; }
+      .key[data-key="space"] { min-width: 68vw; }
+    }
+
+
+    /* 2026 quality pass: every sound world now has its own keyboard look, letter font,
+       letter timing, and typing effect. Non-typing balls are removed from the keyboard page. */
+    #letterStage {
+      height: min(44vh, 460px);
+      border-radius: 26px;
+      background:
+        linear-gradient(180deg, rgba(0,0,0,.08), rgba(0,0,0,.16) 68%, rgba(0,0,0,.02)),
+        radial-gradient(ellipse at 50% 76%, color-mix(in srgb, var(--hot) 11%, transparent), transparent 58%);
+      filter: contrast(1.08) saturate(1.08);
+      mask-image: linear-gradient(180deg, transparent 0, #000 9%, #000 88%, transparent 100%);
+      -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 9%, #000 88%, transparent 100%);
+    }
+    body.keyboardMode .stageInstrument { opacity: .14 !important; filter: drop-shadow(0 0 8px color-mix(in srgb, var(--hot) 55%, transparent)); }
+    #studioStage::after { opacity: .27; }
+    #studioStage::before { opacity: .18; }
+
+    #keyboard {
+      width: min(1080px, 98vw);
+      padding: clamp(14px, 1.9vw, 22px);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.095), rgba(0,0,0,.28) 9%, rgba(0,0,0,.86)),
+        radial-gradient(circle at 50% -15%, color-mix(in srgb, var(--hot) 18%, transparent), transparent 52%);
+      border-color: color-mix(in srgb, var(--hot) 52%, rgba(255,255,255,.18));
+      box-shadow:
+        0 0 0 2px rgba(0,0,0,.76),
+        0 24px 70px rgba(0,0,0,.72),
+        0 0 46px color-mix(in srgb, var(--hot) 16%, transparent),
+        inset 0 1px 0 rgba(255,255,255,.18),
+        inset 0 -18px 40px rgba(0,0,0,.34);
+    }
+    .key {
+      min-width: clamp(48px, 7.25vw, 82px);
+      height: clamp(58px, 7.25vw, 82px);
+      font-size: clamp(29px, 3.25vw, 44px);
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 2px 0 rgba(0,0,0,.78), 0 0 12px color-mix(in srgb, var(--stripe, var(--hot)) 48%, transparent);
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.20),
+        inset 0 -7px 0 rgba(0,0,0,.48),
+        0 12px 20px rgba(0,0,0,.50),
+        0 0 16px color-mix(in srgb, var(--stripe, var(--hot)) 16%, transparent);
+    }
+    .key[data-key="space"] { font-size: clamp(20px, 2.45vw, 34px); min-height: clamp(60px, 7vw, 84px); }
+    .key.active {
+      transform: translateY(-10px) scale(1.08);
+      filter: brightness(1.2) contrast(1.1);
+      transition-duration: 120ms;
+      box-shadow:
+        0 0 24px var(--glow),
+        0 0 54px color-mix(in srgb, var(--hot2) 36%, transparent),
+        inset 0 2px 0 rgba(255,255,255,.42),
+        inset 0 -4px 0 rgba(0,0,0,.34),
+        0 16px 28px rgba(0,0,0,.56);
+    }
+
+    body[data-genre="drums"] .key { font-family:'Black Ops One','Rajdhani',sans-serif; border-radius: 18px; background: linear-gradient(180deg,#303846,#0a0c12 72%); }
+    body[data-genre="piano"] .key { font-family:'Cinzel Decorative','Rajdhani',serif; color:#08111d; text-shadow:0 1px 0 #fff,0 0 10px rgba(143,231,255,.38); background:linear-gradient(180deg,#fff,#eaf1fb 44%,#bfcee5); box-shadow:inset 0 2px 0 #fff,inset 0 -8px 0 rgba(55,80,116,.22),0 11px 18px rgba(0,0,0,.38); }
+    body[data-genre="piano"] .key:nth-child(even) { background:linear-gradient(180deg,#172033,#05070c); color:#f8fbff; text-shadow:0 0 14px var(--hot); }
+    body[data-genre="hiphop"] .key { font-family:'Permanent Marker','Rajdhani',sans-serif; border-radius:14px; letter-spacing:.01em; background:linear-gradient(145deg,#2d1232,#09060d 70%); border-color:rgba(255,44,147,.38); }
+    body[data-genre="synth"] .key { font-family:'Orbitron','Rajdhani',sans-serif; border-radius:10px 24px; letter-spacing:.08em; background:linear-gradient(150deg,#0d1746,#050714 70%); }
+    body[data-genre="jazz"] .key { font-family:'Rye','Rajdhani',serif; border-radius:24px 12px 24px 12px; color:#ffe9b6; background:linear-gradient(155deg,#4a2410,#0c0505 76%); text-shadow:0 2px 0 #000,0 0 14px rgba(255,184,77,.45); }
+    body[data-genre="rock"] .key { font-family:'Bangers','Rajdhani',sans-serif; border-radius:8px 20px 10px 18px; letter-spacing:.05em; background:repeating-linear-gradient(135deg,rgba(255,255,255,.035) 0 5px,transparent 6px 10px),linear-gradient(155deg,#421016,#080404 78%); }
+    body[data-genre="reggae"] .key { font-family:'Righteous','Rajdhani',sans-serif; border-radius:20px 20px 10px 10px; background:linear-gradient(135deg,rgba(48,255,122,.42),rgba(255,227,90,.22) 46%,rgba(255,90,77,.38)),linear-gradient(180deg,#132414,#050804); }
+    body[data-genre="strings"] .key { font-family:'Cinzel Decorative','Rajdhani',serif; border-radius:22px 8px 22px 8px; background:linear-gradient(155deg,#22304b,#080b13 76%); border-color:rgba(220,184,255,.35); }
+    body[data-genre="lofi"] .key { font-family:'Special Elite','Rajdhani',serif; border-radius:18px; color:#fff4d4; background:linear-gradient(155deg,#394052,#111827 72%); text-shadow:0 1px 0 rgba(0,0,0,.9),0 0 10px rgba(255,155,215,.28); }
+    body[data-genre="chiptune"] .key { font-family:'Press Start 2P','Rajdhani',monospace; font-size:clamp(15px,1.75vw,24px); border-radius:7px; image-rendering:pixelated; background:linear-gradient(180deg,#213080,#080b22); box-shadow:inset 0 0 0 3px rgba(255,255,255,.08),inset 0 -8px 0 rgba(0,0,0,.48),0 9px 0 rgba(0,0,0,.45),0 0 16px color-mix(in srgb,var(--hot) 25%,transparent); }
+    body[data-genre="ocean"] .key { font-family:'Caveat Brush','Rajdhani',cursive; border-radius:26px 26px 16px 16px; background:linear-gradient(155deg,rgba(81,245,255,.46),rgba(10,73,96,.76) 44%,#02101c); color:#f2ffff; }
+    body[data-genre="cosmic"] .key { font-family:'Monoton','Orbitron',sans-serif; border-radius:50% 14px 50% 14px; font-size:clamp(24px,2.8vw,37px); background:radial-gradient(circle at 50% 16%,rgba(255,255,255,.17),transparent 34%),linear-gradient(155deg,#2d145a,#07030f 78%); }
+
+    body[data-genre="piano"] .key.active { background:linear-gradient(180deg,#fff,#bff6ff 56%,#80bce9); color:#07101b; }
+    body[data-genre="hiphop"] .key.active { transform:translateY(-12px) rotate(-2deg) scale(1.08); }
+    body[data-genre="synth"] .key.active { transform:translateY(-9px) skewX(-4deg) scale(1.08); }
+    body[data-genre="jazz"] .key.active { transform:translateY(-8px) rotate(3deg) scale(1.07); }
+    body[data-genre="rock"] .key.active { transform:translateY(-13px) rotate(-4deg) scale(1.1); }
+    body[data-genre="reggae"] .key.active { transform:translateY(-8px) translateX(3px) scale(1.07); }
+    body[data-genre="strings"] .key.active { transform:translateY(-9px) rotate(2deg) scale(1.06); }
+    body[data-genre="lofi"] .key.active { transform:translateY(-7px) rotate(-1deg) scale(1.04); filter:brightness(1.14) contrast(1.04); }
+    body[data-genre="chiptune"] .key.active { transform:translateY(-11px) scale(1.04); filter:brightness(1.35); }
+    body[data-genre="ocean"] .key.active { transform:translateY(-9px) scale(1.07); filter:brightness(1.22) saturate(1.2); }
+    body[data-genre="cosmic"] .key.active { transform:translateY(-10px) rotate(5deg) scale(1.08); }
+
+    .themeStage {
+      border-color: color-mix(in srgb, var(--hot) 58%, rgba(255,255,255,.12));
+      box-shadow: 0 20px 55px rgba(0,0,0,.45), 0 0 26px color-mix(in srgb, var(--hot) 18%, transparent), inset 0 1px 0 rgba(255,255,255,.16);
+    }
+    body[data-genre="piano"] .themeStage { background:linear-gradient(180deg,rgba(255,255,255,.13),rgba(5,15,30,.48)),radial-gradient(ellipse at 50% 100%,rgba(143,231,255,.25),transparent 62%); }
+    body[data-genre="hiphop"] .themeStage { background:radial-gradient(circle at 18% 40%,rgba(255,44,147,.24),transparent 32%),radial-gradient(circle at 82% 40%,rgba(0,229,255,.20),transparent 32%),linear-gradient(180deg,#16081f,#05040a); }
+    body[data-genre="synth"] .themeStage { background:linear-gradient(180deg,rgba(24,248,255,.08),rgba(2,4,15,.78)),repeating-linear-gradient(90deg,rgba(255,255,255,.03) 0 1px,transparent 1px 38px); }
+    body[data-genre="jazz"] .themeStage { background:radial-gradient(ellipse at 50% 0,rgba(255,184,77,.34),transparent 48%),linear-gradient(180deg,#230a13,#050202); }
+    body[data-genre="rock"] .themeStage { background:repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0 2px,transparent 2px 10px),linear-gradient(180deg,#26080b,#050202); }
+    body[data-genre="reggae"] .themeStage { background:linear-gradient(135deg,rgba(48,255,122,.16),rgba(255,227,90,.12),rgba(255,90,77,.15)),linear-gradient(180deg,#071708,#030604); }
+    body[data-genre="strings"] .themeStage { background:radial-gradient(ellipse at 50% 10%,rgba(220,184,255,.18),transparent 56%),linear-gradient(180deg,#101631,#030611); }
+    body[data-genre="lofi"] .themeStage { background:radial-gradient(circle at 18% 35%,rgba(112,255,216,.18),transparent 32%),linear-gradient(180deg,#202838,#0a0e16); }
+    body[data-genre="chiptune"] .themeStage { background:linear-gradient(180deg,#10183f,#050611); image-rendering:pixelated; }
+    body[data-genre="ocean"] .themeStage { background:radial-gradient(ellipse at 50% 100%,rgba(81,245,255,.24),transparent 58%),linear-gradient(180deg,#052844,#020713); }
+    body[data-genre="cosmic"] .themeStage { background:radial-gradient(circle at 50% 45%,rgba(184,140,255,.25),transparent 42%),linear-gradient(180deg,#10092d,#03020b); }
+
+    .themePiano::before { background:repeating-linear-gradient(90deg,rgba(255,255,255,.20) 0 5px,rgba(0,0,0,.08) 6px 11px,transparent 12px 24px); opacity:.18; }
+    .themeSpeakers::before { background:radial-gradient(circle at 20% 45%,rgba(255,255,255,.18) 0 3px,transparent 4px 15px),radial-gradient(circle at 80% 45%,rgba(255,255,255,.18) 0 3px,transparent 4px 15px); opacity:.20; }
+    .themeSynth::before { background:linear-gradient(90deg,transparent,var(--hot),transparent),repeating-linear-gradient(0deg,transparent 0 18px,rgba(255,255,255,.08) 19px 20px); opacity:.18; }
+    .themeJazz::before { background:radial-gradient(ellipse at 30% 0,rgba(255,184,77,.28),transparent 45%),radial-gradient(ellipse at 70% 0,rgba(255,79,183,.18),transparent 40%); opacity:.32; }
+    .themeRock::before { background:repeating-linear-gradient(135deg,rgba(255,255,255,.08) 0 3px,transparent 4px 12px); opacity:.16; }
+    .themeReggae::before { background:repeating-linear-gradient(120deg,rgba(48,255,122,.18) 0 18px,rgba(255,227,90,.15) 19px 36px,rgba(255,90,77,.14) 37px 54px); opacity:.20; }
+    .themeStrings::before { background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent); opacity:.20; }
+    .themeLofi::before { background:radial-gradient(circle,rgba(255,255,255,.16) 0 1px,transparent 2px 28px); opacity:.18; }
+    .themeChip::before { background:repeating-linear-gradient(0deg,rgba(255,255,255,.09) 0 8px,transparent 8px 16px),repeating-linear-gradient(90deg,rgba(255,255,255,.07) 0 8px,transparent 8px 16px); opacity:.16; }
+    .themeOcean::before { background:linear-gradient(90deg,transparent,rgba(215,255,248,.24),transparent); clip-path:polygon(0 50%,12% 38%,25% 58%,38% 36%,50% 58%,63% 36%,76% 58%,88% 39%,100% 50%,100% 74%,88% 62%,76% 82%,63% 60%,50% 82%,38% 60%,25% 82%,12% 62%,0 74%); opacity:.22; }
+    .themeCosmic::before { background:radial-gradient(circle,rgba(255,255,255,.48) 0 1px,transparent 2px 34px); opacity:.24; }
+
+    .drumStageBall, .drumHitBall, .drumHopFx, .pianoRippleBall, .themeHitBall, .typingBounceBall { display:none !important; }
+    .drumHitStick {
+      position:absolute;
+      z-index:6;
+      left:var(--hitX,50%);
+      bottom:var(--hitY,72px);
+      width:13px;
+      height:118px;
+      border-radius:999px;
+      background:linear-gradient(180deg,#fff8d9 0%,#d29b52 38%,#6b3a16 100%);
+      box-shadow:0 0 18px rgba(255,224,102,.55),0 0 32px color-mix(in srgb,var(--hot) 36%,transparent);
+      transform-origin:50% 92%;
+      pointer-events:none;
+      animation:drumStickStrike .42s cubic-bezier(.14,.86,.24,1) forwards;
+    }
+    @keyframes drumStickStrike {
+      0% { opacity:0; transform:translate(-50%,-108px) rotate(calc(var(--stickRot,0deg) - 18deg)) scaleY(.82); }
+      38% { opacity:1; transform:translate(-50%,-10px) rotate(var(--stickRot,0deg)) scaleY(1); }
+      64% { opacity:.86; transform:translate(-50%,4px) rotate(var(--stickRot,0deg)) scaleY(.92); }
+      100% { opacity:0; transform:translate(-50%,-72px) rotate(calc(var(--stickRot,0deg) + 16deg)) scaleY(.78); }
+    }
+
+    .floatingLetter {
+      position:absolute;
+      z-index:1;
+      left:var(--x);
+      top:var(--y);
+      pointer-events:none;
+      transform:translate(-50%,-50%);
+      font-size:var(--size,clamp(104px,15vw,220px));
+      line-height:.82;
+      color:#fff;
+      filter:contrast(1.15) saturate(1.08);
+      will-change:transform,opacity,filter;
+      animation:letterDefault var(--letterLife,1800ms) cubic-bezier(.16,.88,.24,1) forwards;
+    }
+    .floatingLetter.spaceWord { font-size:var(--size,clamp(52px,8vw,132px)); letter-spacing:.12em; }
+    .floatingLetter::before { content:attr(data-letter); position:absolute; inset:0; z-index:-1; opacity:.24; filter:blur(12px); transform:translate(0,6px) scale(1.03); }
+    @keyframes letterDefault { 0%{opacity:0;transform:translate(-50%,0) scale(.55)} 18%,72%{opacity:1} 36%{transform:translate(-50%,-54%) scale(1.06)} 100%{opacity:0;transform:translate(calc(-50% + var(--dx,0px)),calc(-116% + var(--dy,-80px))) scale(.78)} }
+
+    .letterDrums { font-family:'Black Ops One','Bangers',Impact,sans-serif; color:#ffe066; -webkit-text-stroke:3px rgba(0,0,0,.72); text-shadow:0 5px 0 #111,0 0 18px var(--hot3),0 0 42px var(--hot2); animation:letterDrumStamp var(--letterLife) cubic-bezier(.12,.9,.2,1) forwards; }
+    @keyframes letterDrumStamp { 0%{opacity:0;transform:translate(-50%,24%) scale(.38) rotate(-4deg)} 14%{opacity:1;transform:translate(-50%,-46%) scale(1.22) rotate(2deg)} 28%{transform:translate(-50%,-32%) scale(.98) rotate(-1deg)} 72%{opacity:1;transform:translate(-50%,-60%) scale(1.04) rotate(1deg)} 100%{opacity:0;transform:translate(-50%,-122%) scale(.78) rotate(8deg)} }
+    .letterPiano { font-family:'Cinzel Decorative','Times New Roman',serif; color:#ffffff; -webkit-text-stroke:1px rgba(12,34,56,.36); text-shadow:0 1px 0 #d9f7ff,0 0 22px #8fe7ff,0 0 48px rgba(255,255,255,.42); animation:letterPianoSustain var(--letterLife) ease-out forwards; }
+    @keyframes letterPianoSustain { 0%{opacity:0;transform:translate(-50%,4%) scale(.72)} 18%{opacity:1;transform:translate(-50%,-36%) scale(1.06)} 62%{opacity:1;filter:contrast(1.08) brightness(1.08);transform:translate(-50%,-54%) scale(1.02)} 100%{opacity:0;transform:translate(calc(-50% + var(--dx,0px)),calc(-120% + var(--dy,-70px))) scale(.82)} }
+    .letterHiphop { font-family:'Permanent Marker','Bangers',cursive; color:#fff; -webkit-text-stroke:2px #05040a; text-shadow:5px 5px 0 var(--hot2),-5px -3px 0 var(--hot),0 0 32px var(--hot2); animation:letterHipHopThrow var(--letterLife) cubic-bezier(.12,.86,.18,1) forwards; }
+    @keyframes letterHipHopThrow { 0%{opacity:0;transform:translate(-150%,20%) skewX(-18deg) rotate(-8deg) scale(.58)} 18%{opacity:1;transform:translate(-50%,-38%) skewX(-9deg) rotate(-3deg) scale(1.14)} 42%{transform:translate(-48%,-48%) skewX(5deg) rotate(3deg) scale(1.02)} 78%{opacity:1} 100%{opacity:0;transform:translate(34%,-122%) skewX(12deg) rotate(12deg) scale(.76)} }
+    .letterSynth { font-family:'Orbitron','Audiowide',sans-serif; color:#dffcff; letter-spacing:.10em; -webkit-text-stroke:1px rgba(24,248,255,.52); text-shadow:0 0 12px var(--hot),0 0 32px var(--hot2),0 0 58px var(--hot3); animation:letterSynthScan var(--letterLife) ease-out forwards; }
+    .letterSynth::after { content:''; position:absolute; left:-16%; right:-16%; top:52%; height:10px; background:linear-gradient(90deg,transparent,#fff,var(--hot),transparent); opacity:.72; filter:blur(.5px); animation:synthScanLine var(--letterLife) linear forwards; }
+    @keyframes letterSynthScan { 0%{opacity:0;transform:translate(-50%,-28%) scaleX(.12) scaleY(.86)} 18%{opacity:1;transform:translate(-50%,-44%) scaleX(1.12) scaleY(1)} 64%{opacity:1;transform:translate(-50%,-58%) scale(1)} 100%{opacity:0;transform:translate(calc(-50% + 42px),-130%) scaleX(.7)} }
+    @keyframes synthScanLine { 0%{transform:translateX(-80%);opacity:0} 26%{opacity:.9} 100%{transform:translateX(80%);opacity:0} }
+    .letterJazz { font-family:'Rye','Georgia',serif; color:#ffd98a; -webkit-text-stroke:1px rgba(55,18,4,.48); text-shadow:0 4px 0 rgba(0,0,0,.5),0 0 26px #ffb84d,0 0 46px rgba(255,79,183,.28); animation:letterJazzSmoke var(--letterLife) ease-out forwards; }
+    @keyframes letterJazzSmoke { 0%{opacity:0;transform:translate(-50%,8%) rotate(-12deg) scale(.68);filter:blur(3px)} 20%{opacity:1;transform:translate(-50%,-36%) rotate(5deg) scale(1.08);filter:blur(0)} 70%{opacity:1;transform:translate(calc(-50% + 16px),-64%) rotate(-4deg) scale(1.02)} 100%{opacity:0;transform:translate(calc(-50% - 34px),-122%) rotate(16deg) scale(.76);filter:blur(4px)} }
+    .letterRock { font-family:'Bangers','Black Ops One',Impact,sans-serif; color:#fff0b5; -webkit-text-stroke:3px #180204; text-shadow:5px 5px 0 #ff4c4c,-3px -3px 0 #ffb03a,0 0 34px #ff4c4c; animation:letterRockStrike var(--letterLife) cubic-bezier(.12,.94,.28,1) forwards; }
+    @keyframes letterRockStrike { 0%{opacity:0;transform:translate(-50%,-116%) rotate(-20deg) scale(.44)} 21%{opacity:1;transform:translate(-50%,-30%) rotate(7deg) scale(1.22)} 32%{transform:translate(calc(-50% - 8px),-38%) rotate(-6deg) scale(1.02)} 43%{transform:translate(calc(-50% + 8px),-44%) rotate(5deg) scale(1.05)} 76%{opacity:1} 100%{opacity:0;transform:translate(-50%,-108%) rotate(18deg) scale(.7)} }
+    .letterReggae { font-family:'Righteous','Rajdhani',sans-serif; color:#ffe35a; -webkit-text-stroke:2px rgba(0,0,0,.62); text-shadow:6px 0 0 #30ff7a,-6px 0 0 #ff5a4d,0 0 24px #ffe35a; animation:letterReggaeSkank var(--letterLife) ease-out forwards; }
+    @keyframes letterReggaeSkank { 0%{opacity:0;transform:translate(-78%,8%) rotate(-8deg) scale(.72)} 18%{opacity:1;transform:translate(-50%,-34%) rotate(4deg) scale(1.1)} 44%{transform:translate(calc(-50% + 18px),-48%) rotate(-4deg) scale(1.02)} 72%{opacity:1;transform:translate(calc(-50% - 12px),-60%) rotate(3deg)} 100%{opacity:0;transform:translate(calc(-50% + 34px),-116%) rotate(-8deg) scale(.78)} }
+    .letterStrings { font-family:'Cinzel Decorative','Georgia',serif; color:#fff7d6; -webkit-text-stroke:1px rgba(17,22,47,.54); text-shadow:0 0 22px #dcb8ff,0 0 42px #9fd8ff; animation:letterStringBow var(--letterLife) ease-out forwards; }
+    .letterStrings::after { content:''; position:absolute; left:-20%; right:-20%; bottom:-10%; height:14px; background:linear-gradient(90deg,transparent,var(--hot2),var(--hot),transparent); clip-path:polygon(0 50%,24% 24%,50% 70%,76% 26%,100% 50%,100% 70%,76% 46%,50% 92%,24% 44%,0 70%); opacity:.72; }
+    @keyframes letterStringBow { 0%{opacity:0;transform:translate(-50%,4%) scale(.66)} 18%{opacity:1;transform:translate(calc(-50% - 20px),-38%) scale(1.05)} 52%{opacity:1;transform:translate(calc(-50% + 24px),-52%) scale(1.02)} 100%{opacity:0;transform:translate(calc(-50% - 36px),-118%) scale(.80)} }
+    .letterLofi { font-family:'Special Elite','Courier New',serif; color:#fff4d4; padding:.05em .14em .02em; border-radius:16px; background:linear-gradient(180deg,rgba(255,244,212,.10),rgba(255,155,215,.07)); box-shadow:inset 0 0 0 2px rgba(255,244,212,.10),0 12px 30px rgba(0,0,0,.28),0 0 24px rgba(255,155,215,.24); text-shadow:0 2px 0 rgba(0,0,0,.65),0 0 14px rgba(112,255,216,.42); animation:letterLofiDrift var(--letterLife) ease-out forwards; }
+    @keyframes letterLofiDrift { 0%{opacity:0;transform:translate(-50%,0) rotate(-4deg) scale(.76);filter:blur(2px)} 20%{opacity:1;transform:translate(-50%,-34%) rotate(2deg) scale(1.02);filter:blur(0)} 74%{opacity:.94;transform:translate(calc(-50% + 14px),-48%) rotate(-1deg) scale(1)} 100%{opacity:0;transform:translate(calc(-50% + 32px),-92%) rotate(5deg) scale(.82);filter:blur(2px)} }
+    .letterChiptune { font-family:'Press Start 2P','Courier New',monospace; color:#ffeb3d; text-shadow:6px 0 0 #3dffec,-6px 0 0 #ff57b9,0 6px 0 #111,0 0 26px #3dffec; image-rendering:pixelated; animation:letterPixelStep var(--letterLife) steps(5,end) forwards; }
+    @keyframes letterPixelStep { 0%{opacity:0;transform:translate(-50%,8%) scale(.5)} 20%{opacity:1;transform:translate(-50%,-22%) scale(1.12)} 40%{transform:translate(calc(-50% + 12px),-46%) scale(1)} 60%{transform:translate(calc(-50% - 10px),-58%) scale(1.04)} 80%{opacity:1;transform:translate(-50%,-68%) scale(.98)} 100%{opacity:0;transform:translate(-50%,-108%) scale(.66)} }
+    .letterOcean { font-family:'Caveat Brush','Righteous',cursive; color:#f2ffff; -webkit-text-stroke:1px rgba(2,34,61,.55); text-shadow:0 3px 0 rgba(2,34,61,.64),0 0 22px #51f5ff,0 0 48px #65a8ff; animation:letterOceanFloat var(--letterLife) ease-out forwards; }
+    @keyframes letterOceanFloat { 0%{opacity:0;transform:translate(-50%,12%) rotate(-8deg) scale(.62)} 18%{opacity:1;transform:translate(-50%,-36%) rotate(4deg) scale(1.1)} 48%{transform:translate(calc(-50% + 18px),-54%) rotate(-3deg) scale(1.02)} 74%{opacity:1;transform:translate(calc(-50% - 14px),-70%) rotate(3deg) scale(1)} 100%{opacity:0;transform:translate(calc(-50% + 28px),-126%) rotate(-10deg) scale(.78)} }
+    .letterCosmic { font-family:'Monoton','Orbitron',sans-serif; color:#fff38a; letter-spacing:.06em; text-shadow:0 0 12px #fff,0 0 28px #b88cff,0 0 58px #46f4ff; animation:letterCosmicOrbit var(--letterLife) ease-out forwards; }
+    .letterCosmic::after { content:''; position:absolute; left:50%; top:50%; width:118%; height:52%; border:3px solid rgba(70,244,255,.55); border-radius:50%; transform:translate(-50%,-50%) rotate(-15deg); box-shadow:0 0 22px rgba(70,244,255,.36); z-index:-1; }
+    @keyframes letterCosmicOrbit { 0%{opacity:0;transform:translate(-50%,8%) rotate(-32deg) scale(.42)} 22%{opacity:1;transform:translate(-50%,-38%) rotate(8deg) scale(1.12)} 64%{opacity:1;transform:translate(-50%,-58%) rotate(34deg) scale(1)} 100%{opacity:0;transform:translate(calc(-50% + var(--dx,0px)),-128%) rotate(88deg) scale(.68)} }
+
+    @media (max-width: 620px) {
+      .key { min-width: clamp(32px, 8.8vw, 46px); height: clamp(46px, 10.2vw, 58px); font-size: clamp(19px, 4.6vw, 26px); }
+      body[data-genre="chiptune"] .key { font-size: clamp(10px, 2.2vw, 14px); }
+      body[data-genre="cosmic"] .key { font-size: clamp(15px, 3.5vw, 21px); }
+      .floatingLetter { font-size: var(--size, clamp(72px, 20vw, 142px)); }
+      .floatingLetter.spaceWord { font-size: clamp(34px, 9.5vw, 76px); }
+    }
+
+  </style>
+</head>
+<body data-genre="drums">
+  <div id="studioStage">
+    <canvas id="waveCanvas"></canvas>
+  </div>
+  <div id="instrumentLayer"></div>
+  <div id="fxLayer"></div>
+  <div id="letterStage" aria-hidden="true"></div>
+
+  <main id="menuPage" class="page active" aria-label="Music Studio menu">
+    <div class="menuShell">
+      <section class="panel heroPanel">
+        <div class="heroInner">
+          <div>
+            <div class="kicker">interactive neon sound keyboard</div>
+            <h1>Music Studio</h1>
+      
+            <div class="heroActions">
+              <button class="launchButton" id="startKeyboard">Launch Studio Keyboard</button>
+              <button class="toggleButton ghost" id="spaceToggle">Random Spacebar Sounds: ON</button>
+            </div>
+          </div>
+          <div class="visualPreview" aria-hidden="true">
+            <div class="previewWave"></div>
+            <div class="previewWave two"></div>
+            <div class="previewOrb"></div>
+            <div class="previewOrb second"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel sidePanel instrumentPanel" aria-label="Selected instrument preview">
+        <h2 class="instrumentName" id="instrumentName">Drumline Bounce</h2>
+<p class="hint" id="instrumentHint"></p>
+        <div class="instrumentDemo" id="instrumentDemo"></div>
+      </section>
+
+      <section class="panel genreGrid" aria-label="Music genre choices">
+        <div class="genreGridHeader">
+          <div>
+            <h2 class="sectionTitle">Pick a sound world</h2>
+
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <main id="keyboardPage" class="page" aria-label="Music Studio keyboard">
+    <div class="keyboardShell">
+      <section class="topBar">
+        <button class="backButton" id="backMenu">Back</button>
+      </section>
+      <section class="keyboardArea">
+        <div id="themeStage" class="themeStage" aria-hidden="true"></div>
+        <div id="drumStage" class="drumStage" aria-hidden="true">
+          <div class="drumPad one"></div>
+          <div class="drumPad two"></div>
+          <div class="drumPad three"></div>
+          <div class="drumStageBall one"></div>
+          <div class="drumStageBall two"></div>
+          <div class="drumStageBall three"></div>
+        </div>
+        <div id="keyboard" aria-label="A to Z and spacebar keyboard">
+
+          <div class="kb-row topLetters">
+            <button class="key" data-key="q" data-f="lp">Q</button>
+            <button class="key" data-key="w" data-f="lr">W</button>
+            <button class="key" data-key="e" data-f="lm">E</button>
+            <button class="key" data-key="r" data-f="li">R</button>
+            <button class="key" data-key="t" data-f="li">T</button>
+            <button class="key" data-key="y" data-f="ri">Y</button>
+            <button class="key" data-key="u" data-f="ri">U</button>
+            <button class="key" data-key="i" data-f="rm">I</button>
+            <button class="key" data-key="o" data-f="rr">O</button>
+            <button class="key" data-key="p" data-f="rp">P</button>
+          </div>
+          <div class="kb-row homeLetters">
+            <button class="key" data-key="a" data-f="lp">A</button>
+            <button class="key" data-key="s" data-f="lr">S</button>
+            <button class="key" data-key="d" data-f="lm">D</button>
+            <button class="key" data-key="f" data-f="li">F</button>
+            <button class="key" data-key="g" data-f="li">G</button>
+            <button class="key" data-key="h" data-f="ri">H</button>
+            <button class="key" data-key="j" data-f="ri">J</button>
+            <button class="key" data-key="k" data-f="rm">K</button>
+            <button class="key" data-key="l" data-f="rr">L</button>
+          </div>
+          <div class="kb-row bottomLetters">
+            <button class="key" data-key="z" data-f="lp">Z</button>
+            <button class="key" data-key="x" data-f="lr">X</button>
+            <button class="key" data-key="c" data-f="lm">C</button>
+            <button class="key" data-key="v" data-f="li">V</button>
+            <button class="key" data-key="b" data-f="li">B</button>
+            <button class="key" data-key="n" data-f="ri">N</button>
+            <button class="key" data-key="m" data-f="rm">M</button>
+          </div>
+          <div class="kb-row spaceRow">
+            <button class="key" data-key="space" data-f="">SPACE</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const root = document.documentElement;
+    const body = document.body;
+    const canvas = document.getElementById('waveCanvas');
+    const ctx = canvas.getContext('2d');
+    const fxLayer = document.getElementById('fxLayer');
+    const instrumentLayer = document.getElementById('instrumentLayer');
+    const menuPage = document.getElementById('menuPage');
+    const keyboardPage = document.getElementById('keyboardPage');
+    const genreGrid = document.querySelector('.genreGrid');
+    const instrumentName = document.getElementById('instrumentName');
+    const instrumentHint = document.getElementById('instrumentHint');
+    const instrumentDemo = document.getElementById('instrumentDemo');
+    const nowPlaying = document.getElementById('nowPlaying');
+    const spaceToggle = document.getElementById('spaceToggle');
+    const drumStage = document.getElementById('drumStage');
+    const themeStage = document.getElementById('themeStage');
+    const keyboard = document.getElementById('keyboard');
+    const topBar = document.querySelector('.topBar');
+    const letterStage = document.getElementById('letterStage');
+
+    const GENRES = {
+      drums: {
+        label: 'Drumline Bounce',
+        hint: '',
+        short: 'bouncing drums and beat balls',
+        shapeRadius: '50%', shapeRot: '-9deg', motion: 'beat', wave: 'spikes', instrument: 'drums',
+        vars: ['#05050a','#161025','#3b154b','#00f0ff','#ff3df2','#ffe066','#78ff9a'],
+        card: ['#00f0ff','#ff3df2']
+      },
+      piano: {
+        label: 'Piano Ripple',
+        hint: '',
+        short: 'glowing piano ripples',
+        shapeRadius: '14px', shapeRot: '3deg', motion: 'soft', wave: 'smooth', instrument: 'piano',
+        vars: ['#030711','#071b32','#11395b','#8fe7ff','#ffffff','#b8fffa','#69a7ff'],
+        card: ['#8fe7ff','#ffffff']
+      },
+      hiphop: {
+        label: 'Hip-Hop Beat Lab',
+        hint: '',
+        short: 'bass pads and speaker pulses',
+        shapeRadius: '26px', shapeRot: '12deg', motion: 'slide', wave: 'bars', instrument: 'speakers',
+        vars: ['#06040d','#151025','#2c1246','#ff2c93','#00e5ff','#ffc247','#7cff91'],
+        card: ['#ff2c93','#00e5ff']
+      },
+      synth: {
+        label: 'Synthwave Lines',
+        hint: '',
+        short: 'neon wave ribbons',
+        shapeRadius: '8px', shapeRot: '-18deg', motion: 'wave', wave: 'ribbons', instrument: 'pads',
+        vars: ['#02040f','#0d1240','#241369','#18f8ff','#8c5bff','#ff4fd8','#fff06d'],
+        card: ['#18f8ff','#8c5bff']
+      },
+      jazz: {
+        label: 'Jazz Glow Club',
+        hint: '',
+        short: 'smooth chords and warm lights',
+        shapeRadius: '50% 10% 50% 10%', shapeRot: '18deg', motion: 'soft', wave: 'smooth', instrument: 'disc',
+        vars: ['#070307','#1c0c18','#3a122b','#ffb84d','#ff4fb7','#7ee8ff','#f7e7a0'],
+        card: ['#ffb84d','#ff4fb7']
+      },
+      rock: {
+        label: 'Rock Amp Stage',
+        hint: '',
+        short: 'amp flashes and string shakes',
+        shapeRadius: '4px', shapeRot: '45deg', motion: 'beat', wave: 'jagged', instrument: 'strings',
+        vars: ['#080405','#220c0f','#4c1116','#ff4c4c','#ffb03a','#fff0b5','#00d6ff'],
+        card: ['#ff4c4c','#ffb03a']
+      },
+      reggae: {
+        label: 'Reggae Sunshine',
+        hint: '',
+        short: 'sunny offbeat bubbles',
+        shapeRadius: '50% 50% 18px 18px', shapeRot: '-4deg', motion: 'wave', wave: 'bubbles', instrument: 'pads',
+        vars: ['#041008','#0e2b16','#274313','#30ff7a','#ffe35a','#ff5a4d','#66e9ff'],
+        card: ['#30ff7a','#ffe35a']
+      },
+      strings: {
+        label: 'Classical Strings',
+        hint: '',
+        short: 'orchestra ribbons and strings',
+        shapeRadius: '50% 50% 6px 6px', shapeRot: '0deg', motion: 'soft', wave: 'ribbons', instrument: 'strings',
+        vars: ['#030611','#11162f','#252f55','#9fd8ff','#dcb8ff','#fff7d6','#70ffe4'],
+        card: ['#9fd8ff','#dcb8ff']
+      },
+      lofi: {
+        label: 'Lo-Fi Cloud Room',
+        hint: '',
+        short: 'soft vinyl and cloud waves',
+        shapeRadius: '28px', shapeRot: '-12deg', motion: 'soft', wave: 'smooth', instrument: 'disc',
+        vars: ['#06070b','#111827','#293548','#70ffd8','#ff9bd7','#ffd47d','#a9b8ff'],
+        card: ['#70ffd8','#ff9bd7']
+      },
+      chiptune: {
+        label: 'Pixel Pop',
+        hint: '',
+        short: 'bright pixel blips',
+        shapeRadius: '6px', shapeRot: '0deg', motion: 'beat', wave: 'bars', instrument: 'pads',
+        vars: ['#050611','#11173a','#23205a','#3dffec','#ffeb3d','#ff57b9','#82ff5f'],
+        card: ['#3dffec','#ffeb3d']
+      },
+      ocean: {
+        label: 'Ocean Bells',
+        hint: '',
+        short: 'blue bell ripples',
+        shapeRadius: '50%', shapeRot: '-2deg', motion: 'soft', wave: 'bubbles', instrument: 'disc',
+        vars: ['#020713','#06223d','#0a4960','#51f5ff','#65a8ff','#d7fff8','#8cffd2'],
+        card: ['#51f5ff','#65a8ff']
+      },
+      cosmic: {
+        label: 'Cosmic Choir',
+        hint: '',
+        short: 'star pads and rings',
+        shapeRadius: '50% 8px 50% 8px', shapeRot: '22deg', motion: 'wave', wave: 'ribbons', instrument: 'speakers',
+        vars: ['#03020b','#10092d','#2d145a','#b88cff','#46f4ff','#fff38a','#ff70d9'],
+        card: ['#b88cff','#46f4ff']
+      }
+    };
+    const genreOrder = ['drums','piano','hiphop','synth','jazz','rock','reggae','strings','lofi','chiptune','ocean','cosmic'];
+    const LETTER_THEMES = {
+      drums: { cls: 'letterDrums', life: 1650, min: 118, vw: 17, max: 242, jitterX: 12, jitterY: 8 },
+      piano: { cls: 'letterPiano', life: 2050, min: 112, vw: 15, max: 220, jitterX: 8, jitterY: 6 },
+      hiphop: { cls: 'letterHiphop', life: 1780, min: 112, vw: 16, max: 230, jitterX: 18, jitterY: 10 },
+      synth: { cls: 'letterSynth', life: 1700, min: 104, vw: 15, max: 214, jitterX: 14, jitterY: 8 },
+      jazz: { cls: 'letterJazz', life: 2150, min: 112, vw: 15, max: 214, jitterX: 10, jitterY: 10 },
+      rock: { cls: 'letterRock', life: 1580, min: 122, vw: 17, max: 246, jitterX: 16, jitterY: 8 },
+      reggae: { cls: 'letterReggae', life: 1900, min: 110, vw: 15, max: 216, jitterX: 10, jitterY: 8 },
+      strings: { cls: 'letterStrings', life: 2200, min: 106, vw: 14, max: 208, jitterX: 8, jitterY: 8 },
+      lofi: { cls: 'letterLofi', life: 2350, min: 104, vw: 14, max: 196, jitterX: 8, jitterY: 8 },
+      chiptune: { cls: 'letterChiptune', life: 1850, min: 66, vw: 8, max: 128, jitterX: 0, jitterY: 6 },
+      ocean: { cls: 'letterOcean', life: 2100, min: 116, vw: 16, max: 226, jitterX: 12, jitterY: 10 },
+      cosmic: { cls: 'letterCosmic', life: 2250, min: 104, vw: 14, max: 212, jitterX: 12, jitterY: 8 }
+    };
+    let currentGenre = 'drums';
+    let randomSpace = true;
+    let audioCtx = null;
+    let master = null;
+    let pressEnergy = 0;
+    let particles = [];
+    let resizeQueued = false;
+
+    function setVars(g) {
+      const v = GENRES[g].vars;
+      root.style.setProperty('--bg0', v[0]);
+      root.style.setProperty('--bg1', v[1]);
+      root.style.setProperty('--bg2', v[2]);
+      root.style.setProperty('--hot', v[3]);
+      root.style.setProperty('--hot2', v[4]);
+      root.style.setProperty('--hot3', v[5]);
+      root.style.setProperty('--hot4', v[6]);
+      root.style.setProperty('--glow', hexToRgba(v[3], .66));
+      body.dataset.genre = g;
+    }
+
+    function hexToRgba(hex, alpha) {
+      const n = hex.replace('#','');
+      const r = parseInt(n.substring(0,2), 16);
+      const g = parseInt(n.substring(2,4), 16);
+      const b = parseInt(n.substring(4,6), 16);
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    function buildGenreCards() {
+      genreOrder.forEach((key, i) => {
+        const g = GENRES[key];
+        const btn = document.createElement('button');
+        btn.className = 'genreCard';
+        btn.dataset.genre = key;
+        btn.style.setProperty('--gx', `${20 + (i % 3) * 22}%`);
+        btn.style.setProperty('--gy', `${18 + (i % 2) * 14}%`);
+        btn.style.setProperty('--shapeRadius', g.shapeRadius);
+        btn.style.setProperty('--shapeRot', g.shapeRot);
+        btn.style.setProperty('--cardA', g.card[0]);
+        btn.style.setProperty('--cardB', g.card[1]);
+        btn.innerHTML = `<strong>${g.label}</strong>`;
+        btn.addEventListener('click', () => selectGenre(key, true));
+        genreGrid.appendChild(btn);
+      });
+    }
+
+    function selectGenre(key, playPreview) {
+      currentGenre = key;
+      const g = GENRES[key];
+      setVars(key);
+      instrumentName.textContent = g.label;
+      instrumentHint.textContent = '';
+      if (nowPlaying) nowPlaying.textContent = '';
+      document.querySelectorAll('.genreCard').forEach(card => card.classList.toggle('active', card.dataset.genre === key));
+      renderInstrumentDemo(g.instrument);
+      renderStageInstruments(g.instrument);
+      renderKeyboardTheme(key);
+      if (playPreview) {
+        playGenrePreview(key);
+        menuPulse();
+      }
+    }
+
+    function renderInstrumentDemo(type) {
+      instrumentDemo.innerHTML = '';
+      if (type === 'drums') {
+        const set = document.createElement('div');
+        set.className = 'miniDrumSet';
+        set.innerHTML = '<div class="drum one"></div><div class="drum two"></div><div class="drum three"></div><div class="miniDrumBall"></div>';
+        instrumentDemo.appendChild(set);
+      } else if (type === 'piano') {
+        const p = document.createElement('div');
+        p.className = 'miniPiano';
+        for (let i = 0; i < 10; i++) {
+          const k = document.createElement('i');
+          k.style.setProperty('--i', i);
+          p.appendChild(k);
+        }
+        instrumentDemo.appendChild(p);
+      } else if (type === 'speakers') {
+        const one = document.createElement('div');
+        const two = document.createElement('div');
+        one.className = two.className = 'miniSpeaker';
+        two.style.left = 'auto';
+        two.style.right = '12%';
+        instrumentDemo.append(one, two);
+      } else if (type === 'strings') {
+        const s = document.createElement('div');
+        s.className = 'miniStrings';
+        for (let i = 1; i <= 7; i++) {
+          const line = document.createElement('i');
+          line.style.setProperty('--i', i);
+          s.appendChild(line);
+        }
+        instrumentDemo.appendChild(s);
+      } else if (type === 'disc') {
+        const disc = document.createElement('div');
+        disc.className = 'stageInstrument glyphDisc';
+        disc.style.cssText = 'position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:150px;height:150px;opacity:.9;animation:none;';
+        instrumentDemo.appendChild(disc);
+      } else {
+        const wave = document.createElement('div');
+        wave.className = 'stageInstrument glyphWave';
+        wave.style.cssText = 'position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:260px;height:110px;opacity:.85;animation:driftInstrument 1.5s ease-in-out infinite alternate;';
+        instrumentDemo.appendChild(wave);
+      }
+    }
+
+    function renderStageInstruments(type) {
+      instrumentLayer.innerHTML = '';
+      const types = type === 'drums' ? ['glyphPad','glyphWave','glyphSpeaker','glyphDisc'] :
+        type === 'piano' ? ['glyphWave','glyphPad','glyphDisc'] :
+        type === 'speakers' ? ['glyphSpeaker','glyphSpeaker','glyphWave','glyphPad'] :
+        type === 'strings' ? ['glyphWave','glyphPad','glyphDisc'] : ['glyphDisc','glyphWave','glyphPad','glyphSpeaker'];
+      for (let i = 0; i < 8; i++) {
+        const el = document.createElement('div');
+        el.className = `stageInstrument ${types[i % types.length]}`;
+        el.style.left = `${5 + Math.random() * 88}%`;
+        el.style.top = `${8 + Math.random() * 76}%`;
+        el.style.setProperty('--dx', `${-30 + Math.random() * 60}px`);
+        el.style.setProperty('--dy', `${-34 + Math.random() * 68}px`);
+        el.style.setProperty('--rot', `${-16 + Math.random() * 32}deg`);
+        el.style.setProperty('--dur', `${6 + Math.random() * 7}s`);
+        instrumentLayer.appendChild(el);
+      }
+    }
+
+
+
+    function renderKeyboardTheme(key) {
+      if (!themeStage) return;
+      themeStage.className = `themeStage ${key}`;
+      if (key === 'drums') {
+        themeStage.innerHTML = '';
+        return;
+      }
+      if (key === 'piano') {
+        themeStage.innerHTML = `
+          <div class="themeVisual themePiano">
+            <div class="pianoTileRail">${Array.from({length: 12}, (_, i) => `<i class="pianoTile" style="--i:${i}"></i>`).join('')}</div>
+            <div class="pianoBlackRail">${[0.78,1.78,3.78,4.78,5.78,7.78,8.78,10.78].map((_, i) => `<i style="--i:${i}"></i>`).join('')}</div>
+          </div>`;
+      } else if (key === 'hiphop') {
+        themeStage.innerHTML = `
+          <div class="themeVisual themeSpeakers">
+            <div class="speakerTower left"></div><div class="speakerTower right"></div>
+            <div class="beatPadRail">${Array.from({length:4},(_,i)=>`<i style="--i:${i}"></i>`).join('')}</div>
+          </div>`;
+      } else if (key === 'synth') {
+        themeStage.innerHTML = `
+          <div class="themeVisual themeSynth">
+            ${Array.from({length:5},(_,i)=>`<i class="laserLine" style="--i:${i}"></i>`).join('')}
+            <div class="synthPrism"></div><div class="synthPrism two"></div>
+          </div>`;
+      } else if (key === 'jazz') {
+        themeStage.innerHTML = `<div class="themeVisual themeJazz"><div class="jazzSpot one"></div><div class="jazzSpot two"></div><div class="jazzSpot three"></div></div>`;
+      } else if (key === 'rock') {
+        themeStage.innerHTML = `<div class="themeVisual themeRock">${Array.from({length:7},(_,i)=>`<i class="rockString" style="--i:${i}"></i>`).join('')}<div class="rockPick"></div></div>`;
+      } else if (key === 'reggae') {
+        themeStage.innerHTML = `<div class="themeVisual themeReggae"><div class="sunDisc"></div>${Array.from({length:7},(_,i)=>`<i class="skankBar" style="--i:${i}"></i>`).join('')}</div>`;
+      } else if (key === 'strings') {
+        themeStage.innerHTML = `<div class="themeVisual themeStrings"><div class="bowRibbon"></div>${Array.from({length:7},(_,i)=>`<i class="stringLine" style="--i:${i}"></i>`).join('')}</div>`;
+      } else if (key === 'lofi') {
+        themeStage.innerHTML = `<div class="themeVisual themeLofi"><div class="vinylDisc"></div><div class="cloud"></div></div>`;
+      } else if (key === 'chiptune') {
+        themeStage.innerHTML = `<div class="themeVisual themeChip"><div class="pixelGrid">${Array.from({length:48},(_,i)=>`<i style="--i:${i}"></i>`).join('')}</div></div>`;
+      } else if (key === 'ocean') {
+        themeStage.innerHTML = `<div class="themeVisual themeOcean">${Array.from({length:4},(_,i)=>`<i class="oceanWave" style="--i:${i}"></i>`).join('')}${Array.from({length:6},(_,i)=>`<i class="oceanDrop" style="--i:${i}"></i>`).join('')}</div>`;
+      } else if (key === 'cosmic') {
+        themeStage.innerHTML = `<div class="themeVisual themeCosmic">${Array.from({length:4},(_,i)=>`<i class="orbit" style="--i:${i}"></i>`).join('')}${Array.from({length:8},(_,i)=>`<i class="star" style="--i:${i}"></i>`).join('')}</div>`;
+      } else {
+        themeStage.innerHTML = `<div class="themeVisual themeSynth"><i class="laserLine" style="--i:0"></i><i class="laserLine" style="--i:1"></i><div class="synthOrb"></div></div>`;
+      }
+    }
+
+    function pulseKeyboardTheme(key) {
+      if (!themeStage || !keyboardPage.classList.contains('active')) return;
+      themeStage.classList.remove('hit');
+      void themeStage.offsetWidth;
+      themeStage.classList.add('hit');
+
+      const idx = keyIndex(key === 'space' ? 'm' : key);
+      const x = 10 + ((idx * 17) % 80);
+
+      if (currentGenre === 'drums') return;
+
+      if (currentGenre === 'piano') {
+        const tiles = themeStage.querySelectorAll('.pianoTile');
+        const tile = tiles[idx % Math.max(1, tiles.length)];
+        if (tile) {
+          tile.classList.remove('active');
+          void tile.offsetWidth;
+          tile.classList.add('active');
+          setTimeout(() => tile.classList.remove('active'), 360);
+        }
+        const blacks = themeStage.querySelectorAll('.pianoBlackRail i');
+        if (idx % 4 === 0 && blacks.length) {
+          const black = blacks[idx % blacks.length];
+          black.classList.remove('active');
+          void black.offsetWidth;
+          black.classList.add('active');
+          setTimeout(() => black.classList.remove('active'), 320);
+        }
+        createThemePop('pianoFinger', x, 28);
+        return;
+      }
+
+      if (currentGenre === 'hiphop') {
+        const pads = themeStage.querySelectorAll('.beatPadRail i');
+        if (pads.length) {
+          const pad = pads[idx % pads.length];
+          pad.classList.remove('active');
+          void pad.offsetWidth;
+          pad.classList.add('active');
+          setTimeout(() => pad.classList.remove('active'), 340);
+        }
+        createThemePop('hiphopBlock', x, 32);
+        return;
+      }
+
+      if (currentGenre === 'synth') {
+        const lines = themeStage.querySelectorAll('.laserLine');
+        if (lines.length) {
+          const line = lines[idx % lines.length];
+          line.classList.remove('active');
+          void line.offsetWidth;
+          line.classList.add('active');
+          setTimeout(() => line.classList.remove('active'), 380);
+        }
+        createThemePop('synthSlice', x, 80);
+      } else if (currentGenre === 'jazz') {
+        createThemePop('jazzCard', x, 44);
+      } else if (currentGenre === 'rock') {
+        createThemePop('rockBolt', x, 30);
+      } else if (currentGenre === 'reggae') {
+        createThemePop('reggaeStripe', x, 52);
+      } else if (currentGenre === 'strings') {
+        createThemePop('stringRibbon', x, 56);
+      } else if (currentGenre === 'lofi') {
+        createThemePop('lofiTape', x, 54);
+      } else if (currentGenre === 'chiptune') {
+        createThemePop('pixelCube', x, 42);
+      } else if (currentGenre === 'ocean') {
+        createThemePop('oceanSplash', x, 34);
+      } else if (currentGenre === 'cosmic') {
+        createThemePop('cosmicStar', x, 50);
+      }
+    }
+
+    function createThemePop(kind, xPercent, yPx) {
+      if (!themeStage) return;
+      const el = document.createElement('div');
+      el.className = `themePop ${kind}`;
+      el.style.setProperty('--x', `${xPercent}%`);
+      el.style.setProperty('--y', `${yPx}px`);
+      themeStage.appendChild(el);
+      el.addEventListener('animationend', () => el.remove());
+    }
+
+    function resizeCanvas() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.floor(innerWidth * dpr);
+      canvas.height = Math.floor(innerHeight * dpr);
+      canvas.style.width = innerWidth + 'px';
+      canvas.style.height = innerHeight + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    window.addEventListener('resize', () => {
+      if (!resizeQueued) {
+        resizeQueued = true;
+        requestAnimationFrame(() => { resizeQueued = false; resizeCanvas(); syncLetterStage(); });
+      }
+    });
+
+    function seedParticles() {
+      particles = [];
+      for (let i = 0; i < 82; i++) {
+        particles.push({
+          x: Math.random() * innerWidth,
+          y: Math.random() * innerHeight,
+          vx: -0.28 + Math.random() * .56,
+          vy: -0.18 + Math.random() * .36,
+          s: .6 + Math.random() * 2.6,
+          a: .12 + Math.random() * .42,
+          p: Math.random() * Math.PI * 2
+        });
+      }
+    }
+
+    function drawCanvas(t) {
+      const w = innerWidth;
+      const h = innerHeight;
+      const g = GENRES[currentGenre];
+      const time = t * .001;
+      ctx.clearRect(0,0,w,h);
+
+      const colors = g.vars;
+      drawGlowBands(w, h, colors, time);
+      if (g.wave === 'bars') drawBars(w, h, colors, time);
+      else if (g.wave === 'spikes' || g.wave === 'jagged') drawSpikeWave(w, h, colors, time, g.wave === 'jagged');
+      else if (g.wave === 'bubbles') drawBubbles(w, h, colors, time);
+      else drawRibbonWaves(w, h, colors, time, g.wave === 'smooth');
+      drawParticles(w, h, colors, time);
+
+      pressEnergy *= .94;
+      requestAnimationFrame(drawCanvas);
+    }
+
+    function drawGlowBands(w, h, colors, time) {
+      const grad = ctx.createRadialGradient(w*.5, h*.5, 0, w*.5, h*.5, Math.max(w,h)*.7);
+      grad.addColorStop(0, hexToRgba(colors[3], .08 + pressEnergy*.08));
+      grad.addColorStop(.45, hexToRgba(colors[4], .05));
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0,0,w,h);
+      for (let i = 0; i < 3; i++) {
+        ctx.beginPath();
+        ctx.strokeStyle = hexToRgba(colors[3 + i], .12);
+        ctx.lineWidth = 2 + i;
+        const y = h * (.2 + i * .23) + Math.sin(time * .7 + i) * 28;
+        ctx.moveTo(0, y);
+        ctx.bezierCurveTo(w*.25, y - 80, w*.5, y + 80, w, y - 20);
+        ctx.stroke();
+      }
+    }
+
+    function drawRibbonWaves(w, h, colors, time, smooth) {
+      const layers = smooth ? 5 : 7;
+      for (let l = 0; l < layers; l++) {
+        const yBase = h * (.38 + l * .075);
+        const amp = (smooth ? 22 : 36) + l * 8 + pressEnergy * 38;
+        const freq = smooth ? .009 + l * .002 : .012 + l * .003;
+        ctx.beginPath();
+        for (let x = -20; x <= w + 20; x += 8) {
+          const y = yBase
+            + Math.sin(x * freq + time * (1.2 + l*.12)) * amp
+            + Math.sin(x * freq * 2.4 - time * (1.8 + l*.2)) * amp * .38;
+          if (x === -20) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        const grad = ctx.createLinearGradient(0,0,w,0);
+        grad.addColorStop(0, 'rgba(0,0,0,0)');
+        grad.addColorStop(.25, hexToRgba(colors[3], .18 + pressEnergy*.12));
+        grad.addColorStop(.5, hexToRgba(colors[4], .28));
+        grad.addColorStop(.75, hexToRgba(colors[5], .18));
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 1.4 + l * .6;
+        ctx.shadowColor = colors[3 + (l % 4)];
+        ctx.shadowBlur = 14 + pressEnergy * 22;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    function drawSpikeWave(w, h, colors, time, jagged) {
+      const center = h * .48;
+      const grad = ctx.createLinearGradient(0,0,w,0);
+      grad.addColorStop(0, colors[4]);
+      grad.addColorStop(.25, colors[3]);
+      grad.addColorStop(.5, colors[5]);
+      grad.addColorStop(.75, colors[6]);
+      grad.addColorStop(1, colors[3]);
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = 2.6;
+      ctx.shadowColor = colors[3];
+      ctx.shadowBlur = 22 + pressEnergy * 36;
+      ctx.beginPath();
+      for (let x = 0; x <= w; x += 3) {
+        const beat = Math.sin(x * .045 + time * 4) * Math.sin(x * .008 - time * 1.2);
+        const spike = Math.abs(Math.sin(x * (jagged ? .12 : .07) + time * 7));
+        const amp = (14 + spike * 74 + pressEnergy * 85) * (jagged ? (Math.random()*.12+.95) : 1);
+        const y = center + beat * amp;
+        if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = hexToRgba(colors[3], .055 + pressEnergy*.04);
+      for (let x = 0; x < w; x += 13) {
+        const bar = Math.abs(Math.sin(x*.035 + time*2.4)) * (70 + pressEnergy*120);
+        ctx.fillRect(x, center - bar/2, 3, bar);
+      }
+    }
+
+    function drawBars(w, h, colors, time) {
+      const center = h * .55;
+      const barW = Math.max(4, w / 130);
+      for (let x = 0, i = 0; x < w; x += barW * 2, i++) {
+        const v = Math.abs(Math.sin(i*.42 + time*3.2)) * Math.abs(Math.cos(i*.19 - time*1.5));
+        const height = 18 + v * (h*.28) + pressEnergy * (30 + v*80);
+        const grad = ctx.createLinearGradient(x, center-height, x, center+height);
+        grad.addColorStop(0, hexToRgba(colors[4], .12));
+        grad.addColorStop(.5, colors[3 + (i % 4)]);
+        grad.addColorStop(1, hexToRgba(colors[5], .12));
+        ctx.fillStyle = grad;
+        ctx.shadowColor = colors[3 + (i % 4)];
+        ctx.shadowBlur = 12 + pressEnergy * 18;
+        ctx.fillRect(x, center - height/2, barW, height);
+      }
+      ctx.shadowBlur = 0;
+    }
+
+    function drawBubbles(w, h, colors, time) {
+      drawRibbonWaves(w, h, colors, time, true);
+      for (let i = 0; i < 44; i++) {
+        const x = ((i * 97 + time * 25) % (w + 100)) - 50;
+        const y = h * (.18 + ((i * 47) % 70) / 100) + Math.sin(time + i) * 18;
+        const r = 4 + (i % 6) * 2 + pressEnergy * 8;
+        ctx.beginPath();
+        ctx.strokeStyle = hexToRgba(colors[3 + (i % 4)], .18 + pressEnergy*.2);
+        ctx.lineWidth = 1.5;
+        ctx.shadowColor = colors[3 + (i % 4)];
+        ctx.shadowBlur = 12;
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.shadowBlur = 0;
+    }
+
+    function drawParticles(w, h, colors, time) {
+      for (const p of particles) {
+        p.x += p.vx + Math.sin(time + p.p) * .04;
+        p.y += p.vy + Math.cos(time * .8 + p.p) * .04;
+        if (p.x < -20) p.x = w + 20;
+        if (p.x > w + 20) p.x = -20;
+        if (p.y < -20) p.y = h + 20;
+        if (p.y > h + 20) p.y = -20;
+        ctx.beginPath();
+        ctx.fillStyle = hexToRgba(colors[3 + Math.floor(p.p * 10) % 4], p.a + pressEnergy*.12);
+        ctx.shadowColor = colors[3];
+        ctx.shadowBlur = 8;
+        if (Math.floor(p.p * 10) % 3 === 0) {
+          ctx.rect(p.x, p.y, p.s * 3, p.s);
+        } else {
+          ctx.arc(p.x, p.y, p.s, 0, Math.PI * 2);
+        }
+        ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+    }
+
+    function ensureAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        master = audioCtx.createGain();
+        master.gain.value = .38;
+        master.connect(audioCtx.destination);
+      }
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function envGain(start, attack, decay, peak, end) {
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(Math.max(peak, .0002), start + attack);
+      gain.gain.exponentialRampToValueAtTime(Math.max(end, .0002), start + attack + decay);
+      return gain;
+    }
+
+    function osc(type, freq, start, dur, peak, dest, bend) {
+      const o = audioCtx.createOscillator();
+      const g = envGain(start, .012, Math.max(.04, dur - .012), peak, .0001);
+      o.type = type;
+      o.frequency.setValueAtTime(freq, start);
+      if (bend) o.frequency.exponentialRampToValueAtTime(Math.max(24, freq * bend), start + dur);
+      o.connect(g);
+      g.connect(dest || master);
+      o.start(start);
+      o.stop(start + dur + .03);
+      return o;
+    }
+
+    function noiseBurst(start, dur, peak, filterFreq, type) {
+      const buffer = audioCtx.createBuffer(1, Math.max(1, Math.floor(audioCtx.sampleRate * dur)), audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 1.2);
+      const src = audioCtx.createBufferSource();
+      src.buffer = buffer;
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = type || 'bandpass';
+      filter.frequency.value = filterFreq;
+      filter.Q.value = .9;
+      const g = envGain(start, .008, dur, peak, .0001);
+      src.connect(filter);
+      filter.connect(g);
+      g.connect(master);
+      src.start(start);
+      src.stop(start + dur + .02);
+    }
+
+    function chord(freqs, start, dur, peak, wave) {
+      const bus = audioCtx.createGain();
+      bus.gain.value = 1;
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(1700, start);
+      filter.frequency.exponentialRampToValueAtTime(620, start + dur);
+      bus.connect(filter);
+      filter.connect(master);
+      freqs.forEach((f, i) => osc(wave || 'triangle', f, start + i*.012, dur, peak / freqs.length, bus, .985));
+    }
+
+    function keyIndex(key) {
+      const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789';
+      return Math.max(0, alphabet.indexOf(String(key).toLowerCase()));
+    }
+
+    function playLetterSound(key, genreKey = currentGenre) {
+      ensureAudio();
+      const now = audioCtx.currentTime;
+      const idx = keyIndex(key);
+      const base = 164.81 * Math.pow(2, (idx % 12) / 12);
+      switch (genreKey) {
+        case 'drums':
+          osc('sine', 92 + (idx % 5) * 11, now, .12, .28, master, .52);
+          noiseBurst(now + .015, .08, .09, 900 + idx * 35, idx % 2 ? 'highpass' : 'bandpass');
+          if (idx % 3 === 0) osc('triangle', 150 + idx * 3, now + .035, .09, .09, master, .78);
+          break;
+        case 'piano':
+          osc('triangle', base * 1.5, now, .24, .17, master, .995);
+          osc('sine', base * 3, now + .01, .18, .055, master, .992);
+          break;
+        case 'hiphop':
+          osc('sine', 58 + (idx % 7) * 4, now, .18, .28, master, .62);
+          noiseBurst(now + .012, .055, .075, 4800, 'highpass');
+          if (idx % 4 === 0) osc('square', base * .75, now + .04, .08, .045, master, .96);
+          break;
+        case 'synth':
+          osc('sawtooth', base, now, .2, .10, master, 1.025);
+          osc('triangle', base * 2.01, now + .008, .22, .065, master, .995);
+          noiseBurst(now, .05, .025, 3500, 'bandpass');
+          break;
+        case 'jazz':
+          chord([base, base * 1.25, base * 1.5], now, .28, .18, 'triangle');
+          break;
+        case 'rock':
+          osc('sawtooth', base * .74, now, .16, .13, master, .97);
+          osc('square', base * 1.01, now, .105, .07, master, .94);
+          noiseBurst(now + .015, .04, .055, 1800, 'bandpass');
+          break;
+        case 'reggae':
+          chord([base * .75, base, base * 1.25], now, .18, .14, 'triangle');
+          osc('sine', 65 + (idx % 5)*6, now + .04, .14, .12, master, .9);
+          break;
+        case 'strings':
+          osc('sine', base, now, .34, .09, master, 1.01);
+          osc('triangle', base * 1.5, now + .018, .32, .08, master, 1.008);
+          break;
+        case 'lofi':
+          osc('triangle', base * .72, now, .28, .12, master, .985);
+          osc('sine', base * 1.44, now + .018, .2, .04, master, .98);
+          noiseBurst(now, .055, .018, 1200, 'lowpass');
+          break;
+        case 'chiptune':
+          osc('square', base * 1.25, now, .13, .12, master, 1.01);
+          osc('triangle', base * 2, now + .018, .12, .055, master, .99);
+          if (idx % 4 === 0) noiseBurst(now + .01, .035, .025, 3200, 'highpass');
+          break;
+        case 'ocean':
+          osc('sine', base * 1.5, now, .36, .09, master, 1.008);
+          osc('triangle', base * 2.25, now + .025, .32, .055, master, .995);
+          noiseBurst(now, .09, .018, 980, 'lowpass');
+          break;
+        case 'cosmic':
+          chord([base * .75, base * 1.12, base * 1.5], now, .46, .18, 'sine');
+          osc('sawtooth', base * 2.02, now + .04, .18, .035, master, 1.02);
+          break;
+      }
+    }
+
+    function playSpaceSound() {
+      const key = randomSpace ? genreOrder[Math.floor(Math.random() * genreOrder.length)] : currentGenre;
+      ensureAudio();
+      const now = audioCtx.currentTime;
+      if (key === 'drums' || key === 'hiphop') {
+        osc('sine', key === 'drums' ? 72 : 52, now, .32, .38, master, .35);
+        noiseBurst(now + .025, .16, .13, 720, 'bandpass');
+        noiseBurst(now + .12, .09, .08, 5200, 'highpass');
+      } else if (key === 'piano' || key === 'jazz') {
+        chord([196, 246.94, 293.66, 392], now, .55, .28, 'triangle');
+      } else if (key === 'rock') {
+        osc('sawtooth', 98, now, .34, .22, master, .55);
+        osc('square', 196, now + .02, .22, .10, master, .78);
+        noiseBurst(now + .05, .16, .12, 1600, 'bandpass');
+      } else if (key === 'reggae') {
+        chord([130.81, 164.81, 196], now, .26, .22, 'triangle');
+        osc('sine', 55, now + .04, .3, .22, master, .7);
+      } else if (key === 'strings') {
+        chord([174.61, 220, 261.63, 329.63], now, .68, .26, 'sine');
+      } else if (key === 'lofi') {
+        chord([146.83, 185, 220, 277.18], now, .62, .22, 'triangle');
+        noiseBurst(now, .22, .05, 900, 'lowpass');
+      } else if (key === 'chiptune') {
+        chord([220, 277.18, 329.63, 440], now, .32, .24, 'square');
+        noiseBurst(now + .03, .08, .04, 4200, 'highpass');
+      } else if (key === 'ocean') {
+        chord([174.61, 261.63, 349.23, 523.25], now, .7, .24, 'sine');
+        noiseBurst(now, .24, .05, 740, 'lowpass');
+      } else if (key === 'cosmic') {
+        chord([196, 246.94, 293.66, 392, 493.88], now, .72, .3, 'sine');
+      } else {
+        chord([130.81, 196, 261.63, 392], now, .48, .24, 'sawtooth');
+        noiseBurst(now + .04, .12, .045, 2800, 'bandpass');
+      }
+    }
+
+    function playGenrePreview(key) {
+      ensureAudio();
+      playLetterSound('c', key);
+      setTimeout(() => playLetterSound('g', key), 90);
+      setTimeout(() => playLetterSound('m', key), 180);
+    }
+
+    function menuPulse() {
+      pressEnergy = Math.min(1.4, pressEnergy + .45);
+      const x = innerWidth * (.25 + Math.random() * .5);
+      const y = innerHeight * (.22 + Math.random() * .38);
+      createWaveBurst(x, y, 360, 120);
+      createRing(x, y, 'var(--hot3)', 32);
+    }
+
+    function handleInput(key, sourceEl) {
+      if (!key) return;
+      ensureAudio();
+      const normalized = key === ' ' ? 'space' : key.toLowerCase();
+      if (normalized !== 'space' && !/^[a-z]$/.test(normalized)) return;
+      const keyEl = sourceEl || document.querySelector(`.key[data-key="${normalized}"]`);
+      if (keyEl) flashKey(keyEl);
+      pressEnergy = Math.min(1.8, pressEnergy + (normalized === 'space' ? .78 : .36));
+      const rect = keyEl ? keyEl.getBoundingClientRect() : { left: innerWidth/2, top: innerHeight/2, width: 0, height: 0 };
+      const x = normalized === 'space' ? innerWidth * (.35 + Math.random() * .3) : rect.left + rect.width/2;
+      const y = normalized === 'space' ? innerHeight * (.36 + Math.random() * .2) : rect.top + rect.height/2;
+      pulseKeyboardTheme(normalized);
+      if (normalized === 'space') {
+        playSpaceSound();
+        createSpaceVisual();
+      } else {
+        playLetterSound(normalized);
+        createLetterVisual(normalized.toUpperCase(), x, y);
+      }
+    }
+
+    function flashKey(el) {
+      el.classList.remove('active');
+      void el.offsetWidth;
+      el.classList.add('active');
+      setTimeout(() => el.classList.remove('active'), 330);
+    }
+
+    function syncLetterStage() {
+      if (!letterStage) return null;
+
+      const keyboardRect = keyboard ? keyboard.getBoundingClientRect() : null;
+      const topBarRect = topBar ? topBar.getBoundingClientRect() : null;
+      const safeTop = Math.max(54, (topBarRect ? topBarRect.bottom : 58) + 8);
+
+      // Keep the letter runway close to the keyboard but never over it.
+      // This makes each typed letter feel connected to the exact key that was pressed.
+      const keyboardTop = keyboardRect ? keyboardRect.top : innerHeight * .70;
+      const keyboardGuardGap = Math.max(38, innerHeight * .055);
+      const availableHeight = Math.max(110, keyboardTop - safeTop - keyboardGuardGap);
+      const targetHeight = Math.min(availableHeight, innerHeight * .44, 460);
+      const height = Math.max(110, targetHeight);
+
+      letterStage.style.left = '50%';
+      letterStage.style.top = `${safeTop}px`;
+      letterStage.style.height = `${height}px`;
+      letterStage.style.width = `${Math.min(1080, innerWidth * .96)}px`;
+      letterStage.style.zIndex = '2147483000';
+      return letterStage.getBoundingClientRect();
+    }
+
+    function getLetterStageSpot(centered = false, viewportX) {
+      const rect = syncLetterStage() || { left: innerWidth * .02, top: 64, width: innerWidth * .96, height: innerHeight * .34 };
+      const theme = LETTER_THEMES[currentGenre] || LETTER_THEMES.synth;
+      const rawX = centered || !Number.isFinite(viewportX)
+        ? rect.width * .5
+        : viewportX - rect.left;
+      const guard = centered
+        ? Math.min(170, rect.width * .18)
+        : Math.min(rect.width * .28, Math.max(158, (theme.max || 220) * .62));
+      const jitterX = centered ? 0 : (-theme.jitterX + Math.random() * theme.jitterX * 2);
+      const stageX = Math.max(guard, Math.min(rect.width - guard, rawX + jitterX));
+      const baseY = centered ? rect.height * .48 : rect.height * (.58 + Math.random() * .10);
+      const stageY = Math.max(48, Math.min(rect.height - 34, baseY + (-theme.jitterY + Math.random() * theme.jitterY * 2)));
+
+      return {
+        stageX,
+        stageY,
+        viewportX: rect.left + stageX,
+        viewportY: rect.top + stageY,
+        rect
+      };
+    }
+
+    function createFloatingLetter(letter, spot, isSpace = false) {
+      if (!letterStage) return;
+      const theme = LETTER_THEMES[currentGenre] || LETTER_THEMES.synth;
+      const el = document.createElement('div');
+      el.className = `floatingLetter ${theme.cls}${isSpace ? ' spaceWord' : ''}`;
+      el.textContent = letter;
+      el.dataset.letter = letter;
+      el.style.setProperty('--x', `${spot.stageX}px`);
+      el.style.setProperty('--y', `${spot.stageY}px`);
+      el.style.setProperty('--dx', `${-42 + Math.random() * 84}px`);
+      el.style.setProperty('--dy', `${-84 - Math.random() * 90}px`);
+      el.style.setProperty('--rot', `${-9 + Math.random() * 18}deg`);
+      el.style.setProperty('--letterLife', `${theme.life}ms`);
+      el.style.setProperty('--size', isSpace ? `clamp(48px, 8vw, ${Math.max(118, Math.floor(theme.max * .62))}px)` : `clamp(${theme.min}px, ${theme.vw}vw, ${theme.max}px)`);
+      letterStage.appendChild(el);
+      setTimeout(() => { if (el.isConnected) el.remove(); }, theme.life + 260);
+    }
+
+    function createLetterVisual(letter, x, y) {
+      const spot = getLetterStageSpot(false, x);
+      const cx = spot.viewportX;
+      const cy = spot.viewportY;
+      createFloatingLetter(letter, spot, false);
+
+      const sparkCounts = {
+        drums: 4, piano: 3, hiphop: 5, synth: 4, jazz: 3, rock: 5,
+        reggae: 3, strings: 3, lofi: 2, chiptune: 7, ocean: 4, cosmic: 5
+      };
+
+      if (currentGenre === 'drums') {
+        createWaveBurst(cx, cy + 8, 190, 54);
+        triggerDrumStageHit();
+      } else if (currentGenre === 'piano') {
+        createRing(cx, cy + 8, 'rgba(255,255,255,.92)', 18);
+      } else if (currentGenre === 'hiphop') {
+        createRing(cx - 62, cy + 12, 'var(--hot2)', 16);
+        createRing(cx + 62, cy + 12, 'var(--hot3)', 16);
+      } else if (currentGenre === 'synth') {
+        createWaveBurst(cx, cy, 260, 44);
+      } else if (currentGenre === 'jazz') {
+        createRing(cx, cy + 6, 'var(--hot3)', 24);
+      } else if (currentGenre === 'rock') {
+        createWaveBurst(cx, cy + 4, 240, 64);
+      } else if (currentGenre === 'reggae') {
+        createWaveBurst(cx, cy + 12, 210, 42);
+      } else if (currentGenre === 'strings') {
+        createWaveBurst(cx, cy + 4, 250, 38);
+      } else if (currentGenre === 'lofi') {
+        createRing(cx, cy + 4, 'rgba(255,235,185,.72)', 20);
+      } else if (currentGenre === 'chiptune') {
+        createWaveBurst(cx, cy, 180, 50);
+      } else if (currentGenre === 'ocean') {
+        createRing(cx, cy + 8, 'var(--hot)', 20);
+      } else if (currentGenre === 'cosmic') {
+        createRing(cx, cy, 'var(--hot3)', 28);
+        createRing(cx, cy, 'var(--hot2)', 15);
+      }
+
+      const sparks = sparkCounts[currentGenre] || 3;
+      for (let i = 0; i < sparks; i++) createShapeSpark(cx, cy, false);
+    }
+
+    function createSpaceVisual() {
+      const spot = getLetterStageSpot(true, innerWidth * .5);
+      const cx = spot.viewportX;
+      const cy = spot.viewportY;
+      createFloatingLetter('SPACE', spot, true);
+      createWaveBurst(cx, cy, Math.min(680, innerWidth*.72), 118);
+      for (let i = 0; i < 2; i++) createRing(cx, cy, i % 2 ? 'var(--hot2)' : 'var(--hot3)', 34 + i*14);
+      for (let i = 0; i < 10; i++) createShapeSpark(cx, cy, true);
+
+      if (GENRES[currentGenre].instrument === 'drums') {
+        triggerDrumStageHit(0);
+        setTimeout(() => triggerDrumStageHit(1), 100);
+        setTimeout(() => triggerDrumStageHit(2), 200);
+      } else {
+        for (let i = 0; i < 2; i++) setTimeout(() => pulseKeyboardTheme(String.fromCharCode(97 + Math.floor(Math.random()*26))), i * 95);
+      }
+    }
+
+    function createShapeSpark(x, y, big) {
+      const el = document.createElement('div');
+      el.className = 'shapeSpark';
+      const colors = ['var(--hot)', 'var(--hot2)', 'var(--hot3)', 'var(--hot4)', '#ffffff'];
+      el.style.setProperty('--x', `${x}px`);
+      el.style.setProperty('--y', `${y}px`);
+      el.style.setProperty('--dx', `${-170 + Math.random()*340}px`);
+      el.style.setProperty('--dy', `${-150 + Math.random()*130}px`);
+      el.style.setProperty('--s', `${big ? 7 + Math.random()*15 : 5 + Math.random()*10}px`);
+      el.style.setProperty('--c', colors[Math.floor(Math.random()*colors.length)]);
+      const radiusByTheme = {
+        hiphop: '5px', chiptune: '3px', rock: '2px', synth: '2px 12px 2px 12px',
+        reggae: '999px', strings: '2px', ocean: '60% 60% 60% 8px', jazz: '50% 12% 50% 12%',
+        lofi: '10px', cosmic: '2px'
+      };
+      el.style.setProperty('--r', radiusByTheme[currentGenre] || '6px');
+      if (currentGenre === 'rock') el.style.clipPath = 'polygon(50% 0,62% 38%,100% 38%,68% 60%,80% 100%,50% 75%,20% 100%,32% 60%,0 38%,38% 38%)';
+      if (currentGenre === 'strings') {
+        el.style.width = `${big ? 34 : 22}px`;
+        el.style.height = `${big ? 8 : 5}px`;
+      }
+      fxLayer.appendChild(el);
+      el.addEventListener('animationend', () => el.remove());
+    }
+
+    function createWaveBurst(x, y, w, h) {
+      const el = document.createElement('div');
+      el.className = 'waveBurst';
+      el.style.setProperty('--x', `${x}px`);
+      el.style.setProperty('--y', `${y}px`);
+      el.style.setProperty('--w', `${w}px`);
+      el.style.setProperty('--h', `${h}px`);
+      el.style.setProperty('--dx', `${-30 + Math.random()*60}px`);
+      el.style.setProperty('--dy', `${-20 + Math.random()*40}px`);
+      fxLayer.appendChild(el);
+      el.addEventListener('animationend', () => el.remove());
+    }
+
+    function createRing(x, y, color, size) {
+      const el = document.createElement('div');
+      el.className = 'soundRing';
+      el.style.setProperty('--x', `${x}px`);
+      el.style.setProperty('--y', `${y}px`);
+      el.style.setProperty('--ring', color);
+      el.style.setProperty('--s', `${size}px`);
+      fxLayer.appendChild(el);
+      el.addEventListener('animationend', () => el.remove());
+    }
+
+    function createNoteDot(x, y, big) {
+      const el = document.createElement('div');
+      el.className = 'noteDot';
+      const colors = ['var(--hot)', 'var(--hot2)', 'var(--hot3)', 'var(--hot4)', '#ffffff'];
+      el.style.setProperty('--x', `${x}px`);
+      el.style.setProperty('--y', `${y}px`);
+      el.style.setProperty('--dx', `${-180 + Math.random()*360}px`);
+      el.style.setProperty('--dy', `${-170 + Math.random()*140}px`);
+      el.style.setProperty('--s', `${big ? 8 + Math.random()*16 : 5 + Math.random()*11}px`);
+      el.style.setProperty('--r', Math.random() > .55 ? '4px' : '50%');
+      el.style.setProperty('--c', colors[Math.floor(Math.random()*colors.length)]);
+      fxLayer.appendChild(el);
+      el.addEventListener('animationend', () => el.remove());
+    }
+
+    function createDrumHop(x, y) {
+      const el = document.createElement('div');
+      el.className = 'drumHopFx';
+      el.style.setProperty('--x', `${x}px`);
+      el.style.setProperty('--y', `${y}px`);
+      fxLayer.appendChild(el);
+      el.addEventListener('animationend', () => el.remove());
+    }
+
+    function triggerDrumStageHit(which) {
+      if (!drumStage || GENRES[currentGenre].instrument !== 'drums' || !keyboardPage.classList.contains('active')) return;
+      const hitPoints = ['19%', '50%', '81%'];
+      const pick = typeof which === 'number' ? which % hitPoints.length : Math.floor(Math.random() * hitPoints.length);
+      const impact = document.createElement('div');
+      impact.className = 'drumStageImpact';
+      impact.style.setProperty('--hitX', hitPoints[pick]);
+      impact.style.setProperty('--hitY', pick === 1 ? '68px' : '58px');
+      const stick = document.createElement('div');
+      stick.className = 'drumHitStick';
+      stick.style.setProperty('--hitX', hitPoints[pick]);
+      stick.style.setProperty('--hitY', pick === 1 ? '82px' : '72px');
+      stick.style.setProperty('--stickRot', pick === 0 ? '-24deg' : pick === 1 ? '0deg' : '24deg');
+      drumStage.append(impact, stick);
+      impact.addEventListener('animationend', () => impact.remove());
+      stick.addEventListener('animationend', () => stick.remove());
+    }
+
+    document.getElementById('startKeyboard').addEventListener('click', () => {
+      ensureAudio();
+      menuPage.classList.remove('active');
+      keyboardPage.classList.add('active');
+      body.classList.add('keyboardMode');
+      renderKeyboardTheme(currentGenre);
+      syncLetterStage();
+      pulseKeyboardTheme('space');
+    });
+    document.getElementById('backMenu').addEventListener('click', () => {
+      keyboardPage.classList.remove('active');
+      menuPage.classList.add('active');
+      body.classList.remove('keyboardMode');
+      if (letterStage) letterStage.replaceChildren();
+      menuPulse();
+    });
+    spaceToggle.addEventListener('click', () => {
+      randomSpace = !randomSpace;
+      spaceToggle.textContent = `Random Spacebar Sounds: ${randomSpace ? 'ON' : 'OFF'}`;
+      playSpaceSound();
+      menuPulse();
+    });
+    document.querySelectorAll('.key').forEach(btn => {
+      btn.addEventListener('pointerdown', e => {
+        e.preventDefault();
+        handleInput(btn.dataset.key, btn);
+      });
+    });
+    window.addEventListener('keydown', e => {
+      if (keyboardPage.classList.contains('active')) {
+        const k = e.key === ' ' ? 'space' : e.key.toLowerCase();
+        if (k === 'space' || /^[a-z]$/.test(k)) {
+          e.preventDefault();
+          handleInput(k);
+        }
+      }
+    });
+
+    buildGenreCards();
+    resizeCanvas();
+    syncLetterStage();
+    seedParticles();
+    selectGenre('drums', false);
+    requestAnimationFrame(drawCanvas);
+  </script>
+<script src="rhythmic-typing-lesson.js"></script>
+<script src="rhythmic-typing-back.js"></script>
+</body>
+</html>
