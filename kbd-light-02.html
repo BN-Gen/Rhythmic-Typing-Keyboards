@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rhythmic Typing Keyboard</title>
+  <style>
+    :root {
+      --bg: #f8fbff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --active: #111827;
+      --key-border: rgba(17, 24, 39, 0.18);
+      --left-pinky: #f87171;
+      --left-ring: #fb923c;
+      --left-middle: #facc15;
+      --left-index: #34d399;
+      --right-index: #60a5fa;
+      --right-middle: #a78bfa;
+      --right-ring: #f472b6;
+      --right-pinky: #22d3ee;
+      --thumbs: #94a3b8;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 24px 14px;
+    }
+
+    main {
+      width: min(980px, 100%);
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: clamp(1.55rem, 4vw, 2.35rem);
+      line-height: 1.15;
+      font-weight: 800;
+    }
+
+    .subtitle {
+      margin: 0 0 26px;
+      font-size: clamp(1rem, 2.5vw, 1.25rem);
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .target-line {
+      min-height: 94px;
+      margin: 0 auto 24px;
+      padding: 16px;
+      border-radius: 20px;
+      background: #ffffff;
+      border: 2px solid rgba(17, 24, 39, 0.08);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: clamp(8px, 1.8vw, 18px);
+      overflow: visible;
+    }
+
+    .target {
+      position: relative;
+      width: clamp(52px, 9vw, 82px);
+      height: clamp(52px, 9vw, 82px);
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      font-size: clamp(1.2rem, 3vw, 2rem);
+      font-weight: 800;
+      background: #eef2ff;
+      border: 2px solid #dbeafe;
+      color: #1e3a8a;
+      transition: transform 120ms ease, box-shadow 120ms ease, opacity 180ms ease;
+    }
+
+    .target.space-target {
+      width: clamp(94px, 18vw, 150px);
+      font-size: clamp(0.85rem, 2.2vw, 1.25rem);
+    }
+
+    .target.active {
+      transform: translateY(-5px) scale(1.08);
+      box-shadow: 0 0 0 5px rgba(59, 130, 246, 0.20), 0 10px 22px rgba(37, 99, 235, 0.20);
+      border-color: #3b82f6;
+      color: var(--active);
+      background: #ffffff;
+    }
+
+    .target.cleared {
+      pointer-events: none;
+    }
+
+    .target.burst {
+      animation: burstLetter 330ms ease-out forwards;
+    }
+
+    .target.flyUp {
+      animation: flyUpLetter 360ms ease-out forwards;
+    }
+
+    .target.spinPop {
+      animation: spinPopLetter 380ms ease-out forwards;
+    }
+
+    @keyframes burstLetter {
+      0% { transform: scale(1.08); opacity: 1; }
+      50% { transform: scale(1.38); opacity: 0.85; }
+      100% { transform: scale(0.78); opacity: 0; }
+    }
+
+    @keyframes flyUpLetter {
+      0% { transform: translateY(-5px) scale(1.08); opacity: 1; }
+      100% { transform: translateY(-48px) scale(1.28); opacity: 0; }
+    }
+
+    @keyframes spinPopLetter {
+      0% { transform: rotate(0deg) scale(1.08); opacity: 1; }
+      45% { transform: rotate(16deg) scale(1.34); opacity: 1; }
+      100% { transform: rotate(-10deg) scale(0.7); opacity: 0; }
+    }
+
+    .particle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #3b82f6;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      animation: particleBurst 360ms ease-out forwards;
+    }
+
+    @keyframes particleBurst {
+      to {
+        transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) scale(0.2);
+        opacity: 0;
+      }
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 24px;
+      font-size: 1rem;
+      font-weight: 800;
+      color: #ffffff;
+      background: #2563eb;
+      cursor: pointer;
+      box-shadow: 0 8px 16px rgba(37, 99, 235, 0.22);
+    }
+
+    button:disabled {
+      background: #9ca3af;
+      cursor: default;
+      box-shadow: none;
+    }
+
+    .volume-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.95rem;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    input[type="range"] {
+      width: 140px;
+    }
+
+    .keyboard {
+      display: grid;
+      gap: 10px;
+      justify-content: center;
+      margin: 0 auto;
+      user-select: none;
+    }
+
+    .row {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .key {
+      width: clamp(42px, 7.5vw, 66px);
+      height: clamp(42px, 7.5vw, 62px);
+      border-radius: 13px;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      font-size: clamp(1rem, 2.8vw, 1.45rem);
+      color: #111827;
+      border: 2px solid var(--key-border);
+      box-shadow: inset 0 -4px 0 rgba(0,0,0,0.08), 0 6px 12px rgba(15, 23, 42, 0.09);
+      transition: transform 90ms ease, box-shadow 90ms ease, filter 90ms ease;
+    }
+
+    .key.space {
+      width: min(460px, 70vw);
+      height: 58px;
+      font-size: 1.2rem;
+    }
+
+    .key.glow {
+      transform: translateY(-3px) scale(1.04);
+      filter: brightness(1.08);
+      box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.9), 0 0 0 9px rgba(37, 99, 235, 0.35), 0 8px 18px rgba(15, 23, 42, 0.14);
+    }
+
+    .left-pinky { background: var(--left-pinky); }
+    .left-ring { background: var(--left-ring); }
+    .left-middle { background: var(--left-middle); }
+    .left-index { background: var(--left-index); }
+    .right-index { background: var(--right-index); }
+    .right-middle { background: var(--right-middle); }
+    .right-ring { background: var(--right-ring); }
+    .right-pinky { background: var(--right-pinky); }
+    .thumbs { background: var(--thumbs); }
+
+    @media (max-width: 620px) {
+      body { padding: 18px 8px; }
+      .row { gap: 5px; }
+      .keyboard { gap: 8px; }
+      .target-line { padding: 12px 8px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Rhythmic Typing Keyboard</h1>
+    <p class="subtitle">Design for Basic Initial Keyboard Functioning</p>
+
+    <section class="target-line" id="targetLine" aria-label="Target sequence"></section>
+
+    <div class="controls">
+      <button id="startButton" type="button">Start</button>
+      <div class="volume-wrap">
+        <label for="volumeSlider">Volume</label>
+        <input id="volumeSlider" type="range" min="0" max="1" step="0.01" value="0.75" />
+      </div>
+      <button id="muteButton" type="button">Mute</button>
+    </div>
+
+    <section class="keyboard" aria-label="Visual keyboard guide">
+      <div class="row" id="rowTop"></div>
+      <div class="row" id="rowMiddle"></div>
+      <div class="row" id="rowBottom"></div>
+      <div class="row" id="rowSpace"></div>
+    </section>
+  </main>
+
+  <script>
+    const SEQUENCE = ["F", "G", "F", "G", "F", "G", "F", "SPACE"];
+
+    const SOUND_SETS = [
+      {
+        F: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/KICK1.mp3",
+        G: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/SNARE2.mp3",
+        SPACE: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Splash%2012%203.mp3"
+      },
+      {
+        F: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Electro%20kick%2001.mp3",
+        G: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/FM%20snare.mp3",
+        SPACE: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Chime%20percussion_BLASTWAVEFX_30615.mp3"
+      },
+      {
+        F: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Fuzz%20Kick.mp3",
+        G: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Smack%20Snare.mp3",
+        SPACE: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Maxi%20clap.mp3"
+      }
+    ];
+
+    const EFFECTS = ["burst", "flyUp", "spinPop"];
+
+    const FINGER_CLASS = {
+      Q: "left-pinky", A: "left-pinky", Z: "left-pinky",
+      W: "left-ring", S: "left-ring", X: "left-ring",
+      E: "left-middle", D: "left-middle", C: "left-middle",
+      R: "left-index", F: "left-index", T: "left-index", G: "left-index", V: "left-index", B: "left-index",
+      Y: "right-index", H: "right-index", U: "right-index", J: "right-index", N: "right-index", M: "right-index",
+      I: "right-middle", K: "right-middle",
+      O: "right-ring", L: "right-ring",
+      P: "right-pinky",
+      SPACE: "thumbs"
+    };
+
+    const ROWS = {
+      rowTop: ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
+      rowMiddle: ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
+      rowBottom: ["Z", "X", "C", "V", "B", "N", "M"],
+      rowSpace: ["SPACE"]
+    };
+
+    const targetLine = document.getElementById("targetLine");
+    const startButton = document.getElementById("startButton");
+    const muteButton = document.getElementById("muteButton");
+    const volumeSlider = document.getElementById("volumeSlider");
+
+    let started = false;
+    let muted = false;
+    let beatIndex = 0;
+    let setIndex = 0;
+    let audioCache = {};
+
+    function buildKeyboard() {
+      Object.entries(ROWS).forEach(([rowId, keys]) => {
+        const row = document.getElementById(rowId);
+        row.innerHTML = "";
+        keys.forEach((key) => {
+          const div = document.createElement("div");
+          div.className = `key ${FINGER_CLASS[key] || ""} ${key === "SPACE" ? "space" : ""}`;
+          div.dataset.key = key;
+          div.textContent = key;
+          row.appendChild(div);
+        });
+      });
+    }
+
+    function drawTargets() {
+      targetLine.innerHTML = "";
+      SEQUENCE.forEach((target, index) => {
+        const span = document.createElement("span");
+        span.className = `target ${target === "SPACE" ? "space-target" : ""}`;
+        span.dataset.index = String(index);
+        span.textContent = target;
+        if (index === beatIndex) span.classList.add("active");
+        targetLine.appendChild(span);
+      });
+    }
+
+    function preloadAudio() {
+      audioCache = {};
+      SOUND_SETS.forEach((set) => {
+        Object.values(set).forEach((url) => {
+          if (!audioCache[url]) {
+            const audio = new Audio(url);
+            audio.preload = "auto";
+            audio.load();
+            audioCache[url] = audio;
+          }
+        });
+      });
+    }
+
+    function playSound(targetKey) {
+      if (muted) return;
+      const currentSoundSet = SOUND_SETS[setIndex % SOUND_SETS.length];
+      const url = currentSoundSet[targetKey];
+      const baseAudio = audioCache[url] || new Audio(url);
+      const sound = baseAudio.cloneNode(true);
+      sound.volume = Number(volumeSlider.value);
+      sound.currentTime = 0;
+      sound.play().catch(() => {});
+    }
+
+    function glowKey(targetKey) {
+      const keyEl = document.querySelector(`[data-key="${targetKey}"]`);
+      if (!keyEl) return;
+      keyEl.classList.add("glow");
+      setTimeout(() => keyEl.classList.remove("glow"), 150);
+    }
+
+    function addBurstParticles(targetEl) {
+      const points = [
+        ["-36px", "-28px"], ["0px", "-42px"], ["36px", "-28px"],
+        ["44px", "0px"], ["30px", "34px"], ["0px", "44px"],
+        ["-30px", "34px"], ["-44px", "0px"]
+      ];
+
+      points.forEach(([x, y]) => {
+        const particle = document.createElement("span");
+        particle.className = "particle";
+        particle.style.setProperty("--x", x);
+        particle.style.setProperty("--y", y);
+        targetEl.appendChild(particle);
+        setTimeout(() => particle.remove(), 390);
+      });
+    }
+
+    function animateTarget(targetEl) {
+      const effectIndex = setIndex % EFFECTS.length;
+      const effect = EFFECTS[effectIndex];
+      if (effect === "burst") addBurstParticles(targetEl);
+      targetEl.classList.add("cleared", effect);
+      setTimeout(() => {
+        targetEl.style.visibility = "hidden";
+      }, 390);
+    }
+
+    function setActiveTarget() {
+      document.querySelectorAll(".target").forEach((el) => el.classList.remove("active"));
+      const nextTarget = document.querySelector(`.target[data-index="${beatIndex}"]`);
+      if (nextTarget) nextTarget.classList.add("active");
+    }
+
+    function handleCorrectKey(targetKey) {
+      const targetEl = document.querySelector(`.target[data-index="${beatIndex}"]`);
+      if (!targetEl) return;
+
+      playSound(targetKey);
+      glowKey(targetKey);
+      animateTarget(targetEl);
+
+      beatIndex += 1;
+
+      if (beatIndex >= SEQUENCE.length) {
+        beatIndex = 0;
+        setIndex += 1;
+        setTimeout(drawTargets, 180);
+      } else {
+        setActiveTarget();
+      }
+    }
+
+    function normalizePhysicalKey(event) {
+      if (event.code === "Space") return "SPACE";
+      const key = event.key.toUpperCase();
+      return /^[A-Z]$/.test(key) ? key : "";
+    }
+
+    document.addEventListener("keydown", (event) => {
+      if (event.code === "Space") event.preventDefault();
+      if (!started || event.repeat) return;
+
+      const pressedKey = normalizePhysicalKey(event);
+      const targetKey = SEQUENCE[beatIndex];
+
+      if (pressedKey === targetKey) {
+        handleCorrectKey(targetKey);
+      }
+    });
+
+    startButton.addEventListener("click", () => {
+      started = true;
+      preloadAudio();
+      beatIndex = 0;
+      setIndex = 0;
+      drawTargets();
+      startButton.disabled = true;
+      startButton.textContent = "Started";
+    });
+
+    muteButton.addEventListener("click", () => {
+      muted = !muted;
+      muteButton.textContent = muted ? "Unmute" : "Mute";
+    });
+
+    buildKeyboard();
+    drawTargets();
+  </script>
+<script src="rhythmic-typing-lesson.js"></script>
+<script src="rhythmic-typing-back.js"></script>
+</body>
+</html>
