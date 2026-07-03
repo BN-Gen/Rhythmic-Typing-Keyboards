@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rhythmic Typing Review Lab</title>
+<style>
+body{margin:0;font-family:system-ui,sans-serif;background:#0f172a;color:#e2e8f0;padding:16px}
+h1{text-align:center}
+.lab-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:16px}
+.lab-card{background:#1e293b;border-radius:16px;padding:12px;border:2px solid #334155}
+.lab-card iframe{width:100%;height:300px;border:none;border-radius:10px;background:#000}
+.comment{width:100%;min-height:70px;border-radius:8px;border:1px solid #475569;background:#0f172a;color:#fff;padding:8px;margin-top:8px;font-family:inherit}
+.toolbar{text-align:center;margin:16px 0;display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.toolbar button{padding:10px 20px;border-radius:999px;border:none;font-weight:700;cursor:pointer;background:#3b82f6;color:#fff}
+.sliders{display:grid;gap:6px;margin:8px 0;font-size:13px}
+.sliders label{display:flex;justify-content:space-between;align-items:center;gap:8px}
+</style>
+</head>
+<body>
+<h1>Rhythmic Typing Review Lab</h1>
+<p style="text-align:center;color:#94a3b8">Try keyboards, leave comments, export feedback. Settings persist per device.</p>
+<div class="toolbar">
+<button id="saveComments">Save comments</button>
+<button id="exportComments">Export comments JSON</button>
+<button id="exportData">Export session data</button>
+<button id="exportAnon">Export anonymized stats</button>
+<a href="./rhythmic-typing-control-panel.html" style="color:#93c5fd;align-self:center">â† Control Panel</a>
+</div>
+<div class="lab-grid"><div class="lab-card"><h3>Ocean Reef</h3><iframe src="./kbd-ocean-reef.html?activity=free&keys=F,G,J,H,SPACE&child=demo-demo-demo&noteLength=brief" title="Ocean Reef"></iframe><textarea class="comment" data-comment="ocean-reef" placeholder="Your notes..."></textarea></div>
+<div class="lab-card"><h3>Candy Land</h3><iframe src="./kbd-candy-land.html?activity=free&keys=F,G,J,H,SPACE&child=demo-demo-demo&noteLength=brief" title="Candy Land"></iframe><textarea class="comment" data-comment="candy-land" placeholder="Your notes..."></textarea></div>
+<div class="lab-card"><h3>Neon Beats</h3><iframe src="./kbd-neon-beats.html?activity=free&keys=F,G,J,H,SPACE&child=demo-demo-demo&noteLength=brief" title="Neon Beats"></iframe><textarea class="comment" data-comment="neon-beats" placeholder="Your notes..."></textarea></div>
+<div class="lab-card"><h3>Firefly Forest</h3><iframe src="./kbd-firefly-forest.html?activity=free&keys=F,G,J,H,SPACE&child=demo-demo-demo&noteLength=brief" title="Firefly Forest"></iframe><textarea class="comment" data-comment="firefly-forest" placeholder="Your notes..."></textarea></div>
+<div class="lab-card"><h3>Soft Light</h3><iframe src="./kbd-soft-light.html?activity=free&keys=F,G,J,H,SPACE&child=demo-demo-demo&noteLength=brief" title="Soft Light"></iframe><textarea class="comment" data-comment="soft-light" placeholder="Your notes..."></textarea></div>
+<div class="lab-card"><h3>TypeBeat</h3><iframe src="./kbd-typebeat.html?activity=free&keys=F,G,J,H,SPACE&child=demo-demo-demo&noteLength=brief" title="TypeBeat"></iframe><textarea class="comment" data-comment="typebeat" placeholder="Your notes..."></textarea></div>
+<div class="lab-card"><h3>Ocean Reef (High Contrast)</h3><iframe src="./kbd-ocean-reef-high-contrast.html?activity=free&keys=F,G,J,H,SPACE&child=demo-demo-demo&noteLength=brief" title="Ocean Reef (High Contrast)"></iframe><textarea class="comment" data-comment="ocean-reef-high-contrast" placeholder="Your notes..."></textarea></div>
+<div class="lab-card"><h3>Ocean Reef (Phone - Right Hand)</h3><iframe src="./kbd-ocean-reef-phone-right.html?activity=free&keys=F,G,J,H,SPACE&child=demo-demo-demo&noteLength=brief" title="Ocean Reef (Phone - Right Hand)"></iframe><textarea class="comment" data-comment="ocean-reef-phone-right" placeholder="Your notes..."></textarea></div>
+<div class="lab-card"><h3>Candy Land (Big Button)</h3><iframe src="./kbd-candy-land-big-button.html?activity=free&keys=F,G,J,H,SPACE&child=demo-demo-demo&noteLength=brief" title="Candy Land (Big Button)"></iframe><textarea class="comment" data-comment="candy-land-big-button" placeholder="Your notes..."></textarea></div></div>
+<script src="./rt-data-bundle.js"></script>
+<script>
+const KEY='rt-lab-comments';
+function load(){try{return JSON.parse(localStorage.getItem(KEY)||'{}');}catch{return {};}}
+function save(d){localStorage.setItem(KEY,JSON.stringify(d));}
+document.querySelectorAll('.comment').forEach(t=>{const c=load();if(c[t.dataset.comment])t.value=c[t.dataset.comment];t.oninput=()=>{const c=load();c[t.dataset.comment]=t.value;save(c);};});
+document.getElementById('saveComments').onclick=()=>alert('Comments saved on this device.');
+document.getElementById('exportComments').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(load(),null,2)],{type:'application/json'}));a.download='rt-lab-comments.json';a.click();};
+function dl(t,n){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'application/json'}));a.download=n;a.click();}
+document.getElementById('exportData').onclick=()=>dl((window.RT&&RT.exportJSON)?RT.exportJSON():'[]','rt-export.json');
+document.getElementById('exportAnon').onclick=()=>dl((window.RT&&RT.exportAnonymized)?RT.exportAnonymized():'{}','rt-anonymized.json');
+</script>
+</body>
+</html>
