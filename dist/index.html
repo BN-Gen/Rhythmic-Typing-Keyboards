@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rhythmic Typing â€” Press Start</title>
+<style>
+:root{--neon1:#ff2d95;--neon2:#00eaff;--neon3:#b14bff;--neon4:#39ff14;--ink:#e8f0ff;--font:'Trebuchet MS','Segoe UI',system-ui,sans-serif}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;height:100%;font-family:var(--font);color:var(--ink);overflow:hidden;background:#05010f}
+
+/* ---- Synthwave arcade background ---- */
+.scene{position:fixed;inset:0;overflow:hidden;background:radial-gradient(120% 90% at 50% 0%,#2a0a4a 0%,#12002e 45%,#05010f 100%)}
+.sun{position:absolute;left:50%;top:20%;width:340px;height:340px;transform:translate(-50%,-30%);border-radius:50%;
+background:linear-gradient(180deg,#ffd23f,#ff2d95 60%,#b14bff);filter:blur(2px);box-shadow:0 0 90px rgba(255,45,149,.55);opacity:.9}
+.sun::after{content:'';position:absolute;inset:0;border-radius:50%;background:repeating-linear-gradient(180deg,transparent 0 16px,#12002e 16px 24px);mask:linear-gradient(180deg,transparent 45%,#000 55%)}
+.grid{position:absolute;left:-50%;right:-50%;bottom:-10%;height:70%;
+background:
+ linear-gradient(90deg,rgba(0,234,255,.5) 1px,transparent 1px) 0 0/60px 60px,
+ linear-gradient(rgba(0,234,255,.5) 1px,transparent 1px) 0 0/60px 60px;
+transform:perspective(400px) rotateX(70deg);transform-origin:bottom;animation:gridMove 2.2s linear infinite;opacity:.55}
+@keyframes gridMove{from{background-position:0 0,0 0}to{background-position:0 60px,0 60px}}
+.scanlines{position:fixed;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 2px,transparent 2px 4px);mix-blend-mode:overlay;z-index:9}
+/* floating neon keycaps */
+.floaties{position:fixed;inset:0;pointer-events:none;z-index:2}
+.kf{position:absolute;font-weight:900;font-size:26px;padding:8px 12px;border-radius:10px;color:#fff;
+background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.25);box-shadow:0 0 14px currentColor;animation:floatK linear infinite;opacity:.85}
+@keyframes floatK{0%{transform:translateY(110vh) rotate(0)}100%{transform:translateY(-20vh) rotate(360deg)}}
+
+/* ---- Center menu ---- */
+.wrap{position:relative;z-index:5;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center}
+.coin{font-size:13px;letter-spacing:3px;color:var(--neon2);text-shadow:0 0 8px var(--neon2);animation:blink 1.1s steps(2) infinite;margin-bottom:10px}
+@keyframes blink{50%{opacity:0}}
+.logo{font-size:clamp(34px,9vw,88px);font-weight:900;line-height:.95;letter-spacing:2px;margin:0;
+background:linear-gradient(180deg,#fff,#ffd23f 40%,var(--neon1) 70%,var(--neon3));-webkit-background-clip:text;background-clip:text;color:transparent;
+filter:drop-shadow(0 0 18px rgba(255,45,149,.6));animation:hue 6s linear infinite}
+.logo .l2{display:block;background:linear-gradient(180deg,#fff,var(--neon2) 60%,var(--neon3));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 18px rgba(0,234,255,.6))}
+@keyframes hue{to{filter:drop-shadow(0 0 18px rgba(255,45,149,.6)) hue-rotate(360deg)}}
+.tag{margin:12px 0 20px;font-size:clamp(14px,3vw,20px);font-weight:800;color:var(--ink);text-shadow:0 0 10px var(--neon3)}
+.tag b{color:var(--neon4);text-shadow:0 0 10px var(--neon4)}
+
+/* player name entry */
+.namebox{margin:0 0 22px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.namebox label{font-size:13px;font-weight:900;letter-spacing:3px;color:var(--neon1);text-shadow:0 0 8px var(--neon1)}
+.namebox input{font-family:var(--font);font-weight:800;font-size:20px;letter-spacing:2px;text-align:center;text-transform:uppercase;color:#fff;
+width:min(80vw,320px);padding:12px 16px;border-radius:12px;background:rgba(255,255,255,.06);border:2px solid var(--neon2);
+box-shadow:0 0 14px rgba(0,234,255,.4),inset 0 0 12px rgba(0,234,255,.15);outline:none}
+.namebox input::placeholder{color:rgba(232,240,255,.4);letter-spacing:2px}
+.namebox input:focus{border-color:var(--neon1);box-shadow:0 0 16px rgba(255,45,149,.5),inset 0 0 12px rgba(255,45,149,.15)}
+
+.start{position:relative;font-family:var(--font);font-weight:900;font-size:clamp(22px,5vw,34px);letter-spacing:2px;color:#05010f;
+padding:20px 54px;border:none;border-radius:16px;cursor:pointer;
+background:linear-gradient(180deg,#fff,var(--neon4));box-shadow:0 0 0 4px #0a2e12,0 10px 0 #0a2e12,0 0 40px var(--neon4);
+animation:startPulse 1.2s ease-in-out infinite}
+.start:hover{transform:translateY(-2px)}
+.start:active{transform:translateY(8px);box-shadow:0 0 0 4px #0a2e12,0 2px 0 #0a2e12,0 0 40px var(--neon4)}
+@keyframes startPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.25)}}
+.arrow{display:inline-block;animation:arrowB .8s ease-in-out infinite}
+@keyframes arrowB{0%,100%{transform:translateX(0)}50%{transform:translateX(6px)}}
+
+.menu{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:26px}
+.mbtn{font-family:var(--font);font-weight:800;font-size:15px;letter-spacing:1px;color:var(--ink);cursor:pointer;
+padding:12px 22px;border-radius:12px;background:rgba(255,255,255,.05);border:2px solid var(--neon2);box-shadow:0 0 14px rgba(0,234,255,.35),inset 0 0 12px rgba(0,234,255,.15);transition:transform .12s,background .2s}
+.mbtn:hover{transform:translateY(-3px);background:rgba(0,234,255,.15)}
+.mbtn.p3{border-color:var(--neon1);box-shadow:0 0 14px rgba(255,45,149,.35),inset 0 0 12px rgba(255,45,149,.15)}
+.mbtn.p3:hover{background:rgba(255,45,149,.15)}
+.mbtn.p5{border-color:var(--neon3);box-shadow:0 0 14px rgba(177,75,255,.35),inset 0 0 12px rgba(177,75,255,.15)}
+.mbtn.p5:hover{background:rgba(177,75,255,.15)}
+
+.hud{position:fixed;top:14px;left:0;right:0;z-index:6;display:flex;justify-content:space-between;padding:0 18px;font-size:12px;font-weight:800;letter-spacing:2px;color:var(--neon2);text-shadow:0 0 8px var(--neon2)}
+.hud .r{color:var(--neon1);text-shadow:0 0 8px var(--neon1)}
+.sound{position:fixed;bottom:14px;right:16px;z-index:6;font-size:22px;background:rgba(255,255,255,.06);border:2px solid var(--neon2);border-radius:50%;width:46px;height:46px;cursor:pointer;color:#fff;box-shadow:0 0 14px rgba(0,234,255,.4)}
+.foot{position:fixed;bottom:14px;left:0;right:0;z-index:5;text-align:center;font-size:11px;letter-spacing:2px;color:rgba(232,240,255,.5)}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.001s!important}}
+</style>
+</head>
+<body>
+<div class="scene"><div class="sun"></div><div class="grid"></div></div>
+<div class="floaties" id="floaties"></div>
+<div class="scanlines"></div>
+<div class="hud"><span>1UP</span><span class="r">HI-SCORE â˜…</span></div>
+<div class="wrap">
+<div class="coin">INSERT COIN â€” TYPE TO THE BEAT</div>
+<h1 class="logo">RHYTHMIC<span class="l2">TYPING</span></h1>
+<p class="tag">Learn to type with <b>rhythm</b>, color &amp; sound!</p>
+<div class="namebox">
+<label for="playerName">â–¶ ENTER PLAYER NAME</label>
+<input id="playerName" type="text" maxlength="16" placeholder="YOUR NAME" autocomplete="off">
+</div>
+<button class="start" id="startBtn">PRESS START <span class="arrow">â–¶</span></button>
+<div class="menu">
+<button class="mbtn" id="mPlay">ðŸŽ® PLAY</button>
+<button class="mbtn p3" id="mLab">ðŸ§ª REVIEW LAB</button>
+<button class="mbtn p5" id="mColors">ðŸŒˆ FINGER COLORS</button>
+</div>
+</div>
+<button class="sound" id="soundBtn" title="Sound">ðŸ”Š</button>
+<div class="foot">Â© RHYTHMIC TYPING â€¢ PLAYER SELECT NEXT â–¶</div>
+<script>
+var PANEL='rhythmic-typing-control-panel.html',LAB='rhythmic-typing-review-lab.html',COLORS='kbd-finger-colors-preview.html';
+var actx=null,soundOn=true;
+function beep(f,t){if(!soundOn)return;try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();var o=actx.createOscillator(),g=actx.createGain();o.type=t||'square';o.frequency.value=f;g.gain.setValueAtTime(.0001,actx.currentTime);g.gain.exponentialRampToValueAtTime(.09,actx.currentTime+.01);g.gain.exponentialRampToValueAtTime(.0001,actx.currentTime+.18);o.connect(g).connect(actx.destination);o.start();o.stop(actx.currentTime+.2);}catch(e){}}
+function coinFx(){beep(988,'square');setTimeout(function(){beep(1319,'square');},90);setTimeout(function(){beep(1568,'square');},180);}
+function saveName(){try{var n=(document.getElementById('playerName').value||'').trim();if(n){localStorage.setItem('rt-player-name',n);sessionStorage.setItem('rt-player-name',n);}}catch(e){}}
+function goTo(url){saveName();coinFx();document.body.style.transition='opacity .35s';document.body.style.opacity='0';setTimeout(function(){location.href=url;},360);}
+try{var savedName=localStorage.getItem('rt-player-name');if(savedName)document.getElementById('playerName').value=savedName;}catch(e){}
+document.getElementById('startBtn').onclick=function(){goTo(PANEL);};
+document.getElementById('mPlay').onclick=function(){goTo(PANEL);};
+document.getElementById('mLab').onclick=function(){goTo(LAB);};
+document.getElementById('mColors').onclick=function(){goTo(COLORS);};
+document.getElementById('soundBtn').onclick=function(e){soundOn=!soundOn;e.target.textContent=soundOn?'ðŸ”Š':'ðŸ”‡';if(soundOn)beep(660);};
+document.querySelectorAll('.mbtn,.start').forEach(function(b){b.addEventListener('mouseenter',function(){beep(520,'triangle');});});
+document.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();goTo(PANEL);}});
+/* floating neon keycaps */
+(function(){var letters='ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');var cols=['#ff2d95','#00eaff','#b14bff','#39ff14','#ffd23f'];var host=document.getElementById('floaties');for(var i=0;i<16;i++){var k=document.createElement('div');k.className='kf';k.textContent=letters[Math.floor(Math.random()*letters.length)];var c=cols[i%cols.length];k.style.color=c;k.style.left=Math.random()*100+'vw';k.style.animationDuration=(7+Math.random()*8)+'s';k.style.animationDelay=(-Math.random()*12)+'s';k.style.fontSize=(18+Math.random()*22)+'px';host.appendChild(k);}})();
+</script>
+</body>
+</html>
