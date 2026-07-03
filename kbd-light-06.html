@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChatGPT Rhythmic Typing Keyboard Basic Functioning 1</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --text: #111827;
+      --muted: #4b5563;
+      --line: #d1d5db;
+      --active: #111827;
+      --key-border: rgba(17, 24, 39, 0.22);
+      --shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+
+      --left-pinky: #f97316;
+      --left-ring: #facc15;
+      --left-middle: #84cc16;
+      --left-index: #22c55e;
+      --right-index: #06b6d4;
+      --right-middle: #3b82f6;
+      --right-ring: #8b5cf6;
+      --right-pinky: #ec4899;
+      --thumbs: #64748b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 24px 14px 40px;
+    }
+
+    main {
+      width: min(980px, 100%);
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0 0 4px;
+      font-size: clamp(1.45rem, 3vw, 2.15rem);
+      line-height: 1.15;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+    }
+
+    .subtitle {
+      margin: 0 0 26px;
+      color: var(--muted);
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      font-weight: 600;
+    }
+
+    .target-line {
+      width: min(860px, 100%);
+      margin: 0 auto 30px;
+      min-height: 92px;
+      padding: 18px 16px;
+      background: #ffffff;
+      border: 2px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: clamp(8px, 2vw, 18px);
+    }
+
+    .target {
+      min-width: clamp(54px, 8vw, 84px);
+      height: clamp(48px, 7vw, 66px);
+      padding: 0 10px;
+      border-radius: 16px;
+      border: 2px solid #cbd5e1;
+      background: #f1f5f9;
+      color: #334155;
+      font-size: clamp(1.15rem, 3vw, 1.8rem);
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      transition: transform 120ms ease, border-color 120ms ease, background 120ms ease, opacity 180ms ease;
+    }
+
+    .target.space-target {
+      min-width: clamp(86px, 13vw, 130px);
+      font-size: clamp(0.95rem, 2.3vw, 1.3rem);
+    }
+
+    .target.active {
+      background: #111827;
+      color: #ffffff;
+      border-color: #111827;
+      transform: translateY(-4px) scale(1.04);
+      box-shadow: 0 10px 22px rgba(17, 24, 39, 0.22);
+    }
+
+    .target.done {
+      opacity: 0;
+      transform: scale(0.55);
+      pointer-events: none;
+    }
+
+    .target.burst::before,
+    .target.burst::after {
+      content: "";
+      position: absolute;
+      inset: -10px;
+      border-radius: 50%;
+      border: 4px solid rgba(17, 24, 39, 0.55);
+      animation: burst-ring 280ms ease-out forwards;
+      pointer-events: none;
+    }
+
+    .target.burst::after {
+      inset: -18px;
+      border-color: rgba(34, 197, 94, 0.55);
+      animation-delay: 40ms;
+    }
+
+    @keyframes burst-ring {
+      0% {
+        transform: scale(0.58);
+        opacity: 0.95;
+      }
+
+      100% {
+        transform: scale(1.55);
+        opacity: 0;
+      }
+    }
+
+    .controls {
+      margin: 0 auto 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 20px;
+      font-size: 1rem;
+      font-weight: 800;
+      background: #111827;
+      color: #ffffff;
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(17, 24, 39, 0.18);
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+
+    .mute-button {
+      background: #334155;
+      min-width: 86px;
+    }
+
+    label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.95rem;
+      color: #374151;
+      font-weight: 700;
+    }
+
+    input[type="range"] {
+      width: 160px;
+      accent-color: #111827;
+    }
+
+    .keyboard {
+      width: min(900px, 100%);
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+      user-select: none;
+    }
+
+    .key-row {
+      display: flex;
+      justify-content: center;
+      gap: clamp(5px, 1vw, 10px);
+      width: 100%;
+    }
+
+    .key {
+      width: clamp(42px, 7vw, 70px);
+      height: clamp(42px, 7vw, 64px);
+      border-radius: 14px;
+      border: 2px solid var(--key-border);
+      color: #111827;
+      font-size: clamp(1rem, 2vw, 1.45rem);
+      font-weight: 900;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.12), 0 4px 10px rgba(15, 23, 42, 0.08);
+      transition: transform 90ms ease, box-shadow 90ms ease, filter 90ms ease;
+      cursor: default;
+    }
+
+    .spacebar {
+      width: min(380px, 76vw);
+      height: clamp(48px, 7vw, 66px);
+      font-size: clamp(1rem, 2vw, 1.35rem);
+      letter-spacing: 0.08em;
+    }
+
+    .key.glow {
+      transform: translateY(-3px);
+      box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.12), 0 0 0 5px rgba(17, 24, 39, 0.14), 0 10px 22px rgba(15, 23, 42, 0.18);
+      filter: brightness(1.08);
+    }
+
+    .left-pinky { background: var(--left-pinky); }
+    .left-ring { background: var(--left-ring); }
+    .left-middle { background: var(--left-middle); }
+    .left-index { background: var(--left-index); }
+    .right-index { background: var(--right-index); }
+    .right-middle { background: var(--right-middle); color: #ffffff; }
+    .right-ring { background: var(--right-ring); color: #ffffff; }
+    .right-pinky { background: var(--right-pinky); color: #ffffff; }
+    .thumbs { background: var(--thumbs); color: #ffffff; }
+
+    @media (max-width: 560px) {
+      body {
+        padding-top: 16px;
+      }
+
+      .target-line {
+        gap: 5px;
+        padding: 12px 8px;
+      }
+
+      .target {
+        border-radius: 12px;
+        min-width: 34px;
+        height: 42px;
+        font-size: 1rem;
+        padding: 0 4px;
+      }
+
+      .target.space-target {
+        min-width: 62px;
+        font-size: 0.78rem;
+      }
+
+      .keyboard {
+        gap: 7px;
+      }
+
+      .key-row {
+        gap: 4px;
+      }
+
+      .key {
+        border-radius: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>ChatGPT Rhythmic Typing Keyboard</h1>
+    <p class="subtitle">Design for Basic Initial Keyboard Functioning</p>
+
+    <section id="targetLine" class="target-line" aria-label="Target sequence"></section>
+
+    <section class="controls" aria-label="Controls">
+      <button id="startButton" type="button">Start</button>
+      <label for="volumeSlider">
+        Volume
+        <input id="volumeSlider" type="range" min="0" max="1" step="0.01" value="0.75" />
+      </label>
+      <button id="muteButton" class="mute-button" type="button" aria-pressed="false">Mute</button>
+    </section>
+
+    <section class="keyboard" aria-label="Visual keyboard guide">
+      <div class="key-row" id="topRow"></div>
+      <div class="key-row" id="middleRow"></div>
+      <div class="key-row" id="bottomRow"></div>
+      <div class="key-row" id="spaceRow"></div>
+    </section>
+  </main>
+
+  <script>
+    const PATTERN = ["F", "G", "F", "G", "F", "G", "F", "SPACE"];
+
+    const SOUND_SETS = [
+      {
+        F: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/KICK1.mp3",
+        G: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/SNARE2.mp3",
+        SPACE: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Splash%2012%203.mp3"
+      },
+      {
+        F: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Electro%20kick%2001.mp3",
+        G: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/FM%20snare.mp3",
+        SPACE: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Chime%20percussion_BLASTWAVEFX_30615.mp3"
+      },
+      {
+        F: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Fuzz%20Kick.mp3",
+        G: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Smack%20Snare.mp3",
+        SPACE: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Maxi%20clap.mp3"
+      }
+    ];
+
+    const KEY_ROWS = [
+      ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
+      ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
+      ["Z", "X", "C", "V", "B", "N", "M"]
+    ];
+
+    const FINGER_CLASS = {
+      Q: "left-pinky",
+      A: "left-pinky",
+      Z: "left-pinky",
+      W: "left-ring",
+      S: "left-ring",
+      X: "left-ring",
+      E: "left-middle",
+      D: "left-middle",
+      C: "left-middle",
+      R: "left-index",
+      F: "left-index",
+      T: "left-index",
+      G: "left-index",
+      V: "left-index",
+      B: "left-index",
+      Y: "right-index",
+      H: "right-index",
+      U: "right-index",
+      J: "right-index",
+      N: "right-index",
+      M: "right-index",
+      I: "right-middle",
+      K: "right-middle",
+      O: "right-ring",
+      L: "right-ring",
+      P: "right-pinky",
+      SPACE: "thumbs"
+    };
+
+    const targetLine = document.getElementById("targetLine");
+    const startButton = document.getElementById("startButton");
+    const volumeSlider = document.getElementById("volumeSlider");
+    const muteButton = document.getElementById("muteButton");
+
+    let started = false;
+    let muted = false;
+    let beatIndex = 0;
+    let setIndex = 0;
+    let audioCache = {};
+
+    function buildKeyboard() {
+      const rowIds = ["topRow", "middleRow", "bottomRow"];
+      KEY_ROWS.forEach((row, rowIndex) => {
+        const rowEl = document.getElementById(rowIds[rowIndex]);
+        row.forEach((letter) => {
+          const key = document.createElement("div");
+          key.className = `key ${FINGER_CLASS[letter]}`;
+          key.textContent = letter;
+          key.dataset.key = letter;
+          rowEl.appendChild(key);
+        });
+      });
+
+      const space = document.createElement("div");
+      space.className = `key spacebar ${FINGER_CLASS.SPACE}`;
+      space.textContent = "SPACE";
+      space.dataset.key = "SPACE";
+      document.getElementById("spaceRow").appendChild(space);
+    }
+
+    function drawTargets() {
+      targetLine.innerHTML = "";
+      PATTERN.forEach((target, index) => {
+        const targetEl = document.createElement("div");
+        targetEl.className = "target";
+        if (target === "SPACE") {
+          targetEl.classList.add("space-target");
+        }
+        if (index === beatIndex) {
+          targetEl.classList.add("active");
+        }
+        targetEl.textContent = target;
+        targetEl.dataset.index = String(index);
+        targetLine.appendChild(targetEl);
+      });
+    }
+
+    function updateActiveTarget() {
+      document.querySelectorAll(".target").forEach((targetEl, index) => {
+        targetEl.classList.toggle("active", index === beatIndex && !targetEl.classList.contains("done"));
+      });
+    }
+
+    function preloadAudio() {
+      audioCache = {};
+      SOUND_SETS.forEach((soundSet) => {
+        Object.values(soundSet).forEach((url) => {
+          if (!audioCache[url]) {
+            const audio = new Audio(url);
+            audio.preload = "auto";
+            audio.load();
+            audioCache[url] = audio;
+          }
+        });
+      });
+    }
+
+    function playSound(targetKey) {
+      if (muted) return;
+
+      const currentSoundSet = SOUND_SETS[setIndex % SOUND_SETS.length];
+      const url = currentSoundSet[targetKey];
+      const baseAudio = audioCache[url];
+
+      if (!baseAudio) return;
+
+      const sound = baseAudio.cloneNode(true);
+      sound.volume = Number(volumeSlider.value);
+      sound.currentTime = 0;
+      sound.play().catch(() => {
+        baseAudio.currentTime = 0;
+        baseAudio.volume = Number(volumeSlider.value);
+        baseAudio.play().catch(() => {});
+      });
+    }
+
+    function glowKey(targetKey) {
+      const keyEl = document.querySelector(`.key[data-key="${targetKey}"]`);
+      if (!keyEl) return;
+
+      keyEl.classList.add("glow");
+      window.setTimeout(() => {
+        keyEl.classList.remove("glow");
+      }, 150);
+    }
+
+    function animateTarget(index) {
+      const targetEl = document.querySelector(`.target[data-index="${index}"]`);
+      if (!targetEl) return;
+
+      targetEl.classList.remove("active");
+      targetEl.classList.add("burst");
+
+      window.setTimeout(() => {
+        targetEl.classList.add("done");
+      }, 160);
+
+      window.setTimeout(() => {
+        targetEl.classList.remove("burst");
+      }, 360);
+    }
+
+    function advanceBeat() {
+      const completedIndex = beatIndex;
+      beatIndex += 1;
+
+      if (beatIndex >= PATTERN.length) {
+        beatIndex = 0;
+        setIndex += 1;
+        window.setTimeout(() => {
+          drawTargets();
+        }, 210);
+      } else {
+        updateActiveTarget();
+      }
+
+      animateTarget(completedIndex);
+    }
+
+    function normalizePhysicalKey(event) {
+      if (event.code === "Space" || event.key === " ") {
+        return "SPACE";
+      }
+
+      const key = event.key.toUpperCase();
+      if (/^[A-Z]$/.test(key)) {
+        return key;
+      }
+
+      return "";
+    }
+
+    function handleKeydown(event) {
+      const physicalKey = normalizePhysicalKey(event);
+
+      if (physicalKey === "SPACE") {
+        event.preventDefault();
+      }
+
+      if (!started) return;
+
+      const targetKey = PATTERN[beatIndex];
+      if (physicalKey !== targetKey) return;
+
+      playSound(targetKey);
+      glowKey(targetKey);
+      advanceBeat();
+    }
+
+    startButton.addEventListener("click", () => {
+      started = true;
+      preloadAudio();
+      startButton.disabled = true;
+      startButton.textContent = "Started";
+      drawTargets();
+      window.focus();
+    });
+
+    muteButton.addEventListener("click", () => {
+      muted = !muted;
+      muteButton.textContent = muted ? "Unmute" : "Mute";
+      muteButton.setAttribute("aria-pressed", String(muted));
+    });
+
+    window.addEventListener("keydown", handleKeydown);
+
+    buildKeyboard();
+    drawTargets();
+  </script>
+<script src="rhythmic-typing-lesson.js"></script>
+<script src="rhythmic-typing-back.js"></script>
+</body>
+</html>
