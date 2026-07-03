@@ -1,0 +1,274 @@
+﻿The Rhythmic Typing Program — Project Briefing
+Author and project owner: Bridgette Nicholson.
+
+
+This document was prepared by Bridgette Nicholson on May 10, 2026, with the help of Claude, to brief any future AI assistant working on this project. Everything in Section 1 (the program concept, philosophy, and pedagogical approach) is Bridgette's original work, developed over more than three decades. AI is being used to assist with execution — specifically to help build apps and web pages — but the ideas, methodology, sound library, and pedagogical framework belong to her.
+
+
+________________
+
+
+Section 1 — The Rhythmic Typing Program (Bridgette's Concept)
+The text in this section reflects Bridgette's own ideas, in her voice. It describes work she has been developing since the 1990s.
+Who I am and where this comes from
+I have been creating rhythmic typing programs since the 1990s. My husband and I have built and run typing programs together for more than three decades, evolving them as the technology of the day allowed.
+
+
+Custom Typing (1990s). The first program we created was called Custom Typing. In those years, before web delivery was practical, we burned the program onto CDs, printed physical manuals, and shipped the package to school districts. This was the earliest version of the hand-function approach combined with rhythmic typing — already different from anything else on the market, but constrained by what a CD could do.
+
+
+CustomTyping.com. When it became possible to put programs online, we moved the work to the web and renamed it CustomTyping.com. The same pedagogical foundation carried forward, but the web format opened up new possibilities for delivery, updates, and reach.
+
+
+TypingTraining.com (current). We then upgraded the program substantially and rebranded it as TypingTraining.com, which is still currently available online. TypingTraining.com is the current home of the work and reflects the most developed version of the program to date. It includes:
+
+
+* The hand-function approach to teaching typing — instruction based on developmental finger movement rather than the conventional home-row approach used by every other typing program.
+* Rhythmic typing as a structural element — children type to rhythmic patterns rather than to silent or beep-based drills.
+* Music and sounds, including sound effects, integrated as part of the typing experience.
+* Visual effects on the screen that pair with the auditory experience.
+
+
+So the lineage is: Custom Typing (1990s, CDs and manuals) → CustomTyping.com (online port) → TypingTraining.com (current upgraded program). Across all three, the underlying ideas — hand-function sequencing and rhythmic auditory teaching — have been mine.
+
+
+Over those decades I have personally created, purchased, and modified the sound clips that form the foundation of this work — thousands of hours of curating, editing, and choosing sounds that work for children. The audio library is not licensed stock material casually thrown together; it is a curated resource I have built deliberately, sound by sound, over many years.
+
+
+What I am building now is the next chapter — not a replacement for TypingTraining.com, but a new generation of activities and apps that take advantage of how much further the technology has come. AI-assisted no-code building means I can finally execute the volume and variety of ideas I've been holding for years.
+The core idea
+The Rhythmic Typing Program teaches children to type by combining two things:
+
+
+Rhythm and sound. As a child types each letter on the keyboard, the program plays a sound. When the child types in patterns, the sounds become rhythmic — they can end up sounding like music, like a drum kit being played, like funny sound effects, like cute sounds, depending on the sound theme. The typing itself becomes the music. This is not a typing program with sound effects added on. The sound is the experience.
+
+
+My hand-function approach. I do not teach typing the way commercial typing programs do. I teach based on how children's hands actually develop. I introduce one finger at a time. The index finger goes first, with index-finger movements and the keys those fingers can reach. Then I introduce the middle finger and the keys it covers. I build outward by finger, in the order children's fine motor skills mature. I have never seen any commercial typing program that does this, and as far as I know, there is nothing else out there that combines rhythmic auditory feedback with developmental hand-function sequencing the way my program does.
+Why this matters
+Most typing programs assume adult hand function and treat the keyboard as one undifferentiated motor task. They start children at the home row and drill them. This is developmentally inappropriate for young children and it is also boring, which is the single biggest reason kids quit. My approach is different on both counts: it respects child development, and it makes practice feel like play because the typing produces music or playful sounds the child enjoys hearing.
+The bigger picture
+The Rhythmic Typing Program is the umbrella project. It includes a curriculum, a methodology, a library of curated sounds, and a way of thinking about typing instruction that ties motor development to auditory rhythm. Within this larger program there are individual sub-projects — specific apps and activities children use. The work documented in Section 2 is one of those sub-projects.
+Marketing note (my own observation)
+I have not marketed this work well in the past. That is something I want to address as I rebuild and expand the program with current technology and AI assistance. The concept is unique, the foundation is decades deep, and I want it positioned around what makes it different — the pedagogical depth — rather than what makes it look like everything else.
+
+
+________________
+
+
+Section 2 — The Keyboard Activity Sub-Project
+This is one specific activity within the larger Rhythmic Typing Program. It is the foundational drumming-keyboard activity: children press keys, and each key plays a fixed sound. When they press the F key, the same drum beat sounds every time. Press patterns of keys, and you get patterns of drum beats — the keyboard becomes a rhythm instrument.
+Design rules for this sub-project
+These are non-negotiable design choices that come from Bridgette's pedagogy and from her decades of testing with children:
+
+
+1. Each key plays the same sound every time it is pressed. No randomization. Consistency is essential because the child is learning to associate a specific finger movement with a specific sound. The F key always plays the F sound. Always.
+
+
+2. Different sound themes correspond to different folders. A theme is a complete set of 27 sounds (26 letters + space bar), each mapped to its own key. Switching themes means changing which folder the app pulls from. The child can play the keyboard as drums, or as funny sounds, or as animal sounds, by switching themes.
+
+
+3. Sound length should match the typing pace. Longer sounds (~1 second) are for slower, more deliberate typing. Shorter sounds (under 0.5 seconds) are for faster typing where notes need to land cleanly without overlapping. The sub-project includes both length variants.
+
+
+4. Nothing should distract from motor learning. Volumes need to feel even across a theme. Sounds should not cut off jarringly. Truncations need fade-outs. The child's attention belongs on their fingers and the rhythm, not on production glitches.
+
+
+________________
+
+
+Section 3 — Source Sound Library
+The library Bridgette has curated over the decades contains 599 audio clips (roughly 8 megabytes total) organized into six categories. All clips are MP3; some also have OGG versions from a time when OGG was needed for Firefox compatibility (no longer required — modern browsers support MP3 universally).
+
+
+1 sec Drums — 78 files (39 unique clips × MP3 + OGG). Drum sounds approximately 1 second long. These were already named by individual keyboard letter (a.mp3 through z.mp3) from a prior version of the program, plus 13 numbered files. Use case: longer, more pronounced drum hits for slower, deliberate rhythmic typing.
+
+
+Drum sounds — 99 files. Short drum samples, all under 1 second, with about half under 0.3 seconds. Includes analog kicks, snares, hi-hats, distorted kicks, world percussion (Banya slap, Tabla, Dhol), glitch hits, and tonal shots. Use case: snappy fast-typing rhythm, the kind that lets a child develop typing speed while still hearing every keystroke clearly.
+
+
+Funny sounds — 99 files. Quirky sound effects: alien blips, balloon squeaks, cartoon sproings, beeps, chimes, jingles, boings. Lengths range 0.13 to 2.14 seconds. Use case: a playful comedic theme for younger children where the joy is in the silliness of what their typing produces.
+
+
+Human voice — 98 files. Mostly a man speaking single short words: "awesome," "cool," "hmm," "huh," "ahh," "eww," "yeah." Some women's voices and children's voices saying short phrases. Lengths 0.29 to 1.52 seconds. Use case: spoken-word typing rhythms; could also be developed into letter-naming or spelling-related activities.
+
+
+Sound art — 37 files. More experimental clips: pitch bends, theremin delays, synth ascends, designed accent tones, pixie-dust shimmer hits. Average 1.15 seconds. Use case: ambient or texture-themed typing for older children or for variety.
+
+
+animal sounds 0.5 sec — 188 files (94 unique clips × MP3 + OGG). Short animal clips: lions growling, mockingbirds calling, cats meowing, etc. All clips between 0.37 and 0.60 seconds — Bridgette deliberately curated these to be a consistent length so rhythm stays even no matter which key is pressed. Use case: child-friendly nature/animal theme where the consistent length is itself a pedagogical feature.
+
+
+________________
+
+
+Section 4 — What Was Done in This Work Session
+This section documents the work completed on May 10, 2026, in a session between Bridgette and Claude (running in Cowork mode, with file-system access to her local sound folder). Bridgette directed the work; Claude executed it.
+The conversation that shaped the work
+Bridgette opened the session cautiously — she had never used this AI tool before and was concerned about it modifying or losing her files. She asked Claude to walk through the folder and describe what was there before doing anything. Claude inventoried the 599 files across six folders without modifying anything.
+
+
+Bridgette then explained the broader project (decades of rhythmic typing work, hand-function approach, the desire to build new apps using current technology) and asked Claude for honest feedback on the concept rather than empty validation. Claude responded with a substantive assessment: the pairing of rhythmic auditory cueing with developmental hand-function sequencing is genuinely differentiated, has research support in motor learning, and is a legitimate pedagogical position — but the market is more crowded than it was in the 1990s, and the program's positioning needs to lead with the developmental sequencing rather than just the sounds.
+
+
+The discussion then turned practical. Bridgette explained her current workflow: files in Dropbox, links pulled by Make.com into Airtable, then used by AI to build mini apps. She acknowledged this had multiple fragile steps — Dropbox links sometimes break, Make.com is another point of failure, and she has very little currently in this system. She asked whether there was a better approach, especially given she planned to add a lot of media (audio, video, PDFs, images) to support multiple future apps.
+
+
+Claude recommended object storage — specifically Cloudflare R2 — for these reasons: stable URLs that don't break when files are reorganized, no per-download charges (so cost stays predictable as apps grow), free tier covers far more than the current library, and the same service can host the websites and apps themselves later if Bridgette wants. Bridgette decided to start with R2 for this new project rather than expanding the older Dropbox+Make+Airtable system.
+
+
+Bridgette then directed the substantive work: organize the drum sounds into keyboard-mapped folders. Each key on the QWERTY keyboard, plus the space bar, must have one specific sound. She wanted both a long-drum mapping (using the existing 1-second drums) and a short-drum mapping (using the snappier sounds, for faster typing). She asked whether Claude could also map the other sound categories the same way, and whether Claude could truncate longer sounds to keep them at typing-friendly lengths. Claude confirmed both were possible.
+The mapping work that resulted
+A new top-level folder Keyboard Mapped/ was created inside Bridgette's project folder. It contains six subfolders, each holding exactly 27 files: a.mp3 through z.mp3 plus space.mp3. The original source folders were not modified.
+
+
+Folder
+	Source
+	File count
+	Notes
+	01 - One Second Drums
+	1 sec Drums
+	27 mp3 + 27 ogg
+	Bridgette's existing letter-mapped clips were preserved. space.mp3 was created as a copy of 1.mp3 (the first numbered drum).
+	02 - Short Drums
+	Drum sounds
+	27 mp3
+	The 27 shortest drums from the source folder were selected (all under 0.5 seconds) and mapped alphabetically by source filename.
+	03 - Funny Sounds
+	Funny sounds
+	27 mp3
+	First 27 source files alphabetically. 6 longer clips were truncated to 1.0 seconds with a 0.05-second fade-out at the end.
+	04 - Human Voice
+	Human voice
+	27 mp3
+	First 27 source files alphabetically. 6 longer clips truncated to 1.0 seconds with fade-out.
+	05 - Sound Art
+	Sound art
+	27 mp3
+	First 27 source files alphabetically. 16 longer clips truncated to 1.0 seconds with fade-out.
+	06 - Animal Sounds
+	animal sounds 0.5 sec
+	27 mp3
+	First 27 source files alphabetically. No truncation needed (clips already approximately 0.5 seconds).
+	Caveat on the mapping
+The mapping is alphabetical by source filename — i.e., the alphabetically-first source file becomes a.mp3, the second becomes b.mp3, and so on. This is a starting point, not a final curation. Claude cannot listen to the audio. The right pairing of sound character to keyboard key is something Bridgette, with her ear and her decades of experience, will refine.
+
+
+When Bridgette identifies preferred swaps (for example, "in folder 06, swap A and K, swap M and S"), the changes can be applied as a single batch operation by any future AI assistant with file access.
+Hosting setup
+After the mapping was complete, Bridgette signed up for Cloudflare R2 and uploaded the Keyboard Mapped folder to a bucket. The original source folders are also being preserved on her local machine and can be uploaded to R2 if she wants a complete archive there.
+
+
+________________
+
+
+Section 5 — Technical Reference for AI Assistants Building Apps
+This section is the practical reference any AI helping Bridgette build apps for this sub-project should use.
+File organization
+Inside the bucket, the mapped sound folders live at:
+
+
+Keyboard Mapped/01 - One Second Drums/
+Keyboard Mapped/02 - Short Drums/
+Keyboard Mapped/03 - Funny Sounds/
+Keyboard Mapped/04 - Human Voice/
+Keyboard Mapped/05 - Sound Art/
+Keyboard Mapped/06 - Animal Sounds/
+
+Each contains files named:
+
+
+a.mp3, b.mp3, c.mp3, ..., y.mp3, z.mp3, space.mp3
+Cloudflare R2 — finding the bucket name and URL pattern
+The bucket name and the public URL pattern need to be substituted into any code or links. Here is exactly how to find them:
+
+
+1. Sign in to Cloudflare at dash.cloudflare.com.
+2. In the left-hand menu, click R2 Object Storage.
+3. Click on the bucket. Its name is at the top of the page.
+4. Inside the bucket, click the Settings tab.
+5. Scroll to the Public access section.
+6. If "R2.dev subdomain" is not yet enabled, click Allow Access to enable it. This makes files publicly readable.
+7. Once enabled, Cloudflare displays a URL of the form https://pub-XXXXXXXXX.r2.dev. This is the URL pattern for accessing files.
+
+
+Bucket name: [fill in here]
+
+
+Public URL base: [fill in here, e.g. https://pub-XXXXXXXXX.r2.dev]
+Example file URLs
+Once the URL base is filled in, individual files are accessed like this (note that spaces must be URL-encoded as %20):
+
+
+https://pub-XXXX.r2.dev/Keyboard%20Mapped/01%20-%20One%20Second%20Drums/a.mp3
+https://pub-XXXX.r2.dev/Keyboard%20Mapped/06%20-%20Animal%20Sounds/space.mp3
+Quick test that hosting is working
+Paste the following into a browser address bar (with XXXX replaced by the real subdomain). If an animal sound plays, hosting is set up correctly.
+
+
+https://pub-XXXX.r2.dev/Keyboard%20Mapped/06%20-%20Animal%20Sounds/a.mp3
+Minimum working keyboard-activity prototype
+Here is the simplest functional pattern any AI can use as a starting point for an HTML/JavaScript drumming-keyboard app:
+
+
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Rhythmic Typing — Drumming Keyboard</title></head>
+<body>
+  <h1>Press any key</h1>
+  <script>
+    const THEME = "01 - One Second Drums"; // change to switch themes
+    const BASE_URL = "https://pub-XXXX.r2.dev/Keyboard Mapped/";
+    
+    function playKey(key) {
+      const url = BASE_URL + encodeURIComponent(THEME) + "/" + key + ".mp3";
+      const audio = new Audio(url);
+      audio.play();
+    }
+    
+    document.addEventListener("keydown", (e) => {
+      const k = e.key === " " ? "space" : e.key.toLowerCase();
+      if (/^[a-z]$|^space$/.test(k)) playKey(k);
+    });
+  </script>
+</body>
+</html>
+
+This is a starting point only. The full Rhythmic Typing Program activity will need:
+
+
+* A theme picker UI so children (or teachers) can switch sound themes.
+* A visual keyboard that highlights which key was pressed, with finger color-coding for the hand-function sequencing.
+* Curriculum staging that introduces keys in Bridgette's developmental order: index fingers first, then middle, then ring, then pinky. The app should focus on the relevant fingers' keys at each stage while still letting all 27 keys play sounds.
+* Volume normalization across each theme so no single key is louder or quieter than the others.
+* Mute and volume controls as first-class features for accessibility (some children with auditory processing differences will need a quiet mode).
+* Sound preloading so the first keypress doesn't lag while the audio downloads.
+Pedagogical sequencing (Bridgette's developmental order)
+When the curriculum is built into the app, keys should be introduced in this order. This is not arbitrary — it reflects how children's fingers actually mature.
+
+
+1. Index fingers on home row (F and J) first.
+2. Index fingers extending to neighboring keys (R, T, Y, U; G, H; V, B, N, M).
+3. Middle fingers (D, K) and their reach (E, I; C, comma).
+4. Ring fingers (S, L) and their reach (W, O; X, period).
+5. Pinky fingers (A, semicolon) and their reach (Q, P; Z, slash).
+6. Number row, modifiers, and special characters last.
+
+
+Every key has a sound at every stage; the curriculum determines which keys are introduced when, not which sounds exist.
+
+
+________________
+
+
+Section 6 — How to Use This Document
+If you are an AI assistant picking up this project from Bridgette, treat this document as authoritative context.
+
+
+* Section 1 is Bridgette's intellectual property and original work — the concept, methodology, and pedagogical approach. Do not paraphrase this away or treat it as generic. When designing apps, marketing copy, lesson plans, or anything else for this project, lead with what makes Bridgette's approach distinctive.
+* Section 2 defines the specific sub-project being worked on right now (the keyboard activity).
+* Sections 3 and 4 describe the assets and the work already completed.
+* Section 5 is your technical reference for actually building.
+* Bridgette is not a programmer and does not intend to become one. She works in no-code and AI-assisted environments. Build accordingly: clean HTML/JavaScript that can be edited and remixed without requiring a build toolchain.
+
+
+Bridgette can be contacted at general@bridgettenicholson.com.
