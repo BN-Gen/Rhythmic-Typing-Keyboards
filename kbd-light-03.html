@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rhythmic Typing Keyboard - Background Effects</title>
+  <style>
+    :root{
+      --left-pinky:#ff7a7a;
+      --left-ring:#ffb86b;
+      --left-middle:#ffe66d;
+      --left-index:#62d26f;
+      --right-index:#62c7ff;
+      --right-middle:#8f9bff;
+      --right-ring:#c78bff;
+      --right-pinky:#ff8bd1;
+      --thumb:#b9f2d0;
+      --ink:#17324d;
+      --soft:#f7fbff;
+      --active:#1f7aec;
+    }
+
+    *{ box-sizing:border-box; }
+
+    html,body{
+      margin:0;
+      min-height:100%;
+      font-family:Arial, Helvetica, sans-serif;
+      color:var(--ink);
+      background:linear-gradient(180deg,#ffffff 0%,#f3f9ff 100%);
+      overflow:hidden;
+    }
+
+    body{
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:stretch;
+    }
+
+    #backgroundEffects{
+      position:fixed;
+      inset:0;
+      z-index:0;
+      pointer-events:none;
+      overflow:hidden;
+    }
+
+    #backgroundEffects::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        radial-gradient(circle at 18% 20%, rgba(98,199,255,.18), transparent 24%),
+        radial-gradient(circle at 82% 25%, rgba(255,139,209,.16), transparent 26%),
+        radial-gradient(circle at 50% 5%, rgba(255,230,109,.14), transparent 30%);
+      opacity:.9;
+    }
+
+    .app{
+      position:relative;
+      z-index:2;
+      width:min(1100px,96vw);
+      min-height:100vh;
+      padding:18px 14px 26px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:14px;
+    }
+
+    h1{
+      margin:0;
+      font-size:clamp(18px,2.3vw,28px);
+      line-height:1.25;
+      text-align:center;
+      font-weight:800;
+    }
+
+    .target-wrap{
+      width:min(940px,94vw);
+      min-height:116px;
+      padding:18px 18px 20px;
+      border-radius:24px;
+      background:rgba(255,255,255,.78);
+      box-shadow:0 10px 30px rgba(36,90,130,.13);
+      backdrop-filter:blur(3px);
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      margin-top:4px;
+    }
+
+    #targetLine{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      gap:clamp(12px,2.5vw,28px);
+      flex-wrap:nowrap;
+    }
+
+    .target{
+      position:relative;
+      min-width:62px;
+      height:66px;
+      padding:0 14px;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      border-radius:20px;
+      font-size:clamp(26px,4vw,44px);
+      font-weight:900;
+      color:#24425c;
+      background:#eef7ff;
+      border:3px solid transparent;
+      transition:transform .12s ease, opacity .2s ease, border-color .12s ease, background .12s ease;
+    }
+
+    .target.space-target{
+      min-width:132px;
+      font-size:clamp(20px,3vw,32px);
+    }
+
+    .target.active{
+      border-color:var(--active);
+      background:#ffffff;
+      transform:translateY(-4px) scale(1.08);
+      box-shadow:0 8px 24px rgba(31,122,236,.22);
+    }
+
+    .target.cleared{
+      opacity:0;
+      pointer-events:none;
+    }
+
+    .target.burst-effect{ animation:targetBurst .42s ease forwards; }
+    .target.fly-effect{ animation:targetFly .48s ease forwards; }
+    .target.spin-effect{ animation:targetSpin .46s ease forwards; }
+
+    @keyframes targetBurst{
+      0%{ transform:scale(1.08); opacity:1; }
+      55%{ transform:scale(1.45); opacity:.9; }
+      100%{ transform:scale(.25); opacity:0; }
+    }
+
+    @keyframes targetFly{
+      0%{ transform:translateY(-4px) scale(1.08); opacity:1; }
+      100%{ transform:translateY(-72px) scale(1.35); opacity:0; }
+    }
+
+    @keyframes targetSpin{
+      0%{ transform:scale(1.08) rotate(0deg); opacity:1; }
+      45%{ transform:scale(1.55) rotate(18deg); opacity:1; }
+      100%{ transform:scale(.25) rotate(95deg); opacity:0; }
+    }
+
+    .particle{
+      position:absolute;
+      width:9px;
+      height:9px;
+      border-radius:999px;
+      left:50%;
+      top:50%;
+      background:var(--pcolor,#62c7ff);
+      animation:particleOut .48s ease-out forwards;
+      pointer-events:none;
+    }
+
+    @keyframes particleOut{
+      from{ transform:translate(-50%,-50%) scale(1); opacity:1; }
+      to{ transform:translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(.2); opacity:0; }
+    }
+
+    .controls{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:center;
+      flex-wrap:wrap;
+      padding:10px 16px;
+      border-radius:18px;
+      background:rgba(255,255,255,.72);
+      box-shadow:0 8px 20px rgba(36,90,130,.08);
+    }
+
+    button{
+      appearance:none;
+      border:0;
+      border-radius:16px;
+      padding:12px 20px;
+      font-size:16px;
+      font-weight:800;
+      color:#fff;
+      background:#2378e8;
+      cursor:pointer;
+      box-shadow:0 8px 18px rgba(35,120,232,.25);
+    }
+
+    button:disabled{
+      background:#9bb6d7;
+      cursor:default;
+      box-shadow:none;
+    }
+
+    .small-control{
+      font-size:14px;
+      font-weight:700;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+
+    input[type="range"]{ width:140px; }
+
+    .keyboard{
+      width:min(940px,96vw);
+      margin-top:auto;
+      padding:18px;
+      border-radius:28px;
+      background:rgba(255,255,255,.84);
+      box-shadow:0 16px 38px rgba(36,90,130,.16);
+      backdrop-filter:blur(4px);
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      user-select:none;
+    }
+
+    .row{
+      display:flex;
+      justify-content:center;
+      gap:8px;
+    }
+
+    .key{
+      width:clamp(42px,7vw,72px);
+      height:clamp(42px,7vw,68px);
+      border-radius:14px;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      font-weight:900;
+      font-size:clamp(18px,2.6vw,28px);
+      border:3px solid rgba(0,0,0,.08);
+      color:#122840;
+      box-shadow:0 5px 0 rgba(0,0,0,.12), 0 8px 16px rgba(0,0,0,.08);
+      transition:transform .08s ease, filter .08s ease, box-shadow .08s ease;
+    }
+
+    .key.spacebar{
+      width:min(440px,72vw);
+      height:58px;
+      font-size:24px;
+      background:var(--thumb);
+    }
+
+    .key.hit{
+      transform:translateY(3px) scale(1.04);
+      filter:brightness(1.12) saturate(1.25);
+      box-shadow:0 0 0 6px rgba(31,122,236,.22), 0 3px 0 rgba(0,0,0,.12);
+    }
+
+    .lp{ background:var(--left-pinky); }
+    .lr{ background:var(--left-ring); }
+    .lm{ background:var(--left-middle); }
+    .li{ background:var(--left-index); }
+    .ri{ background:var(--right-index); }
+    .rm{ background:var(--right-middle); }
+    .rr{ background:var(--right-ring); }
+    .rp{ background:var(--right-pinky); }
+    .th{ background:var(--thumb); }
+
+    .bg-effect{
+      position:absolute;
+      pointer-events:none;
+      left:50%;
+      top:30%;
+      transform:translate(-50%,-50%);
+      opacity:0;
+    }
+
+    .ring-effect{
+      width:50px;
+      height:50px;
+      border-radius:50%;
+      border:14px solid rgba(98,199,255,.55);
+      box-shadow:0 0 0 20px rgba(255,230,109,.28), 0 0 0 40px rgba(255,139,209,.18);
+      animation:bgRing 850ms ease-out forwards;
+    }
+
+    @keyframes bgRing{
+      0%{ transform:translate(-50%,-50%) scale(.2); opacity:.95; }
+      100%{ transform:translate(-50%,-50%) scale(7.5); opacity:0; }
+    }
+
+    .bubble-effect{
+      width:20px;
+      height:20px;
+      border-radius:50%;
+      background:rgba(255,255,255,.5);
+      border:5px solid rgba(98,199,255,.55);
+      box-shadow:
+        -90px 30px 0 18px rgba(255,139,209,.24),
+        80px -25px 0 14px rgba(255,230,109,.28),
+        150px 42px 0 22px rgba(98,210,111,.22),
+        -160px -28px 0 20px rgba(143,155,255,.22),
+        0 80px 0 26px rgba(199,139,255,.18);
+      animation:bgBubbles 950ms ease-out forwards;
+    }
+
+    @keyframes bgBubbles{
+      0%{ transform:translate(-50%,-10%) scale(.3); opacity:0; }
+      20%{ opacity:.9; }
+      100%{ transform:translate(-50%,-95%) scale(2.3); opacity:0; }
+    }
+
+    .star-effect{
+      width:34px;
+      height:34px;
+      background:rgba(255,230,109,.75);
+      clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 56%,79% 91%,50% 70%,21% 91%,32% 56%,2% 35%,39% 35%);
+      box-shadow:0 0 34px rgba(255,230,109,.58);
+      animation:bgStar 820ms ease-out forwards;
+    }
+
+    @keyframes bgStar{
+      0%{ transform:translate(-50%,-50%) scale(.2) rotate(0deg); opacity:.95; }
+      55%{ opacity:.8; }
+      100%{ transform:translate(-50%,-50%) scale(7) rotate(135deg); opacity:0; }
+    }
+
+    .confetti-piece{
+      position:absolute;
+      left:50%;
+      top:30%;
+      width:14px;
+      height:22px;
+      border-radius:5px;
+      background:var(--c,#62c7ff);
+      animation:bgConfetti 900ms ease-out forwards;
+      pointer-events:none;
+    }
+
+    @keyframes bgConfetti{
+      0%{ transform:translate(-50%,-50%) rotate(0deg) scale(.8); opacity:1; }
+      100%{ transform:translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--rot)) scale(.8); opacity:0; }
+    }
+
+    .wave-effect{
+      width:80px;
+      height:80px;
+      border-radius:50%;
+      border:10px solid rgba(35,120,232,.42);
+      box-shadow:0 0 0 28px rgba(98,199,255,.20), 0 0 0 58px rgba(98,210,111,.14), 0 0 0 90px rgba(255,139,209,.10);
+      animation:bgWave 780ms ease-out forwards;
+    }
+
+    @keyframes bgWave{
+      0%{ transform:translate(-50%,-50%) scale(.15) skewX(0deg); opacity:.9; }
+      100%{ transform:translate(-50%,-50%) scale(6.8) skewX(-8deg); opacity:0; }
+    }
+
+    .rainbow-effect{
+      width:110px;
+      height:110px;
+      border-radius:50%;
+      background:conic-gradient(rgba(255,122,122,.42),rgba(255,230,109,.42),rgba(98,210,111,.42),rgba(98,199,255,.42),rgba(199,139,255,.42),rgba(255,122,122,.42));
+      filter:blur(2px);
+      animation:bgRainbow 820ms ease-out forwards;
+    }
+
+    @keyframes bgRainbow{
+      0%{ transform:translate(-50%,-50%) scale(.2) rotate(0deg); opacity:.8; }
+      100%{ transform:translate(-50%,-50%) scale(8) rotate(100deg); opacity:0; }
+    }
+
+    .firework-dot{
+      position:absolute;
+      left:50%;
+      top:28%;
+      width:18px;
+      height:18px;
+      border-radius:50%;
+      background:var(--c,#ffb86b);
+      animation:bgFirework 860ms ease-out forwards;
+      pointer-events:none;
+      box-shadow:0 0 20px currentColor;
+    }
+
+    @keyframes bgFirework{
+      0%{ transform:translate(-50%,-50%) scale(.3); opacity:1; }
+      100%{ transform:translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(.35); opacity:0; }
+    }
+
+    .swirl-dot{
+      position:absolute;
+      left:50%;
+      top:31%;
+      width:16px;
+      height:16px;
+      border-radius:50%;
+      background:var(--c,#8f9bff);
+      animation:bgSwirl 900ms ease-out forwards;
+      pointer-events:none;
+    }
+
+    @keyframes bgSwirl{
+      0%{ transform:rotate(0deg) translateX(10px) scale(.5); opacity:.9; }
+      100%{ transform:rotate(var(--rot)) translateX(var(--dist)) scale(.25); opacity:0; }
+    }
+
+    @media (max-height:680px){
+      .target-wrap{ min-height:94px; padding:12px; }
+      .target{ height:54px; }
+      .keyboard{ padding:12px; gap:7px; }
+      .key{ height:44px; }
+      .key.spacebar{ height:44px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="backgroundEffects" aria-hidden="true"></div>
+
+  <main class="app">
+    <h1>Rhythmic Typing Keyboard<br>Design for Basic Initial Keyboard Functioning</h1>
+
+    <section class="target-wrap" aria-label="Target sequence">
+      <div id="targetLine"></div>
+    </section>
+
+    <section class="controls" aria-label="Controls">
+      <button id="startButton">Start</button>
+      <label class="small-control">Volume
+        <input id="volumeSlider" type="range" min="0" max="1" step="0.01" value="0.8" />
+      </label>
+      <button id="muteButton" type="button">Mute</button>
+    </section>
+
+    <section class="keyboard" aria-label="Visual keyboard guide">
+      <div class="row" id="rowTop"></div>
+      <div class="row" id="rowMiddle"></div>
+      <div class="row" id="rowBottom"></div>
+      <div class="row"><div class="key spacebar th" data-key="SPACE">SPACE</div></div>
+    </section>
+  </main>
+
+  <script>
+    const PATTERN = ["F", "G", "F", "G", "F", "G", "F", "SPACE"];
+
+    const SOUND_SETS = [
+      {
+        F: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/KICK1.mp3",
+        G: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/SNARE2.mp3",
+        SPACE: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Splash%2012%203.mp3"
+      },
+      {
+        F: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Electro%20kick%2001.mp3",
+        G: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/FM%20snare.mp3",
+        SPACE: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Chime%20percussion_BLASTWAVEFX_30615.mp3"
+      },
+      {
+        F: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Fuzz%20Kick.mp3",
+        G: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Smack%20Snare.mp3",
+        SPACE: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Maxi%20clap.mp3"
+      }
+    ];
+
+    const TARGET_EFFECTS = ["burst", "flyUp", "spinPop"];
+    const BACKGROUND_EFFECTS = ["rings", "bubbles", "stars", "confetti", "waves", "rainbow", "firework", "swirl"];
+
+    const FINGER_CLASSES = {
+      Q:"lp", A:"lp", Z:"lp",
+      W:"lr", S:"lr", X:"lr",
+      E:"lm", D:"lm", C:"lm",
+      R:"li", F:"li", T:"li", G:"li", V:"li", B:"li",
+      Y:"ri", H:"ri", U:"ri", J:"ri", N:"ri", M:"ri",
+      I:"rm", K:"rm",
+      O:"rr", L:"rr",
+      P:"rp",
+      SPACE:"th"
+    };
+
+    const ROWS = {
+      rowTop: ["Q","W","E","R","T","Y","U","I","O","P"],
+      rowMiddle: ["A","S","D","F","G","H","J","K","L"],
+      rowBottom: ["Z","X","C","V","B","N","M"]
+    };
+
+    let started = false;
+    let setIndex = 0;
+    let beatIndex = 0;
+    let volume = 0.8;
+    let muted = false;
+    let audioCache = new Map();
+    let backgroundCounter = 0;
+
+    const targetLine = document.getElementById("targetLine");
+    const startButton = document.getElementById("startButton");
+    const volumeSlider = document.getElementById("volumeSlider");
+    const muteButton = document.getElementById("muteButton");
+    const backgroundEffects = document.getElementById("backgroundEffects");
+
+    function buildKeyboard(){
+      Object.entries(ROWS).forEach(([rowId, letters]) => {
+        const row = document.getElementById(rowId);
+        letters.forEach(letter => {
+          const key = document.createElement("div");
+          key.className = `key ${FINGER_CLASSES[letter]}`;
+          key.dataset.key = letter;
+          key.textContent = letter;
+          row.appendChild(key);
+        });
+      });
+    }
+
+    function preloadSounds(){
+      SOUND_SETS.forEach(set => {
+        Object.values(set).forEach(url => {
+          if(audioCache.has(url)) return;
+          const pool = [];
+          for(let i = 0; i < 5; i++){
+            const audio = new Audio(url);
+            audio.preload = "auto";
+            audio.load();
+            pool.push(audio);
+          }
+          audioCache.set(url, pool);
+        });
+      });
+    }
+
+    function playSound(targetKey){
+      if(muted) return;
+      const currentSoundSet = SOUND_SETS[setIndex % SOUND_SETS.length];
+      const url = currentSoundSet[targetKey];
+      const pool = audioCache.get(url);
+      if(!pool) return;
+      const audio = pool.find(item => item.paused || item.ended) || pool[0];
+      audio.pause();
+      try{ audio.currentTime = 0; }catch(e){}
+      audio.volume = volume;
+      const promise = audio.play();
+      if(promise && promise.catch){ promise.catch(() => {}); }
+    }
+
+    function renderSet(){
+      targetLine.innerHTML = "";
+      PATTERN.forEach((target, index) => {
+        const item = document.createElement("div");
+        item.className = `target ${target === "SPACE" ? "space-target" : ""}`;
+        item.dataset.index = index;
+        item.textContent = target;
+        targetLine.appendChild(item);
+      });
+      updateActiveTarget();
+    }
+
+    function updateActiveTarget(){
+      document.querySelectorAll(".target").forEach((item, index) => {
+        item.classList.toggle("active", index === beatIndex);
+      });
+    }
+
+    function currentTarget(){
+      return PATTERN[beatIndex];
+    }
+
+    function keyFromEvent(event){
+      if(event.code === "Space" || event.key === " ") return "SPACE";
+      return event.key.length === 1 ? event.key.toUpperCase() : "";
+    }
+
+    function highlightKey(key){
+      const el = document.querySelector(`.key[data-key="${key}"]`);
+      if(!el) return;
+      el.classList.add("hit");
+      setTimeout(() => el.classList.remove("hit"), 140);
+    }
+
+    function animateTarget(targetEl){
+      const effect = TARGET_EFFECTS[setIndex % TARGET_EFFECTS.length];
+      if(effect === "burst"){
+        createTargetParticles(targetEl);
+        targetEl.classList.add("burst-effect");
+      }else if(effect === "flyUp"){
+        targetEl.classList.add("fly-effect");
+      }else{
+        targetEl.classList.add("spin-effect");
+      }
+      setTimeout(() => targetEl.classList.add("cleared"), 360);
+    }
+
+    function createTargetParticles(targetEl){
+      const colors = ["#62c7ff", "#ff8bd1", "#ffe66d", "#62d26f", "#c78bff"];
+      for(let i = 0; i < 12; i++){
+        const p = document.createElement("span");
+        p.className = "particle";
+        const angle = (Math.PI * 2 * i) / 12;
+        const dist = 34 + Math.random() * 24;
+        p.style.setProperty("--dx", `${Math.cos(angle) * dist}px`);
+        p.style.setProperty("--dy", `${Math.sin(angle) * dist}px`);
+        p.style.setProperty("--pcolor", colors[i % colors.length]);
+        targetEl.appendChild(p);
+      }
+    }
+
+    function triggerBackgroundEffect(){
+      const effect = BACKGROUND_EFFECTS[backgroundCounter % BACKGROUND_EFFECTS.length];
+      backgroundCounter += 1;
+      const left = 20 + Math.random() * 60;
+      const top = 14 + Math.random() * 34;
+
+      if(effect === "confetti") return makeConfetti(left, top);
+      if(effect === "firework") return makeFirework(left, top);
+      if(effect === "swirl") return makeSwirl(left, top);
+
+      const el = document.createElement("div");
+      const classMap = {
+        rings:"ring-effect",
+        bubbles:"bubble-effect",
+        stars:"star-effect",
+        waves:"wave-effect",
+        rainbow:"rainbow-effect"
+      };
+      el.className = `bg-effect ${classMap[effect]}`;
+      el.style.left = `${left}%`;
+      el.style.top = `${top}%`;
+      backgroundEffects.appendChild(el);
+      setTimeout(() => el.remove(), 1100);
+    }
+
+    function makeConfetti(left, top){
+      const colors = ["#ff7a7a", "#ffb86b", "#ffe66d", "#62d26f", "#62c7ff", "#c78bff", "#ff8bd1"];
+      for(let i = 0; i < 32; i++){
+        const piece = document.createElement("div");
+        piece.className = "confetti-piece";
+        piece.style.left = `${left}%`;
+        piece.style.top = `${top}%`;
+        piece.style.setProperty("--c", colors[i % colors.length]);
+        piece.style.setProperty("--dx", `${-260 + Math.random() * 520}px`);
+        piece.style.setProperty("--dy", `${-130 + Math.random() * 250}px`);
+        piece.style.setProperty("--rot", `${-260 + Math.random() * 520}deg`);
+        backgroundEffects.appendChild(piece);
+        setTimeout(() => piece.remove(), 1000);
+      }
+    }
+
+    function makeFirework(left, top){
+      const colors = ["#ffb86b", "#ffe66d", "#62d26f", "#62c7ff", "#ff8bd1"];
+      for(let i = 0; i < 26; i++){
+        const dot = document.createElement("div");
+        dot.className = "firework-dot";
+        dot.style.left = `${left}%`;
+        dot.style.top = `${top}%`;
+        const angle = (Math.PI * 2 * i) / 26;
+        const dist = 130 + Math.random() * 230;
+        dot.style.setProperty("--dx", `${Math.cos(angle) * dist}px`);
+        dot.style.setProperty("--dy", `${Math.sin(angle) * dist}px`);
+        dot.style.setProperty("--c", colors[i % colors.length]);
+        backgroundEffects.appendChild(dot);
+        setTimeout(() => dot.remove(), 950);
+      }
+    }
+
+    function makeSwirl(left, top){
+      const colors = ["#62c7ff", "#c78bff", "#ff8bd1", "#ffe66d", "#62d26f"];
+      for(let i = 0; i < 24; i++){
+        const dot = document.createElement("div");
+        dot.className = "swirl-dot";
+        dot.style.left = `${left}%`;
+        dot.style.top = `${top}%`;
+        dot.style.setProperty("--rot", `${360 + i * 24}deg`);
+        dot.style.setProperty("--dist", `${100 + i * 10}px`);
+        dot.style.setProperty("--c", colors[i % colors.length]);
+        backgroundEffects.appendChild(dot);
+        setTimeout(() => dot.remove(), 1000);
+      }
+    }
+
+    function handleCorrect(){
+      const target = currentTarget();
+      const targetEl = document.querySelector(`.target[data-index="${beatIndex}"]`);
+
+      playSound(target);
+      triggerBackgroundEffect();
+      highlightKey(target);
+      if(targetEl) animateTarget(targetEl);
+
+      beatIndex += 1;
+      if(beatIndex >= PATTERN.length){
+        setTimeout(() => {
+          setIndex += 1;
+          beatIndex = 0;
+          renderSet();
+        }, 390);
+      }else{
+        setTimeout(updateActiveTarget, 110);
+      }
+    }
+
+    function startGame(){
+      preloadSounds();
+      started = true;
+      setIndex = 0;
+      beatIndex = 0;
+      backgroundCounter = 0;
+      renderSet();
+      startButton.disabled = true;
+      startButton.textContent = "Started";
+    }
+
+    startButton.addEventListener("click", startGame);
+
+    volumeSlider.addEventListener("input", event => {
+      volume = Number(event.target.value);
+    });
+
+    muteButton.addEventListener("click", () => {
+      muted = !muted;
+      muteButton.textContent = muted ? "Unmute" : "Mute";
+    });
+
+    window.addEventListener("keydown", event => {
+      const key = keyFromEvent(event);
+      if(key === "SPACE") event.preventDefault();
+      if(!started) return;
+      if(key === currentTarget()) handleCorrect();
+    });
+
+    buildKeyboard();
+    renderSet();
+  </script>
+<script src="rhythmic-typing-lesson.js"></script>
+<script src="rhythmic-typing-back.js"></script>
+</body>
+</html>
