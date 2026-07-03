@@ -1,0 +1,127 @@
+﻿Rhythmic Keyboarding Trainer
+My Concept and Ideas
+
+
+Bridgette Nicholson
+May 9, 2026
+
+
+
+
+What I Want to Create
+I want to create a very simple app — an HTML file I can run in a browser — that shows a keyboard on the screen. When I touch a key on the actual physical keyboard, the app responds. The idea is that keys on the screen light up one at a time, and when a key is lit, the child presses that key on the keyboard. If they press the right key, it makes a sound. If they press the wrong key, nothing happens. Only the lit key makes a sound. This is for teaching children keyboarding skills — how to type.
+
+
+What I want is for the whole experience to feel rhythmic — almost like the child is playing a musical instrument. The keys light up in a sequence and the child follows along pressing each one, and the sounds they make together create a rhythm. It is really to teach keyboarding through music and rhythm.
+
+
+The Keyboard on Screen
+I want the keyboard displayed on screen with only the QWERTY keys and the spacebar. No number row, no function keys — just those keys, laid out correctly, in big colorful buttons. The colors have to be good, vivid, interesting. Not too dark, not too pale. The keys have to be large enough for a child to see clearly which one is lit.
+
+
+When a key lights up, that is the signal to the child to press it. A small indicator above the key — maybe a bouncing icon or arrow — helps draw the eye to it. The key should glow when lit but I do not want it to grow very large. I feel like when a key gets too big it overshadows the other keys around it. The glow should be enough. The real visual reward should come from the animation that happens when they press it.
+
+
+The Sounds — Drum Beats
+I do not want little tap sounds. I do not want xylophone notes. I want rich, real drum beat sounds — the kind that feel satisfying to hit. Each key that is played in the sequences has its own drum sound. The F key always sounds like a kick drum. The G key has a snare. Each key is always the same sound — so the child starts to associate pressing that key with that particular beat. Together the sequence creates a rhythm, a drum pattern, almost like the child is playing a drum kit by typing.
+
+
+The Rhythm Sequences
+The sequences are built around the left index finger because that is the most important finger on the keyboard. The F key is the home key — that is where the left index finger rests. From there the finger reaches to G, to R, and down to V. I designed three sequences, each one eight beats long, always ending with the spacebar:
+
+
+F  —  G  —  F  —  G  —  F  —  G  —  F  —  SPACE
+F  —  R  —  F  —  R  —  F  —  R  —  F  —  SPACE
+F  —  V  —  F  —  V  —  F  —  V  —  F  —  SPACE
+
+
+The sequences loop continuously. There is no stopping between them — one flows right into the next because it is a rhythm and a beat. Nothing should interrupt it. The child is building muscle memory through repetition and rhythm, not through drills that stop and start.
+
+
+Color Coding the Keys by Finger
+This is very important to me. Every key on the keyboard must be color coded according to which finger plays it. This is a real system used in typing education — each finger has a color, and all the keys that finger is responsible for are shown in that color. This teaches children not just what to press but which finger to use without ever having to explain it in words. They just see the color.
+
+
+All keys played by the same finger are the same color. Here is the standard assignment:
+
+
+* Left Pinky — Q, A, Z
+* Left Ring — W, S, X
+* Left Middle — E, D, C
+* Left Index — R, F, T, G, V, B
+* Right Index — Y, H, U, J, N, M
+* Right Middle — I, K
+* Right Ring — O, L
+* Right Pinky — P
+* Thumbs — the Space bar
+
+
+This color coding must appear in every version of this program. It is fundamental.
+
+
+The Visual Animations
+Every time a key is pressed correctly, something visual happens on screen. I want the animation to be colorful, beautiful, interesting — and I want every key to have its own animation that is different from all the others. Not just different colors of the same thing — genuinely different effects. The animation should happen above the keyboard or fill the screen, not just on the key itself.
+
+
+I want different effects in different versions of the program. Some versions can have big dramatic animations. Some can be more subtle. But there should always be something visual happening when a key is pressed correctly — it is the reward.
+
+
+A Hand Diagram as a Visual Cue
+On some versions I want a picture of a hand somewhere on the screen — not on the keyboard itself, but nearby, maybe underneath it. When a key lights up, the finger on the hand that plays that key also lights up. This gives the child a second visual cue. They can look at the hand and see which finger to move before they even look for the key. It is especially helpful for beginners who have not yet memorized the finger assignments.
+
+
+The hand does not have to be in every version. Some versions can have it, some can leave it out. It is an optional element depending on the theme and the level of the learner.
+
+
+Important — Safety for Children with Epilepsy
+This is something I feel strongly about. Because this program is for children, I do not want large amounts of flashing — the kind of rapid flashing that can trigger seizures in children who have photosensitive epilepsy. The animations and the key lighting should never strobe or flash quickly. Everything should fade in and out smoothly. The glow on lit keys should pulse slowly. This safety consideration has to be part of every version of this program.
+
+
+Different Themes and Sound Packages
+I want to be able to create many different visual themes for this program — completely different looks and feels while the core keyboard and sequences stay the same. Different colors, different backgrounds, different styles. Some themes might be bright and colorful for younger children. Some might be more sophisticated for older children. The themes should be interchangeable.
+
+
+The same goes for sounds. I want to be able to swap out the drum sounds for other sound packages — nature sounds, musical tones, electronic sounds, and so on. Different children will respond to different sounds. Different classrooms will want different experiences.
+
+
+Some versions of the program will have animations and some will not. Some will have the hand diagram and some will not. The program is a system that can be customized and varied — not a single fixed thing.
+
+
+
+
+The Phone Version — Finger Training
+I had a separate idea for a phone or small screen version of this program. A full keyboard does not fit on a phone screen, but that does not mean you cannot practice on a phone. What you can do on a phone is practice one finger at a time — or maybe a few fingers at a time.
+
+
+The idea is this: instead of showing the full QWERTY keyboard, show only the keys that belong to one specific finger. Just those keys, displayed as large buttons that fill the phone screen and are easy to tap with your finger. The child is not pressing a physical keyboard — they are tapping directly on the screen.
+
+
+How It Works
+For the left index finger, the keys are R, T, F, G, V, B, and Space. Those seven keys are all that finger plays. On the phone version, those seven keys become seven large tap buttons on the screen. They can be laid out to reflect their position relative to the home key — so the child starts to understand the physical geography of the reach even before they sit down at a full keyboard.
+
+
+Each button is labeled not just with its letter but with its position — something like "home," "reach right," "reach up," "reach down" — so the child understands the physical movement involved, not just which letter to press.
+
+
+The same rhythm sequences apply. The app lights up the keys in the pattern, the child taps the lit key, the sound plays. Everything works the same way as the desktop version — just on a phone, just for one finger.
+
+
+One Finger or a Few Fingers
+It does not have to be strictly one finger at a time. It could be a few fingers grouped together — for instance, showing both the left index finger and the left middle finger keys together on one screen, so the child practices switching between those two fingers. That makes for a richer exercise. The groupings could be flexible depending on what level the child is at.
+
+
+Eventually there would be a version for each finger or finger grouping — working all the way across the keyboard. A child could practice the left pinky one day, the left ring finger the next, building up the muscle memory finger by finger until they are ready to sit at a full keyboard and put it all together.
+
+
+Why This Matters
+The phone version solves a real problem: children do not always have access to a full keyboard, but almost everyone has access to a phone. If a child can practice the reach patterns and finger movements for even one finger while they are sitting on a bus or waiting somewhere, they are building real muscle memory. When they sit down at a full keyboard that muscle memory will already be there.
+
+
+The visual feedback — the animations, the sounds, the glowing buttons — all work exactly the same on the phone as on the desktop. Every key that is pressed correctly gets its own animation. Every key has its own sound. The experience is just as musical and just as rhythmic on the small screen as on the big one.
+
+
+
+
+These are my ideas.
+Bridgette Nicholson
+May 9, 2026
