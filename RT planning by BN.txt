@@ -1,0 +1,326 @@
+2026 Rhythmic Typing Program Planning online program2026 Rhythmic Typing Program 
+Planning online program
+ 
+Typing is linked to real-life activities: children type for interesting, meaningful content connected to what they care about — not isolated abstract drill. Rhythm and beat work is designed for group activities: children keeping time together, responding to shared beats, clapping and tapping in sync, and building timing skills in a social classroom or therapy setting. This is typing training as a collaborative, real-world skill.
+
+At the end of a session, closing evaluations compare results to the opening baseline. Educators receive summaries designed for progress tracking over time: progress graphs, trend lines, rhythm profiles, typing fluency growth, and exportable records — building on the data-collection strength of typingtraining.com and extending it across rhythm and sensory-motor domains.
+
+During training, the program collects ongoing data: active key usage, rhythm accuracy during activities, theme and sound pack selection, beatbox hidden-mapping accuracy, response timing, and session duration. Data flows continuously while the child works through themed keyboard experiences and beat-based activities.
+
+At the beginning of each session, baseline checks establish where the child is: a Check Your Typing capture (free typing, no prompt) and a Check Your Rhythm capture (beat-matching at selected BPM, sequential finger and coordination blocks, and eventually microphone/clap measurement). This opening data connects immediately to session configuration and educator interpretation — it is not a pass/fail gate for the child.
+
+The Breakthrough Rhythmic Typing Program is an integrated typing and rhythm training system by Bridgette Nicholson / Body Brain Sensory. It is the evolution of Custom Typing (1990s), customtyping.com, and typingtraining.com — extended into rhythm assessment, sensory-themed keyboard training, and longitudinal progress reporting.
+What This Program Is
+1. Purpose of This Document
+This master specification exists to:
+•	Capture the breakthrough concept achieved on May 29–30, 2026 — a working multi-screen flow from baseline checks through themed keyboard training.
+•	Explain WHY this program exists, what problem it solves, and who it serves.
+•	Define FUNCTIONAL requirements for every screen and how they connect — without prescribing layout, wireframes, or visual design details.
+•	Enable parallel brainstorming: multiple AI tools, models, and builders can each produce their own visual interpretation while implementing the same core behavior.
+•	Preserve the lineage from Custom Typing (1990s CDs) → customtyping.com → typingtraining.com → this new integrated system.
+Any AI or developer reading this document should be able to build a working HTML prototype (or production module) that implements the described behavior. They should NOT be told how to arrange buttons, cards, panels, or navigation — only what each screen must DO and what data must flow between screens.
+2. Historical Context — Why This Matters
+In the late 1990s, Custom Typing was created: every graphic, every word, every letter was built by hand, manuals were printed, content was burned onto CDs, and materials went to school districts. That program evolved into customtyping.com, then typingtraining.com — which remains online today with strong data collection capabilities.
+typingtraining.com has aged visually but retains valuable assessment and data infrastructure. The new Keys & Rhythm Program represents a major expansion: it integrates typing evaluation, rhythm/beat evaluation, sensory-themed keyboard training, beat-based activities without visible keyboards, and longitudinal data collection — all under a teacher-led (adult-directed) model.
+This is not a small update. It may require rebranding (new name, new logo). The functional architecture described here is the breakthrough — the visual expression is deliberately open for exploration across many AI-generated versions.
+3. Vision Statement
+Build an integrated training and assessment environment where children (approximately ages 6 through 12 and potentially older) can:
+•	Establish baseline typing fluency through an unprompted free-typing check.
+•	Establish baseline rhythm/timing ability through structured beat-matching tasks on keyboard and (eventually) via microphone/clapping.
+•	Train on themed keyboard experiences with video backgrounds, sound packs, and finger-color-coded active keys — teacher selects which keys are active.
+•	Practice beatbox-style activities where correct key presses trigger screen effects without showing an on-screen keyboard.
+•	Receive periodic re-checks of rhythm and typing to measure progress over time.
+Teachers and occupational therapists remain the primary operators. The adult configures sessions, interprets data, and leads the child through activities. The child-facing screens during checks should be minimal and non-judgmental — no scores shown to the child during baseline assessments.
+4. Why We Are Building This
+4.1 The Problem
+•	Existing typing programs often look appealing but lack deep timing/rhythm data and flexible teacher control.
+•	typingtraining.com has excellent data collection but has not kept pace visually or integrated rhythm/sensory training.
+•	Rhythm, bilateral coordination, and beat-keeping are critical precursors to fluent typing — yet most typing software ignores them.
+•	Children with sensory, motor, or attention differences need adult-led flexibility: which keys are active, which theme, which tempo, which sound pack.
+4.2 The Opportunity
+•	Cloud-hosted assets (R2 bucket videos, MP3 sound packs) enable rich themed experiences without bloated downloads.
+•	Pure HTML/CSS/JS prototypes can be built rapidly by AI, tested locally from Dropbox, and iterated in version folders.
+•	Parallel AI brainstorming on the SAME functional spec produces a range of design ideas — the best elements can be merged.
+•	Integration of typing + rhythm + choice-making + data collection creates a platform that can expand into academic content later.
+5. Benefits
+5.1 For Children
+•	Engaging themed environments (ocean, space, etc.) without forced sequences or punishment for wrong keys.
+•	Activities matched to their rhythm window once baseline is established.
+•	Anonymous session codes (icon pairs or symbol codes) — no name anxiety on screen.
+5.2 For Teachers & Therapists
+•	Baseline typing and rhythm checks before training begins.
+•	Clear data on timing accuracy, hit rate, mean delta, keystroke patterns.
+•	Full control over active keys, sound packs, lesson type, and theme — teacher-led model.
+•	Educator-side panel or report showing what is collected and how to interpret it (child does not see raw metrics during checks).
+•	Longitudinal comparison: opening check vs. periodic re-checks vs. final evaluation.
+5.3 For the Program / Organization
+•	Evolution of a 25+ year product line with modern media and assessment science.
+•	Platform extensibility: beat evaluation, writing integration, academic modules, group sessions.
+•	Version-controlled AI builds (from Cursor, from ChatGPT, etc.) preserve every brainstorm attempt.
+6. Core Principles for All AI Builders
+1.	FUNCTION OVER FORM — Implement behavior first. Layout is yours to invent.
+2.	LIGHT BACKGROUNDS ONLY (for current testing phase) — All child-facing and hub screens must use light/bright background palettes. Do NOT use dark-mode or dark-gradient full-screen backgrounds in builds intended for BN's current testing round. (Themed activity screens with video backgrounds are exempt — the video IS the background.)
+3.	TEACHER-LED — Setup, configuration, and results are adult-facing. Child screens during checks are minimal.
+4.	NO PUNISHMENT — Wrong or inactive keys are silent. No error buzzers, no red X, no forced sequences in Level 1.
+5.	ADDITIVE VERSIONING — Never overwrite breakthrough or milestone files. Create new folders and new filenames.
+6.	PURE HTML — Single-file or linked HTML/CSS/JS. No build step required. Must open from Dropbox locally.
+7.	SESSION STORAGE — Use sessionStorage (and eventually localStorage or API) to pass configuration between screens in a flow.
+8.	ANONYMOUS CODES — Prefer two-icon or two-symbol student codes over full names on screen.
+7. Design Constraints — What Is Fixed vs. Open
+7.1 FIXED (must follow)
+•	Light background on all menu, hub, check, setup, and educator configuration screens.
+•	Clear persistent navigation so users always know where they are in the flow (top menu, breadcrumb, step rail, or equivalent — implementation is open).
+•	Functional behavior per screen (see Section 9).
+•	Separation of child view vs. educator data view where specified.
+7.2 OPEN (AI decides freely)
+•	Layout (grid, sidebar, cards, list, wizard steps, etc.).
+•	Typography (must be readable and NOT default to childish chunky rounded fonts unless intentionally chosen — but choice is yours).
+•	Icon style (line art, filled, photographic — your choice; avoid emoji-as-icons if aiming for sophistication, but not forbidden).
+•	Color palette within the light-background constraint.
+•	Animation and transition style.
+•	Exact button labels (except where functional names are specified: e.g. 'Check your typing', 'Check your rhythm').
+•	Logo and brand name (placeholder until rebrand is finalized).
+8. What AI Must NOT Do
+•	Do NOT overwrite files in BREAKTHROUGH STAGE FILES without explicit permission.
+•	Do NOT prescribe a single canonical layout in code comments that limits future builders.
+•	Do NOT use dark full-page backgrounds on setup/hub/check screens during this testing phase.
+•	Do NOT show scores or pass/fail to the child during baseline checks.
+•	Do NOT force a key sequence the child must follow (Level 1). Teacher selects active keys; child presses any active key freely.
+•	Do NOT require login/password in HTML files.
+•	Do NOT superimpose separate fish/creature video layers in Level 1 ocean theme — one full-screen video per scene only.
+9. System Architecture — End-to-End Flow
+The complete session flow, in logical order:
+9.	SESSION SETUP — Facilitator enters session context; student selects anonymous code.
+10.	SKILLS HUB — Central navigation to all modules (like a home menu).
+11.	CHECK YOUR TYPING — Unprompted free typing baseline.
+12.	CHECK YOUR RHYTHM — Multi-block rhythm assessment at selected BPM.
+13.	KEYBOARD THEME SELECTION — Choose visual theme (Ocean, Space, etc.).
+14.	THEME MENU / SETUP — Lesson type, sound pack, active keys — teacher configures.
+15.	TYPING ACTIVITY — Full-screen themed keyboard experience.
+16.	BEATBOX MODE (optional) — Hidden keyboard mapping activity.
+17.	PERIODIC RE-CHECKS (optional mid-session) — Short rhythm or typing pulse.
+18.	FINAL TYPING EVALUATION — Compare to opening baseline.
+19.	SESSION RESULTS / DASHBOARD — Educator summary and export.
+Not every session must include every module. The hub allows branching. Data from all visited modules aggregates into the session record.
+ 10. User Roles
+10.1 Facilitator (Teacher / OT / Parent)
+•	Starts session, may enter facilitator initials or ID.
+•	Confirms student code.
+•	Configures BPM, active keys, sound pack, theme, group mode.
+•	Views all metrics, results, and export data.
+•	Does NOT need to see childish UI — educator panel can be separate or adjacent.
+10.2 Student (Child)
+•	Identified by two-icon or two-symbol code only on screen.
+•	Sees minimal instructions during checks.
+•	Experiences themed training after checks.
+•	Does not see hit rates, percentages, or pass/fail during baseline.
+10.3 Group Mode (future / optional)
+•	Flag that session supports multiple students in sequence or parallel.
+•	Each student still gets own code and own data row.
+•	Headphone note for rhythm checks when multiple children in same room.
+11. Screen-by-Screen Functional Specification
+Each subsection describes WHAT the screen must do. HOW it looks is entirely open.
+11.1 Session Setup
+Required functionality:
+•	Input or selection for student display name (first name or initials only — optional).
+•	Input for age (optional but useful for norming).
+•	Two-part anonymous student code: pick one symbol/icon from set A, one from set B. Store as combined code (e.g. icon1+icon2 or A1+B2).
+•	Optional: group session checkbox.
+•	Optional: facilitator initials field.
+•	Action to proceed to Skills Hub.
+Data to store: studentPictureCode (or equivalent), groupMode, facilitatorId, sessionStartTimestamp.
+11.2 Skills Hub (Home Menu)
+Required functionality:
+•	Display student display name and age if provided.
+•	Display student code.
+•	Provide entry points to: Check Your Typing, Check Your Rhythm, Keyboard Training, Beatbox Mode, Session Results.
+•	Persistent top navigation visible from this and subsequent screens showing current location in flow.
+•	Each entry point navigates to the corresponding module.
+Reference: BN's earlier Online Assessment of Writing Methods used a hub with module cards (Handwriting, Typing, Voice, etc.). This hub is the equivalent for Keys & Rhythm — but layout need not match.
+11.3 Check Your Typing
+Required functionality:
+•	Screen title or header equivalent: 'Check your typing' (NOT 'test' — use 'check').
+•	Minimal instructions: start timer, type freely, indicate when done.
+•	Timer display (MM : SS format acceptable).
+•	Free-text typing area with NO prompt about what to write — child chooses content.
+•	Track: elapsed time, character count, word count, backspace count (recommended).
+•	Optional: keystroke timing intervals for future fluency analysis.
+•	Buttons or actions: Start Timer, I'm Done, Start Over, Return to Hub.
+•	Light background.
+Child sees: timer and typing area. Child does NOT see analytics during typing.
+On completion: save typing baseline to session data; advance to results or hub per flow design.
+11.4 Check Your Rhythm — Configuration
+Required functionality:
+•	Screen title: 'Check your rhythm'.
+•	BPM selection: at minimum 40, 50, 60, 70, 80 beats per minute.
+•	Describe sequential blocks that will run (see below).
+•	Start action begins rhythm assessment.
+•	Light background.
+11.5 Check Your Rhythm — Block 1: Single Key
+Required functionality:
+•	Metronome tick at selected BPM (audio).
+•	Child presses ONE designated key (e.g. Space or any letter) on every beat.
+•	Record timestamp of each keypress relative to beat.
+•	Fixed number of scored beats (e.g. 8–16 after optional warmup).
+•	Minimal visual — pulse or beat indicator acceptable; no score shown to child.
+•	Calculate: hit rate (within tolerance window e.g. ±300ms), mean delta, standard deviation.
+11.6 Check Your Rhythm — Block 2: Alternating Index Fingers
+Required functionality:
+•	Same BPM as Block 1 unless teacher changed it.
+•	Alternate between left index key (F) and right index key (J) on successive beats.
+•	Track correct alternation and timing.
+•	Measures bilateral coordination plus rhythm.
+11.7 Check Your Rhythm — Block 3+: Sequential Patterns
+Required functionality:
+•	Additional blocks as needed: home row sequence (A-S-D-F repeating), other finger patterns.
+•	Each block scores timing independently.
+•	Blocks run sequentially in one session or as separate menu items — builder's choice.
+11.8 Check Your Rhythm — Clap / Microphone Block (planned)
+Required functionality:
+•	Metronome plays; child claps or taps table in time.
+•	Microphone captures clap timing (Web Audio API).
+•	Different measurement modality than keyboard — compares motor output without key contact.
+•	May be marked 'coming soon' in early prototypes but must appear in hub/spec as planned module.
+11.9 Rhythm Results (Educator)
+Required functionality:
+•	Display for teacher only: BPM tested, hit rate, mean delta, std deviation, personal hit window, personal offset.
+•	Per-block breakdown.
+•	Interpretive note: calibration not pass/fail.
+•	Save to session; option to redo or continue to training.
+11.10 Keyboard Theme Selection (Control Panel)
+Required functionality:
+•	Display available keyboard themes as selectable options (thumbnail preview acceptable).
+•	Themes include at minimum: Ocean (with full menu+activity flow), plus other existing R2 keyboard HTML themes.
+•	NO full interactive keyboard on this screen — only theme CHOICE.
+•	Student code and group mode carried from setup.
+•	GO / Launch action routes Ocean to Theme Menu; other themes may route to existing standalone keyboard HTML.
+•	Light background.
+11.11 Theme Menu (e.g. Ocean Menu)
+Required functionality:
+•	Theme-specific setup page (Ocean Menu for Ocean theme).
+•	Display student code from session.
+•	Activity/lesson type dropdown: letter beats, two letter, multiple letter, easy words, hard words, custom, etc.
+•	Practice set dropdown (populated based on activity type).
+•	Sound pack dropdown: animals, one-second drums, drum kit (R2 MP3 URLs).
+•	Active keys selector: full QWERTY preview; teacher taps keys to toggle active/inactive; finger colors on active keys.
+•	GO launches Activity screen.
+•	Store: activeKeys (JSON array), activityType, practiceSetId, soundPackId, mode=teacher-led.
+11.12 Typing Activity (e.g. Ocean Activity)
+Required functionality:
+•	Full-screen looping video background from R2 bucket (one MP4 per scene — no overlay layers in Level 1).
+•	Keyboard rendered on top; all keys visible; finger color coding.
+•	Only ACTIVE keys respond: sound + visual feedback. Inactive keys silent.
+•	Sound from selected pack (R2 MP3 URLs preferred over synthesized tones).
+•	Optional: visual effects on press (bubbles, ripples, glow).
+•	Optional: rotate background video every N active keypresses (e.g. 8) cycling through ~10 ocean videos.
+•	Status indicator: theme, activity, sound pack, student code, scene number.
+•	Back link to Theme Menu.
+•	Physical keyboard and on-screen tap both supported.
+11.13 Beatbox Mode
+Required functionality:
+•	NO on-screen keyboard displayed.
+•	Mapped keys (e.g. F, G, H, J, Space) trigger visual/audio effects when pressed correctly.
+•	Incorrect keys silent.
+•	Tests whether child can respond to screen events without looking at key labels.
+•	Log correct vs incorrect attempts and latency.
+11.14 Periodic Beat Re-Check
+Required functionality:
+•	Short rhythm pulse (e.g. 8 beats) mid-session.
+•	Same BPM as baseline or teacher-selected.
+•	Store delta from baseline for progress tracking.
+11.15 Final Typing Evaluation
+Required functionality:
+•	Repeat free typing check OR structured typing task.
+•	Compare to opening Check Your Typing: words, duration, accuracy metrics.
+•	Educator-facing summary.
+11.16 Session Results Dashboard
+Required functionality:
+•	Aggregate all module data for this student session.
+•	Display summary metrics.
+•	Export as JSON (minimum); PDF/CSV/API in production.
+•	Educator panel explains what was collected and how to use it.
+11.17 Educator Side Panel (cross-cutting)
+Required functionality (can be persistent sidebar or separate screens):
+•	On every screen, show or allow access to: what data is being collected on this screen, how it will be monitored over time, how educators can view/export it.
+•	Live session values updating as child progresses.
+•	Child does not need to see this panel.
+ 12. Data Model — Session Storage
+Minimum sessionStorage / session object keys:
+•	studentPictureCode — two-icon or two-symbol code.
+•	groupMode — yes/no.
+•	selectedTheme — theme name.
+•	facilitatorId — optional.
+•	activeKeys — JSON array of key names including SPACE.
+•	activityType, practiceSetId, soundPackId, mode.
+•	typingBaseline — {chars, words, seconds, backspaces, timestamps?}.
+•	typingFinal — same structure.
+•	rhythmBaseline — {bpm, blocks: [{type, hitRate, meanDelta, stdDev, rawPresses[]}]}.
+•	rhythmRechecks — array.
+•	beatboxStats — {attempts, correct, latency[]}.
+•	themeUsage — {theme, duration, keypressesByKey}.
+•	sessionStarted, sessionEnded — ISO timestamps.
+13. Technical Infrastructure
+13.1 Media Assets
+•	R2 public base: https://pub-ced567e853f84a85b4139a379f79898b.r2.dev
+•	Ocean videos: 0_use_anywhere/video/full_scene/ocean/ (approx. 10 MP4/MOV files).
+•	Sound packs: animal sounds, 1 sec drums, drum kit — paths in kbd-dark-03.html reference.
+•	Keyboard thumbnails and logo: shared-view-files.general-241.workers.dev
+13.2 Reference Files (read, do not overwrite)
+•	BREAKTHROUGH STAGE FILES — original ChatGPT working flow.
+•	FULL typing program versions/from cursor/ — Cursor iterations 2a, 2B, 2C, 2D, 2E.
+•	keyboards/1 Keyboards in progress/kbd-dark-03.html — sound packs, finger colors.
+•	RTP_evaluation_v1.html — rhythm evaluation logic reference.
+•	RTP-build-specification.md — data collection spec.
+13.3 File Organization Rules
+•	BREAKTHROUGH STAGE FILES — sacred originals; read-only unless BN explicitly directs.
+•	FULL typing program versions/from cursor/Version XX/ — Cursor builds.
+•	FULL typing program versions/from ChatGPT/Version XX/ — ChatGPT builds (parallel folder).
+•	Never delete old versions. Always new folder, new files.
+14. Level 1 vs. Future Levels
+14.1 Level 1 (current priority)
+•	Single full-screen video background per scene.
+•	No creature overlay layers.
+•	Teacher-led active keys only.
+•	Working Control Panel → Menu → Activity for Ocean theme.
+•	Light backgrounds on all setup/check/hub screens.
+14.2 Level 2+ (later)
+•	Separate swimming creature MP4 overlays with direction matching.
+•	Microphone clap block fully implemented.
+•	Group session orchestration.
+•	Integration with typingtraining.com data backend.
+•	Academic content modules.
+•	Writing method integration alongside typing checks.
+15. Acceptance Criteria for Any AI Build
+20.	Opens locally from Dropbox in a browser without server.
+21.	Complete navigable flow across all implemented screens.
+22.	sessionStorage passes student code, active keys, and theme between screens.
+23.	Check Your Typing captures duration and word count.
+24.	Check Your Rhythm plays metronome and records at least one block of taps.
+25.	Ocean path: theme select → menu → activity with video and active key sounds.
+26.	Light backgrounds on hub and check screens.
+27.	Educator data view present (panel or results screen).
+28.	Saved in correct version folder — no overwrites.
+29.	Document which version folder and filenames in handoff note.
+16. Instructions to AI — How to Use This Document
+When BN or a collaborator paste this document (or sections) to an AI:
+30.	Read the full functional spec before designing any screen.
+31.	Choose your own layout, typography, icons, and navigation pattern.
+32.	Use LIGHT backgrounds on setup, hub, check, and menu screens.
+33.	Implement every behavior listed for each screen you build — partial builds OK if labeled (e.g. 'Blocks 1–2 only').
+34.	Save output to a NEW version folder with NEW filenames.
+35.	Link HTML files with relative paths within your version folder.
+36.	Include a brief handoff: filenames, what works, what is mockup-only, what is placeholder.
+37.	Do NOT overwrite BREAKTHROUGH STAGE FILES or other version folders.
+This document is the shared brain for brainstorming. Ten different AI builds from this same spec is a feature, not a bug. BN will compare layouts and merge the best ideas.
+17. Glossary
+•	Check — preferred term instead of 'test' for baseline assessments.
+•	Teacher-led — adult configures; child plays within configured bounds.
+•	Active keys — subset of keyboard keys that respond; others silent.
+•	BPM — beats per minute for rhythm blocks.
+•	Hit window — tolerance in ms around beat for counting a tap as on-time.
+•	Beatbox mode — activity without visible on-screen keyboard.
+•	R2 — Cloudflare R2 bucket hosting video and audio assets.
+•	Session code — anonymous two-icon or two-symbol student identifier.
+Document End
+Created: May 30, 2026 · Breakthrough Stage · Body Brain Sensory / Keys & Rhythm Program
+For questions or additions, continue in Cursor thread or BN Quick Access paste block.
