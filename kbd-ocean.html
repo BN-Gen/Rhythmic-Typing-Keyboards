@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ocean Keys</title>
+
+  <!-- Tailwind for the existing utility-class styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- React + Framer Motion + Babel so this remains a single HTML file -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/framer-motion@10/dist/framer-motion.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    html, body, #root {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #020617;
+    }
+    * {
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+
+const { useEffect, useMemo, useRef, useState } = React;
+const { motion, AnimatePresence } = Motion;
+
+const ROWS = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"];
+const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+
+function dropboxRaw(url) {
+  return url.replace("www.dropbox.com", "dl.dropboxusercontent.com").replace(/[?&]dl=0/, "");
+}
+
+const BACKGROUND_VIDEO = {
+  id: "reef",
+  label: "Marine Reef",
+  src: dropboxRaw("https://www.dropbox.com/scl/fi/bucuykdwuv61gp727e3xj/marine-life-underwater-reef-aquatic-creatures-2026-01-28-03-31-56-utc.mp4?rlkey=b64kpm3sfxbvqpcja7lgtf50y&dl=0"),
+};
+
+const POPUP_VIDEOS = [
+  { name: "Sea Horse", src: dropboxRaw("https://www.dropbox.com/scl/fi/3bcebp7rzwhasvpc0t156/14.-Sea-Horse.mov?rlkey=tt0zyn03i1554v09fh7mughtg&dl=0") },
+  { name: "Whale", src: dropboxRaw("https://www.dropbox.com/scl/fi/kc3fzfj8iqrjo79283azj/20.-Whale.mov?rlkey=lsup7khic6ztyxg9fxwwww6ol&dl=0") },
+  { name: "Dolphin", src: dropboxRaw("https://www.dropbox.com/scl/fi/zjh7rxklhe2ftmunmxhcp/8.-Dalphin.mov?rlkey=teqyqm1wuwesk0pcc9n2yemxj&dl=0") },
+  { name: "Shark", src: dropboxRaw("https://www.dropbox.com/scl/fi/0i829bvj0xmpzbojo0sah/15.-Shark.mov?rlkey=8n4tyy4cutieigpgko7h8iikq&dl=0") },
+  { name: "Turtle", src: dropboxRaw("https://www.dropbox.com/scl/fi/t5z37njlfyywocklgkte6/19.-Turtle.mov?rlkey=000x6b1trl970hu47oa7hv5ux&dl=0") },
+  { name: "Crab", src: dropboxRaw("https://www.dropbox.com/scl/fi/52ijwra9qhxaszbte1ppz/7.-Crab.mov?rlkey=3bdpwik0djv5iw6p5wmj22agb&dl=0") },
+  { name: "Snail", src: dropboxRaw("https://www.dropbox.com/scl/fi/dwag0qxd0hh09gn26chbf/16.-Snail.mov?rlkey=77a9pzycvxywhu9eizol52ddh&dl=0") },
+];
+
+const SOUND_TYPES = ["bubble", "sonar", "harp", "whale", "droplet", "chime", "wave", "pearl", "shell", "glass", "drift", "click"];
+
+const FINGER_GROUPS = {
+  Q: "left-pinky", A: "left-pinky", Z: "left-pinky",
+  W: "left-ring", S: "left-ring", X: "left-ring",
+  E: "left-middle", D: "left-middle", C: "left-middle",
+  R: "left-index", F: "left-index", V: "left-index", T: "left-index", G: "left-index", B: "left-index",
+  Y: "right-index", H: "right-index", N: "right-index", U: "right-index", J: "right-index", M: "right-index",
+  I: "right-middle", K: "right-middle",
+  O: "right-ring", L: "right-ring",
+  P: "right-pinky",
+  SPACE: "thumbs",
+};
+
+const FINGER_STYLES = {
+  "left-pinky": { label: "Left Pinky", glow: "shadow-pink-400/60", ring: "ring-pink-200/80", bg: "bg-pink-400/34", border: "border-pink-100/70", text: "text-pink-50", dot: "bg-pink-300" },
+  "left-ring": { label: "Left Ring", glow: "shadow-purple-400/60", ring: "ring-purple-200/80", bg: "bg-purple-400/34", border: "border-purple-100/70", text: "text-purple-50", dot: "bg-purple-300" },
+  "left-middle": { label: "Left Middle", glow: "shadow-blue-400/60", ring: "ring-blue-200/80", bg: "bg-blue-400/34", border: "border-blue-100/70", text: "text-blue-50", dot: "bg-blue-300" },
+  "left-index": { label: "Left Index", glow: "shadow-cyan-400/60", ring: "ring-cyan-200/80", bg: "bg-cyan-400/34", border: "border-cyan-100/70", text: "text-cyan-50", dot: "bg-cyan-300" },
+  "right-index": { label: "Right Index", glow: "shadow-emerald-400/60", ring: "ring-emerald-200/80", bg: "bg-emerald-400/34", border: "border-emerald-100/70", text: "text-emerald-50", dot: "bg-emerald-300" },
+  "right-middle": { label: "Right Middle", glow: "shadow-yellow-300/60", ring: "ring-yellow-100/80", bg: "bg-yellow-300/34", border: "border-yellow-100/70", text: "text-yellow-50", dot: "bg-yellow-300" },
+  "right-ring": { label: "Right Ring", glow: "shadow-orange-400/60", ring: "ring-orange-100/80", bg: "bg-orange-400/34", border: "border-orange-100/70", text: "text-orange-50", dot: "bg-orange-300" },
+  "right-pinky": { label: "Right Pinky", glow: "shadow-rose-400/60", ring: "ring-rose-100/80", bg: "bg-rose-400/34", border: "border-rose-100/70", text: "text-rose-50", dot: "bg-rose-300" },
+  "thumbs": { label: "Both Thumbs", glow: "shadow-white/60", ring: "ring-white/80", bg: "bg-white/24", border: "border-white/75", text: "text-white", dot: "bg-white" },
+};
+
+const LEVELS = [
+  { name: "Level 1", pattern: ["F", "G", "F", "G", "F", "G", "F", "G", "SPACE"], unlockSets: 0 },
+  { name: "Level 2", pattern: ["F", "R", "F", "R", "F", "R", "F", "R", "SPACE"], unlockSets: 2 },
+  { name: "Level 3", pattern: ["F", "V", "F", "V", "F", "V", "F", "V", "SPACE"], unlockSets: 4 },
+];
+
+const KEY_MAP = LETTERS.reduce((acc, letter, i) => {
+  acc[letter] = {
+    visual: POPUP_VIDEOS[i % POPUP_VIDEOS.length],
+    sound: SOUND_TYPES[i % SOUND_TYPES.length],
+    note: 180 + i * 18,
+    finger: FINGER_GROUPS[letter] || "left-index",
+  };
+  return acc;
+}, {});
+
+function randomBetween(min, max) {
+  return Math.random() * (max - min) + min;
+}
+
+function makeSeededId(letter) {
+  return `${letter}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function useOceanAudio() {
+  const ctxRef = useRef(null);
+  const ambientRef = useRef(null);
+
+  const ensureContext = () => {
+    if (!ctxRef.current) {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      ctxRef.current = new AudioContext();
+    }
+    if (ctxRef.current.state === "suspended") ctxRef.current.resume();
+    return ctxRef.current;
+  };
+
+  const startAmbient = () => {
+    const ctx = ensureContext();
+    if (ambientRef.current) return;
+    const master = ctx.createGain();
+    master.gain.value = 0.045;
+    master.connect(ctx.destination);
+    const low = ctx.createOscillator();
+    low.type = "sine";
+    low.frequency.value = 52;
+    const lowGain = ctx.createGain();
+    lowGain.gain.value = 0.55;
+    low.connect(lowGain).connect(master);
+    const shimmer = ctx.createOscillator();
+    shimmer.type = "triangle";
+    shimmer.frequency.value = 104;
+    const shimmerGain = ctx.createGain();
+    shimmerGain.gain.value = 0.12;
+    shimmer.connect(shimmerGain).connect(master);
+    const lfo = ctx.createOscillator();
+    lfo.frequency.value = 0.055;
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 0.035;
+    lfo.connect(lfoGain).connect(low.frequency);
+    low.start();
+    shimmer.start();
+    lfo.start();
+    ambientRef.current = { low, shimmer, lfo, master };
+  };
+
+  const stopAmbient = () => {
+    if (!ambientRef.current) return;
+    const ctx = ctxRef.current;
+    const { low, shimmer, lfo, master } = ambientRef.current;
+    master.gain.setTargetAtTime(0, ctx.currentTime, 0.5);
+    setTimeout(() => {
+      try { low.stop(); shimmer.stop(); lfo.stop(); } catch {}
+      ambientRef.current = null;
+    }, 900);
+  };
+
+  const play = (kind, freq = 440, sustain = false) => {
+    const ctx = ensureContext();
+    startAmbient();
+    const now = ctx.currentTime;
+    const master = ctx.createGain();
+    master.gain.value = 0;
+    master.connect(ctx.destination);
+    const osc = ctx.createOscillator();
+    const filter = ctx.createBiquadFilter();
+    const duration = sustain ? 1.8 : 0.65;
+
+    if (kind === "sonar") {
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq * 2.2, now);
+      osc.frequency.exponentialRampToValueAtTime(freq * 0.85, now + duration);
+      filter.type = "bandpass";
+      filter.frequency.value = 900;
+    } else if (kind === "whale") {
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq * 0.45, now);
+      osc.frequency.exponentialRampToValueAtTime(freq * 0.28, now + duration);
+      filter.type = "lowpass";
+      filter.frequency.value = 520;
+    } else if (kind === "harp" || kind === "pearl") {
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(freq * 2.6, now);
+      filter.type = "highpass";
+      filter.frequency.value = 240;
+    } else if (kind === "bubble" || kind === "droplet") {
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq * 3, now);
+      osc.frequency.exponentialRampToValueAtTime(freq * 5.2, now + 0.18);
+      filter.type = "bandpass";
+      filter.frequency.value = 1600;
+    } else {
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, now);
+      filter.type = "lowpass";
+      filter.frequency.value = 1200;
+    }
+
+    master.gain.setValueAtTime(0.0001, now);
+    master.gain.exponentialRampToValueAtTime(kind === "whale" ? 0.19 : 0.13, now + 0.035);
+    master.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+    osc.connect(filter).connect(master);
+    osc.start(now);
+    osc.stop(now + duration + 0.05);
+  };
+
+  return { play, startAmbient, stopAmbient };
+}
+
+function BubbleField() {
+  const bubbles = useMemo(() => Array.from({ length: 38 }, (_, i) => ({
+    id: i,
+    left: randomBetween(1, 99),
+    size: randomBetween(4, 18),
+    delay: randomBetween(0, 8),
+    duration: randomBetween(6, 16),
+    opacity: randomBetween(0.1, 0.38),
+  })), []);
+
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      {bubbles.map((b) => (
+        <motion.div
+          key={b.id}
+          className="absolute bottom-[-40px] rounded-full border border-white/40 bg-cyan-100/20 blur-[0.2px]"
+          style={{ left: `${b.left}%`, width: b.size, height: b.size, opacity: b.opacity }}
+          animate={{ y: [0, -window.innerHeight - 120], x: [0, randomBetween(-30, 30), randomBetween(-20, 20)] }}
+          transition={{ repeat: Infinity, duration: b.duration, delay: b.delay, ease: "linear" }}
+        />
+      ))}
+      <div className="absolute inset-0 opacity-35" style={{ background: "repeating-linear-gradient(110deg, transparent 0px, transparent 60px, rgba(255,255,255,.08) 74px, transparent 120px)", mixBlendMode: "screen" }} />
+    </div>
+  );
+}
+
+function BackgroundVideo({ video }) {
+  return (
+    <AnimatePresence mode="wait">
+      <motion.video
+        key={video.id}
+        className="absolute inset-0 h-full w-full object-cover"
+        src={video.src}
+        autoPlay
+        muted
+        loop
+        playsInline
+        initial={{ opacity: 0, scale: 1.03 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 1.02 }}
+        transition={{ duration: 0.9, ease: "easeOut" }}
+      />
+    </AnimatePresence>
+  );
+}
+
+function LetterBubble({ bubble }) {
+  const style = FINGER_STYLES[bubble.finger];
+  return (
+    <motion.div
+      className="pointer-events-none absolute z-40 flex items-center justify-center"
+      style={{ left: `${bubble.x}%`, top: `${bubble.y}%` }}
+      initial={{ opacity: 0, scale: 0.18, y: 34 }}
+      animate={{ opacity: [0, 1, 1, 0], scale: [0.18, 1.12, 1.0, 1.55], y: [34, -34, -120, -165] }}
+      exit={{ opacity: 0, scale: 1.8 }}
+      transition={{ duration: 1.25, ease: "easeOut" }}
+    >
+      <div className={`relative flex h-32 w-32 items-center justify-center rounded-full border-4 ${style.border} ${style.bg} shadow-2xl ${style.glow} backdrop-blur-md md:h-40 md:w-40`}>
+        <span className="absolute inset-3 rounded-full border-2 border-white/55" />
+        <span className="absolute left-7 top-5 h-8 w-14 rounded-full bg-white/45 blur-[1px]" />
+        <span className="text-7xl font-black text-white drop-shadow-lg md:text-8xl">{bubble.letter}</span>
+        <motion.span
+          className="absolute -right-2 -top-2 text-4xl"
+          animate={{ opacity: [0, 0, 1, 0], scale: [0, 0.5, 1.7, 0] }}
+          transition={{ duration: 1.25, times: [0, 0.62, 0.82, 1] }}
+        >
+          ✦
+        </motion.span>
+      </div>
+    </motion.div>
+  );
+}
+
+function PatternDisplay({ level, patternIndex }) {
+  return (
+    <div className="pointer-events-none absolute inset-x-0 top-5 z-30 flex justify-center px-4">
+      <div className="rounded-[2.75rem] border border-white/25 bg-black/20 px-8 py-6 text-center shadow-2xl backdrop-blur-md md:px-10 md:py-7">
+        <div className="mb-3 text-base font-black uppercase tracking-[0.42em] text-cyan-100/95 md:text-lg">{level.name}</div>
+        <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
+          {level.pattern.map((letter, index) => {
+            const isSpace = letter === "SPACE";
+            return (
+            <motion.div
+              key={`${letter}-${index}`}
+              animate={index === patternIndex ? { scale: [1, 1.14, 1], y: [0, -3, 0] } : { scale: 1, y: 0 }}
+              transition={{ repeat: index === patternIndex ? Infinity : 0, duration: 0.9 }}
+              className={`flex h-16 ${isSpace ? "w-36 md:w-44" : "w-16 md:w-20"} items-center justify-center rounded-[1.45rem] border text-4xl font-black shadow-lg md:h-20 md:text-5xl ${
+                index < patternIndex
+                  ? "border-emerald-100/70 bg-emerald-400/35 text-white"
+                  : index === patternIndex
+                    ? "border-white bg-white/45 text-white ring-4 ring-white/45"
+                    : "border-white/20 bg-white/12 text-white/65"
+              }`}
+            >
+              {isSpace ? "SPACE" : letter}
+            </motion.div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SpawnedCreature({ item }) {
+  const direction = item.x > 50 ? -1 : 1;
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.35, x: 0, y: 20, rotate: -4 * direction }}
+      animate={{ opacity: [0, 1, 1, 0], scale: item.scale, x: direction * randomBetween(40, 150), y: -randomBetween(80, 220), rotate: 5 * direction }}
+      exit={{ opacity: 0, scale: 0.2 }}
+      transition={{ duration: item.duration, ease: "easeOut" }}
+      className="pointer-events-none absolute z-30 select-none"
+      style={{ left: `${item.x}%`, top: `${item.y}%`, filter: "drop-shadow(0 18px 28px rgba(0,0,0,.3))" }}
+    >
+      <div className="relative h-36 w-36 overflow-hidden rounded-[2rem] border border-white/35 bg-cyan-100/10 shadow-2xl shadow-cyan-950/40 backdrop-blur-sm md:h-44 md:w-44">
+        <video src={item.visual.src} className="h-full w-full object-contain" autoPlay muted loop playsInline />
+        <div className="pointer-events-none absolute inset-0 rounded-[2rem] bg-gradient-to-t from-cyan-950/20 via-transparent to-white/10" />
+      </div>
+    </motion.div>
+  );
+}
+
+function SeaGlassKey({ letter, active, target, onTrigger }) {
+  const mapped = KEY_MAP[letter];
+  const style = FINGER_STYLES[mapped.finger];
+  return (
+    <motion.button
+      type="button"
+      whileHover={{ y: -2, scale: 1.03 }}
+      whileTap={{ scale: 0.94 }}
+      onPointerDown={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        onTrigger(letter);
+      }}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onTrigger(letter);
+        }
+      }}
+      className={`relative z-50 h-14 w-14 rounded-2xl border text-lg font-black tracking-wide outline-none transition md:h-16 md:w-16 ${style.border} ${style.bg} ${style.text} ${
+        active ? `ring-4 ${style.ring} shadow-[0_0_34px_rgba(255,255,255,.7)]` : `shadow-lg ${style.glow}`
+      } ${target ? "animate-pulse" : ""} backdrop-blur-md hover:bg-white/30`}
+      aria-label={`Play ${letter}: ${mapped.visual.name}, ${style.label}`}
+    >
+      <span className="absolute inset-x-2 top-1 h-3 rounded-full bg-white/35 blur-[1px]" />
+      <span className="relative z-10 drop-shadow">{letter}</span>
+      {target && <span className="absolute -right-1 -top-1 flex h-4 w-4 rounded-full bg-white shadow-lg" />}
+    </motion.button>
+  );
+}
+
+function SpaceBar({ active, target, onTrigger }) {
+  const style = FINGER_STYLES.thumbs;
+  return (
+    <motion.button
+      type="button"
+      whileHover={{ y: -2, scale: 1.015 }}
+      whileTap={{ scale: 0.97 }}
+      onPointerDown={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        onTrigger();
+      }}
+      className={`relative z-50 mt-3 h-14 w-72 rounded-2xl border text-lg font-black uppercase tracking-[0.35em] outline-none transition md:h-16 md:w-96 ${style.border} ${style.bg} ${style.text} ${
+        active ? `ring-4 ${style.ring} shadow-[0_0_34px_rgba(255,255,255,.7)]` : `shadow-lg ${style.glow}`
+      } ${target ? "animate-pulse" : ""} backdrop-blur-md hover:bg-white/30`}
+      aria-label="Space bar, both thumbs"
+    >
+      <span className="absolute inset-x-5 top-2 h-3 rounded-full bg-white/35 blur-[1px]" />
+      <span className="relative z-10 drop-shadow">SPACE</span>
+      {target && <span className="absolute -right-1 -top-1 flex h-4 w-4 rounded-full bg-white shadow-lg" />}
+    </motion.button>
+  );
+}
+
+function FingerLegend() {
+  const order = ["left-pinky", "left-ring", "left-middle", "left-index", "right-index", "right-middle", "right-ring", "right-pinky", "thumbs"];
+  return (
+    <div className="grid grid-cols-2 gap-2 text-[10px] text-white/90 md:grid-cols-4 lg:grid-cols-8">
+      {order.map((finger) => {
+        const style = FINGER_STYLES[finger];
+        return (
+          <div key={finger} className="flex items-center gap-2 rounded-full border border-white/15 bg-black/20 px-2 py-1 backdrop-blur-md">
+            <span className={`h-3 w-3 rounded-full ${style.dot}`} />
+            <span>{style.label}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function OceanKeys() {
+  const [activeLetters, setActiveLetters] = useState({});
+  const [creatures, setCreatures] = useState([]);
+  const [letterBubbles, setLetterBubbles] = useState([]);
+  const [sustain, setSustain] = useState(false);
+  const [started, setStarted] = useState(false);
+  const [setCount, setSetCount] = useState(0);
+  const [levelIndex, setLevelIndex] = useState(0);
+  const [patternIndex, setPatternIndex] = useState(0);
+  const [lettersThisSet, setLettersThisSet] = useState(() => new Set());
+  const { play, startAmbient, stopAmbient } = useOceanAudio();
+
+  const backgroundVideo = BACKGROUND_VIDEO;
+  const currentLevel = LEVELS[levelIndex];
+  const targetLetter = currentLevel.pattern[patternIndex % currentLevel.pattern.length];
+
+  const advanceLevelProgress = (letter) => {
+    if (letter !== targetLetter) return;
+    const nextPatternIndex = patternIndex + 1;
+    if (nextPatternIndex >= currentLevel.pattern.length) {
+      setPatternIndex(0);
+      setSetCount((count) => count + 1);
+      setLevelIndex((idx) => Math.min(idx + 1, LEVELS.length - 1));
+    } else {
+      setPatternIndex(nextPatternIndex);
+    }
+  };
+
+  const registerLetterForSet = (letter) => {
+    setLettersThisSet((prev) => {
+      const next = new Set(prev);
+      next.add(letter);
+      if (next.size >= 26) {
+        setSetCount((count) => count + 1);
+        return new Set();
+      }
+      return next;
+    });
+  };
+
+  const trigger = (rawLetter) => {
+    const letter = rawLetter.toUpperCase();
+    if (!KEY_MAP[letter]) return;
+    const mapped = KEY_MAP[letter];
+    setStarted(true);
+    play(mapped.sound, mapped.note, sustain);
+    registerLetterForSet(letter);
+    advanceLevelProgress(letter);
+
+    setActiveLetters((prev) => ({ ...prev, [letter]: true }));
+    setTimeout(() => setActiveLetters((prev) => ({ ...prev, [letter]: false })), sustain ? 700 : 260);
+
+    const x = randomBetween(13, 82);
+    const y = randomBetween(20, 58);
+    const bubbleId = makeSeededId(`bubble-${letter}`);
+    setLetterBubbles((prev) => [...prev.slice(-10), { id: bubbleId, letter, finger: mapped.finger, x: x + randomBetween(-4, 4), y: y + randomBetween(-4, 4) }]);
+    setTimeout(() => setLetterBubbles((prev) => prev.filter((b) => b.id !== bubbleId)), 1150);
+
+    const id = makeSeededId(letter);
+    const item = {
+      id,
+      letter,
+      visual: mapped.visual,
+      x,
+      y,
+      scale: randomBetween(0.86, 1.22),
+      duration: sustain ? randomBetween(4.2, 5.8) : randomBetween(3.0, 4.6),
+    };
+    setCreatures((prev) => [...prev.slice(-16), item]);
+    setTimeout(() => setCreatures((prev) => prev.filter((c) => c.id !== id)), item.duration * 1000 + 400);
+  };
+
+  const triggerSpace = () => {
+    setStarted(true);
+    play("click", 420, false);
+    advanceLevelProgress("SPACE");
+    setActiveLetters((prev) => ({ ...prev, SPACE: true }));
+    setTimeout(() => setActiveLetters((prev) => ({ ...prev, SPACE: false })), 300);
+
+    const bubbleId = makeSeededId("bubble-space");
+    setLetterBubbles((prev) => [...prev.slice(-10), { id: bubbleId, letter: "␣", finger: "thumbs", x: randomBetween(30, 70), y: randomBetween(45, 62) }]);
+    setTimeout(() => setLetterBubbles((prev) => prev.filter((b) => b.id !== bubbleId)), 1150);
+  };
+
+  useEffect(() => {
+    const down = (e) => {
+      const key = e.key.toUpperCase();
+      if (e.key === "Shift") {
+        setSustain(true);
+        return;
+      }
+      if (e.code === "Space") {
+        e.preventDefault();
+        if (!e.repeat) triggerSpace();
+        return;
+      }
+      if (KEY_MAP[key] && !e.repeat) trigger(key);
+    };
+    const up = (e) => {
+      if (e.key === "Shift") setSustain(false);
+    };
+    window.addEventListener("keydown", down);
+    window.addEventListener("keyup", up);
+    return () => {
+      window.removeEventListener("keydown", down);
+      window.removeEventListener("keyup", up);
+      stopAmbient();
+    };
+  }, [sustain, targetLetter, patternIndex, levelIndex]);
+
+  return (
+    <div className="relative min-h-screen overflow-hidden bg-slate-950 text-white">
+      <BackgroundVideo video={backgroundVideo} />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-cyan-950/30 via-blue-950/15 to-slate-950/65" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,rgba(255,255,255,.25),transparent_35%)]" />
+      <BubbleField />
+
+      <AnimatePresence>
+        {creatures.map((item) => <SpawnedCreature key={item.id} item={item} />)}
+      </AnimatePresence>
+      <AnimatePresence>
+        {letterBubbles.map((bubble) => <LetterBubble key={bubble.id} bubble={bubble} />)}
+      </AnimatePresence>
+
+      <main className="relative z-10 flex min-h-screen flex-col items-center justify-between px-4 py-4 md:px-8">
+        <section className="flex w-full flex-1 items-center justify-center pb-16 pt-10 md:pt-12">
+          <div className="relative h-[62vh] w-full max-w-6xl rounded-[3rem] border border-white/15 bg-white/5 shadow-2xl shadow-cyan-950/30 backdrop-blur-[2px]">
+            <PatternDisplay level={currentLevel} patternIndex={patternIndex} />
+            <div className="pointer-events-none absolute inset-0 rounded-[3rem] bg-gradient-to-t from-cyan-950/30 via-transparent to-white/5" />
+            {!creatures.length && !letterBubbles.length && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pointer-events-none absolute inset-x-0 bottom-8 flex items-center justify-center text-center text-cyan-50/85 md:bottom-10">
+                <div className="rounded-3xl border border-white/15 bg-black/20 px-8 py-5 text-2xl font-black shadow-xl backdrop-blur-md md:text-4xl">
+                  Follow the pattern above
+                </div>
+              </motion.div>
+            )}
+          </div>
+        </section>
+
+        <footer className="relative z-40 w-full max-w-5xl rounded-[2rem] border border-white/15 bg-slate-950/30 p-4 shadow-2xl shadow-cyan-950/25 backdrop-blur-xl md:p-6">
+          <div className="space-y-3">
+            {ROWS.map((row, rowIndex) => (
+              <div key={row} className="flex justify-center gap-2 md:gap-3" style={{ marginLeft: rowIndex === 1 ? 26 : rowIndex === 2 ? 70 : 0 }}>
+                {row.split("").map((letter) => (
+                  <SeaGlassKey key={letter} letter={letter} active={activeLetters[letter]} target={letter === targetLetter} onTrigger={trigger} />
+                ))}
+              </div>
+            ))}
+            <div className="flex justify-center">
+              <SpaceBar active={activeLetters.SPACE} target={targetLetter === "SPACE"} onTrigger={triggerSpace} />
+            </div>
+          </div>
+        </footer>
+      </main>
+    </div>
+  );
+}
+
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<OceanKeys />);
+
+  </script>
+<script src="rhythmic-typing-lesson.js"></script>
+<script src="rhythmic-typing-back.js"></script>
+</body>
+</html>
