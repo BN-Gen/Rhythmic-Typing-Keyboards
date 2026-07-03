@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rhythmic Typing Keyboard</title>
+<style>
+  :root {
+    --bg: #f8fafc;
+    --text: #1f2937;
+    --muted: #64748b;
+    --active: #111827;
+    --target-bg: #ffffff;
+    --target-border: #cbd5e1;
+    --key-border: rgba(0,0,0,0.18);
+  }
+  body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    text-align: center;
+  }
+  .app {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 16px 40px;
+  }
+  h1 {
+    margin: 0;
+    font-size: 30px;
+    line-height: 1.2;
+  }
+  h2 {
+    margin: 6px 0 24px;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--muted);
+  }
+  .controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+  button {
+    font-size: 16px;
+    padding: 9px 16px;
+    border-radius: 10px;
+    border: 1px solid #94a3b8;
+    background: white;
+    cursor: pointer;
+  }
+  button:hover {
+    background: #f1f5f9;
+  }
+  .volume-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .sequence {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    margin: 18px auto 34px;
+    min-height: 86px;
+    flex-wrap: wrap;
+  }
+  .target {
+    position: relative;
+    min-width: 64px;
+    padding: 16px 12px;
+    border-radius: 14px;
+    border: 2px solid var(--target-border);
+    background: var(--target-bg);
+    font-size: 30px;
+    font-weight: 700;
+    color: #334155;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+    transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+  }
+  .target.space-target {
+    min-width: 120px;
+    font-size: 24px;
+  }
+  .target.active {
+    border-color: var(--active);
+    box-shadow: 0 0 0 4px rgba(17, 24, 39, 0.16);
+    transform: translateY(-4px) scale(1.04);
+  }
+  .target.cleared {
+    visibility: hidden;
+  }
+  .target.burst {
+    animation: burst 420ms ease forwards;
+  }
+  .target.flyUp {
+    animation: flyUp 480ms ease forwards;
+  }
+  .target.spinPop {
+    animation: spinPop 460ms ease forwards;
+  }
+  @keyframes burst {
+    0% { transform: scale(1); opacity: 1; }
+    45% { transform: scale(1.35); opacity: 0.85; }
+    100% { transform: scale(0.2); opacity: 0; }
+  }
+  @keyframes flyUp {
+    0% { transform: translateY(0) scale(1); opacity: 1; }
+    100% { transform: translateY(-52px) scale(1.25); opacity: 0; }
+  }
+  @keyframes spinPop {
+    0% { transform: rotate(0deg) scale(1); opacity: 1; }
+    45% { transform: rotate(18deg) scale(1.35); opacity: 0.9; }
+    100% { transform: rotate(-12deg) scale(0.25); opacity: 0; }
+  }
+  .keyboard {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+    user-select: none;
+  }
+  .row {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+  }
+  .key {
+    width: 64px;
+    height: 58px;
+    border-radius: 13px;
+    border: 2px solid var(--key-border);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 25px;
+    font-weight: 700;
+    color: #111827;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.18);
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: transform 90ms ease, box-shadow 90ms ease, filter 90ms ease;
+  }
+  .key:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 rgba(0,0,0,0.18);
+  }
+  .key.glow {
+    filter: brightness(1.18);
+    box-shadow: 0 0 0 5px rgba(15, 23, 42, 0.22), 0 3px 0 rgba(0,0,0,0.18);
+  }
+  .key.rt-key-blocked {
+    opacity: 0.22;
+    pointer-events: none;
+    filter: grayscale(0.75);
+    cursor: not-allowed;
+  }
+  .spacebar {
+    width: 360px;
+    max-width: 80vw;
+    font-size: 22px;
+  }
+  .left-pinky { background: #fca5a5; }
+  .left-ring { background: #fdba74; }
+  .left-middle { background: #fde68a; }
+  .left-index { background: #86efac; }
+  .right-index { background: #93c5fd; }
+  .right-middle { background: #c4b5fd; }
+  .right-ring { background: #f0abfc; }
+  .right-pinky { background: #f9a8d4; }
+  .thumbs { background: #67e8f9; }
+  .note {
+    margin-top: 22px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  @media (max-width: 760px) {
+    .key {
+      width: 36px;
+      height: 46px;
+      font-size: 18px;
+      border-radius: 10px;
+    }
+    .row { gap: 5px; }
+    .target {
+      min-width: 46px;
+      font-size: 22px;
+      padding: 12px 8px;
+    }
+    .target.space-target {
+      min-width: 86px;
+      font-size: 18px;
+    }
+    h1 { font-size: 24px; }
+    h2 { font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+  <div class="app">
+    <h1>Rhythmic Typing Keyboard</h1>
+    <h2>Design for Basic Initial Keyboard Functioning</h2>
+    <div class="controls">
+      <button id="startButton">Start</button>
+      <button id="muteButton">Mute</button>
+      <div class="volume-wrap">
+        <label for="volume">Volume</label>
+        <input id="volume" type="range" min="0" max="1" step="0.01" value="0.8" />
+      </div>
+    </div>
+    <div id="sequence" class="sequence"></div>
+    <div id="keyboard" class="keyboard"></div>
+    <div class="note">Testing version: works with physical keyboard typing and touch/click on screen keys.</div>
+  </div>
+<script src="rhythmic-typing-lesson.js"></script>
+<script>
+const PATTERN = ["F", "G", "F", "G", "F", "G", "F", "SPACE"];
+const SOUND_SETS = [
+  {
+    F: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/KICK1.mp3",
+    G: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/SNARE2.mp3",
+    SPACE: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Splash%2012%203.mp3"
+  },
+  {
+    F: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Electro%20kick%2001.mp3",
+    G: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/FM%20snare.mp3",
+    SPACE: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Chime%20percussion_BLASTWAVEFX_30615.mp3"
+  },
+  {
+    F: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Fuzz%20Kick.mp3",
+    G: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Smack%20Snare.mp3",
+    SPACE: "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Maxi%20clap.mp3"
+  }
+];
+const EFFECTS = ["burst", "flyUp", "spinPop"];
+const FINGER_GROUPS = {
+  Q: "left-pinky", A: "left-pinky", Z: "left-pinky",
+  W: "left-ring", S: "left-ring", X: "left-ring",
+  E: "left-middle", D: "left-middle", C: "left-middle",
+  R: "left-index", F: "left-index", T: "left-index", G: "left-index", V: "left-index", B: "left-index",
+  Y: "right-index", H: "right-index", U: "right-index", J: "right-index", N: "right-index", M: "right-index",
+  I: "right-middle", K: "right-middle",
+  O: "right-ring", L: "right-ring",
+  P: "right-pinky",
+  SPACE: "thumbs"
+};
+const KEY_ROWS = [
+  ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
+  ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
+  ["Z", "X", "C", "V", "B", "N", "M"],
+  ["SPACE"]
+];
+let started = false;
+let muted = false;
+let volume = 0.8;
+let beatIndex = 0;
+let setIndex = 0;
+let audioCache = {};
+const sequenceEl = document.getElementById("sequence");
+const keyboardEl = document.getElementById("keyboard");
+const startButton = document.getElementById("startButton");
+const muteButton = document.getElementById("muteButton");
+const volumeSlider = document.getElementById("volume");
+function buildSequence() {
+  sequenceEl.innerHTML = "";
+  PATTERN.forEach((target, index) => {
+    const el = document.createElement("div");
+    el.className = "target" + (target === "SPACE" ? " space-target" : "");
+    el.textContent = target;
+    el.dataset.index = index;
+    sequenceEl.appendChild(el);
+  });
+  updateActiveTarget();
+}
+function updateActiveTarget() {
+  document.querySelectorAll(".target").forEach((el, index) => {
+    el.classList.toggle("active", index === beatIndex);
+  });
+}
+function buildKeyboard() {
+  keyboardEl.innerHTML = "";
+  KEY_ROWS.forEach(rowKeys => {
+    const row = document.createElement("div");
+    row.className = "row";
+    rowKeys.forEach(key => {
+      const keyEl = document.createElement("div");
+      keyEl.className = "key " + FINGER_GROUPS[key] + (key === "SPACE" ? " spacebar" : "");
+      keyEl.textContent = key;
+      keyEl.dataset.key = key;
+      keyEl.addEventListener("click", () => handleInput(key));
+      keyEl.addEventListener("touchstart", event => {
+        event.preventDefault();
+        handleInput(key);
+      }, { passive: false });
+      row.appendChild(keyEl);
+    });
+    keyboardEl.appendChild(row);
+  });
+  if (window.RTLesson) window.RTLesson.applyKeyLockdown();
+}
+function applyLessonFromPanel() {
+  if (!window.RTLesson) return;
+  const fromPattern = window.RTLesson.getPattern();
+  if (fromPattern.length) {
+    PATTERN.length = 0;
+    fromPattern.forEach(k => PATTERN.push(k));
+  }
+}
+function preloadAudio() {
+  SOUND_SETS.forEach(set => {
+    Object.values(set).forEach(url => {
+      if (!audioCache[url]) {
+        const audio = new Audio(url);
+        audio.preload = "auto";
+        audioCache[url] = audio;
+      }
+    });
+  });
+}
+function playSound(targetKey) {
+  if (muted) return;
+  const currentSoundSet = SOUND_SETS[setIndex % SOUND_SETS.length];
+  const url = currentSoundSet[targetKey];
+  const baseAudio = audioCache[url] || new Audio(url);
+  const audio = baseAudio.cloneNode();
+  audio.volume = volume;
+  audio.currentTime = 0;
+  audio.play().catch(() => {});
+}
+function highlightKey(targetKey) {
+  const keyEl = document.querySelector(`.key[data-key="${targetKey}"]`);
+  if (!keyEl) return;
+  keyEl.classList.add("glow");
+  setTimeout(() => keyEl.classList.remove("glow"), 160);
+}
+function animateTarget() {
+  const targetEl = document.querySelector(`.target[data-index="${beatIndex}"]`);
+  if (!targetEl) return;
+  const effect = EFFECTS[setIndex % EFFECTS.length];
+  targetEl.classList.remove("active");
+  targetEl.classList.add(effect);
+  setTimeout(() => {
+    targetEl.classList.add("cleared");
+    advanceBeat();
+  }, 430);
+}
+function advanceBeat() {
+  beatIndex++;
+  if (beatIndex >= PATTERN.length) {
+    beatIndex = 0;
+    setIndex++;
+    buildSequence();
+  } else {
+    updateActiveTarget();
+  }
+}
+function normalizePhysicalKey(event) {
+  if (event.code === "Space" || event.key === " ") {
+    event.preventDefault();
+    return "SPACE";
+  }
+  const key = event.key.toUpperCase();
+  if (/^[A-Z]$/.test(key)) return key;
+  return null;
+}
+function handleInput(inputKey) {
+  if (!started) return;
+  if (window.RTLesson && !window.RTLesson.isAllowed(inputKey)) return;
+  const expectedKey = PATTERN[beatIndex];
+  if (inputKey !== expectedKey) return;
+  playSound(expectedKey);
+  highlightKey(expectedKey);
+  animateTarget();
+}
+document.addEventListener("keydown", event => {
+  const key = normalizePhysicalKey(event);
+  if (!key) return;
+  handleInput(key);
+});
+startButton.addEventListener("click", () => {
+  started = true;
+  preloadAudio();
+  startButton.disabled = true;
+  startButton.textContent = "Started";
+});
+muteButton.addEventListener("click", () => {
+  muted = !muted;
+  muteButton.textContent = muted ? "Unmute" : "Mute";
+});
+volumeSlider.addEventListener("input", event => {
+  volume = Number(event.target.value);
+});
+applyLessonFromPanel();
+buildSequence();
+buildKeyboard();
+</script>
+<script src="rhythmic-typing-back.js"></script>
+</body>
+</html>
