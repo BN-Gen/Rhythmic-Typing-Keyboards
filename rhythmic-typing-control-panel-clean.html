@@ -1,0 +1,1476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rhythmic Typing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #17335f;
+  --ink: #182131;
+  --muted: #5d6b82;
+  --line: #c3ccda;
+  --cream: #fff4df;
+  --panel: #ffffff;
+  --edge: #17335f;
+  --slot: #eef2f8;
+  --lp: #ff686d;
+  --lr: #ff9f3d;
+  --lm: #ffd84d;
+  --li: #a9d85a;
+  --ri: #5998cc;
+  --rm: #b37ccc;
+  --rr: #f36aa4;
+  --rp: #45b7a8;
+  --th: #e8e8ed;
+  --ok: #22c55e;
+  --radius: 18px;
+  --app-radius: clamp(20px, 4vw, 32px);
+  --pic-cols: 4;
+  --k-cols: 6;
+  --font: 'Fredoka', 'Baloo 2', Arial, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  min-height: 100dvh;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(255, 159, 61, 0.22), transparent 28%),
+    radial-gradient(circle at 88% 12%, rgba(89, 152, 204, 0.2), transparent 30%),
+    radial-gradient(circle at 50% 95%, rgba(169, 216, 90, 0.18), transparent 35%),
+    linear-gradient(165deg, #fff8eb 0%, #ffe9c7 45%, #fff4df 100%);
+  color: var(--ink);
+  font-family: var(--font);
+}
+
+.page {
+  width: min(96vw, 1100px);
+  margin: 0 auto;
+  padding: clamp(8px, 1.2vw, 16px);
+}
+
+.app {
+  background: linear-gradient(180deg, #fffdf9 0%, #fff9f0 100%);
+  border: 3px solid var(--navy);
+  border-radius: var(--app-radius);
+  box-shadow:
+    0 16px 40px rgba(23, 51, 95, 0.14),
+    0 0 0 6px rgba(255, 216, 77, 0.25);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.step-nav {
+  display: flex;
+  justify-content: center;
+  gap: clamp(6px, 1.2vw, 10px);
+  padding: clamp(10px, 1.5vw, 14px) clamp(10px, 2vw, 16px);
+  background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
+  border-bottom: 2px dashed rgba(23, 51, 95, 0.12);
+  flex-wrap: wrap;
+  border-radius: calc(var(--app-radius) - 3px) calc(var(--app-radius) - 3px) 0 0;
+}
+
+.step-dot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: clamp(8px, 1.5vw, 10px) clamp(14px, 2.5vw, 20px);
+  border-radius: 999px;
+  font-size: clamp(13px, 2vw, 15px);
+  font-weight: 600;
+  color: var(--muted);
+  background: #fff;
+  border: 2.5px solid var(--line);
+  box-shadow: 0 3px 0 rgba(23, 51, 95, 0.08);
+  transition: transform 0.12s, box-shadow 0.12s, background 0.12s;
+}
+
+.step-dot .step-icon {
+  font-size: 1.15em;
+  line-height: 1;
+}
+
+.step-dot.active {
+  color: #fff;
+  border-color: var(--navy);
+  background: linear-gradient(180deg, #3b82f6, #2563eb);
+  box-shadow: 0 4px 0 #1e40af, 0 8px 16px rgba(37, 99, 235, 0.3);
+  transform: translateY(-1px);
+}
+
+.step-dot.done {
+  color: #fff;
+  border-color: #16a34a;
+  background: linear-gradient(180deg, #4ade80, #22c55e);
+  box-shadow: 0 3px 0 #15803d;
+}
+
+.step-panel {
+  display: none;
+  padding: clamp(12px, 2vw, 20px);
+  flex: 1;
+  overflow: visible;
+}
+
+.step-panel.active { display: block; }
+
+.step-card {
+  background: #fff;
+  border: 2.5px solid rgba(23, 51, 95, 0.12);
+  border-radius: clamp(18px, 3vw, 26px);
+  padding: clamp(14px, 2vw, 22px);
+  box-shadow: 0 8px 24px rgba(23, 51, 95, 0.07);
+  width: 100%;
+}
+
+.step-title {
+  margin: 0 0 6px;
+  font-size: clamp(22px, 3.5vw, 28px);
+  font-weight: 700;
+  color: var(--navy);
+  text-align: center;
+}
+
+.step-instruction {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: clamp(14px, 2vw, 16px);
+  font-weight: 500;
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* Sign In */
+.signin-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(16px, 3vw, 28px);
+  align-items: start;
+}
+
+.picture-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--pic-cols), minmax(0, 108px));
+  gap: clamp(8px, 1.2vw, 12px);
+  width: 100%;
+  margin: 0 auto 16px;
+  justify-content: center;
+}
+
+.picture-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 6px;
+  border: 3px solid var(--line);
+  border-radius: 20px;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, transform 0.1s, box-shadow 0.15s;
+  position: relative;
+  aspect-ratio: 1 / 1;
+  box-shadow: inset 0 0 0 1px #f1f4f8;
+  max-width: 108px;
+  width: 100%;
+}
+
+.picture-btn:hover {
+  border-color: var(--navy);
+  transform: translateY(-1px);
+}
+
+.picture-btn.selected {
+  border-color: var(--navy);
+  background: #eef4ff;
+  box-shadow: 0 0 0 4px rgba(23, 51, 95, 0.13);
+}
+
+.picture-btn .pic-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  min-height: 0;
+  object-fit: contain;
+  border-radius: 18px;
+  pointer-events: none;
+}
+
+.picture-btn .label { display: none; }
+
+.picture-btn .check {
+  display: none;
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: #fff;
+  font-size: 13px;
+  line-height: 22px;
+  text-align: center;
+  font-weight: 700;
+}
+
+.picture-btn.selected .check { display: block; }
+
+.code-section {
+  width: 100%;
+  margin: 0 auto 24px;
+  text-align: center;
+}
+
+.code-title {
+  margin: 0 0 12px;
+  font-size: clamp(17px, 2.5vw, 20px);
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.code-slots {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.code-slot {
+  width: clamp(64px, 10vw, 88px);
+  height: clamp(64px, 10vw, 88px);
+  border: 2px dashed var(--line);
+  border-radius: 22px;
+  background: var(--slot);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  overflow: hidden;
+}
+
+.code-slot.filled {
+  border-style: solid;
+  border-color: var(--navy);
+  background: #eef4ff;
+}
+
+.code-slot img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 18px;
+  padding: 4px;
+}
+
+.summary-pics {
+  display: inline-flex;
+  gap: 4px;
+  vertical-align: middle;
+}
+
+.summary-pics img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
+.code-count {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.code-count.done {
+  color: var(--ok);
+  font-size: clamp(15px, 2vw, 17px);
+  font-weight: 700;
+}
+
+.selected-summary {
+  padding: 14px 18px;
+  background: linear-gradient(135deg, #eef4ff, #f0fdf4);
+  border: 2px solid rgba(23, 51, 95, 0.12);
+  border-radius: 16px;
+  font-size: 15px;
+  font-weight: 500;
+  margin-bottom: 18px;
+  text-align: center;
+}
+
+/* Keyboard grid — theme preview + name */
+.kgrid {
+  display: grid;
+  grid-template-columns: repeat(var(--k-cols, 6), minmax(96px, 130px));
+  gap: clamp(8px, 1.2vw, 14px);
+  margin-bottom: 18px;
+  width: 100%;
+  justify-content: center;
+}
+
+.kcard {
+  display: flex;
+  flex-direction: column;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  background: #fff;
+  padding: 4px 4px 6px;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+  width: 100%;
+  max-width: 130px;
+  justify-self: center;
+}
+
+.kcard:hover {
+  border-color: var(--navy);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(23, 51, 95, 0.12);
+}
+
+.kcard.selected {
+  border-color: var(--navy);
+  border-width: 2px;
+  box-shadow: 0 0 0 2px rgba(23, 51, 95, 0.15);
+}
+
+.kcard-preview {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 0;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.kcard-name {
+  margin: 5px 2px 0;
+  font-size: clamp(10px, 1.8vw, 12px);
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+  color: var(--navy);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.kcard-preview svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.kcard-preview .pl { animation: plpop 1.8s ease-out infinite; }
+.kcard-preview .spark { animation: spk 1.1s ease-out infinite; }
+.kcard-preview .mk.on { animation: mkflash 1.2s ease-in-out infinite; }
+.kcard:hover .confetti { animation: confettiFall 1.8s linear infinite; }
+.kcard:hover .lolli, .kcard:hover .wheel, .kcard:hover .gear { animation: spin 1s linear infinite; }
+.kcard:hover .coin { animation: coinRise 1.9s ease-in infinite; }
+.kcard:hover .cflip { animation: coinFlip 0.6s linear infinite; }
+.kcard:hover .chest { animation: chestGlow 1.1s ease-in-out infinite; }
+.kcard:hover .dust { animation: dustFly 1.2s ease-out infinite; }
+.kcard:hover .speed { animation: speedDash 0.7s linear infinite; }
+.kcard:hover .fire { animation: fireFlick 0.4s ease-in-out infinite; }
+.kcard:hover .bub, .kcard:hover .fizz { animation: rise 1.7s ease-in infinite; }
+.kcard:hover .fish { animation: swim 2.2s linear infinite; }
+.kcard:hover .comet { animation: cometDash 1.5s ease-in infinite; }
+.kcard:hover .twk { animation: twk 1.2s ease-in-out infinite; }
+.kcard:hover .ff { animation: drift 2.4s ease-in-out infinite; }
+.kcard:hover .shape { animation: pulse 1.4s ease-in-out infinite; }
+.kcard:hover .bfly { animation: flutter 1.4s ease-in-out infinite; }
+.kcard:hover .bar { animation: bounce 1s ease-in-out infinite; }
+
+@keyframes plpop { 0% { transform: translateY(10px) scale(0.4); opacity: 0; } 25% { opacity: 1; } 100% { transform: translateY(-24px) scale(1.2); opacity: 0; } }
+@keyframes spk { 0% { transform: translate(0,0) scale(0.3); opacity: 0; } 25% { opacity: 1; } 100% { transform: translate(var(--dx), var(--dy)) scale(1); opacity: 0; } }
+@keyframes mkflash { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+@keyframes confettiFall { 0% { transform: translateY(-14px) rotate(0); opacity: 0; } 15% { opacity: 1; } 100% { transform: translateY(96px) rotate(360deg); opacity: 0; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes coinRise { 0% { transform: translateY(18px); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(-46px); opacity: 0; } }
+@keyframes coinFlip { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(0.12); } }
+@keyframes chestGlow { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
+@keyframes speedDash { 0% { transform: translateX(20px); opacity: 0; } 30% { opacity: 1; } 100% { transform: translateX(-56px); opacity: 0; } }
+@keyframes fireFlick { 0%, 100% { transform: scaleY(1); opacity: 0.8; } 50% { transform: scaleY(1.35); opacity: 1; } }
+@keyframes dustFly { 0% { transform: translate(0,0) scale(0.6); opacity: 0; } 30% { opacity: 0.7; } 100% { transform: translate(-22px,-9px) scale(1.2); opacity: 0; } }
+@keyframes rise { 0% { transform: translateY(0); opacity: 0.7; } 100% { transform: translateY(-50px); opacity: 0; } }
+@keyframes swim { 0% { transform: translateX(16px); } 100% { transform: translateX(-80px); } }
+@keyframes cometDash { 0% { transform: translate(20px,-12px); opacity: 0; } 25% { opacity: 1; } 100% { transform: translate(-70px,40px); opacity: 0; } }
+@keyframes twk { 0%, 100% { opacity: 0.2; transform: scale(0.6); } 50% { opacity: 1; transform: scale(1.3); } }
+@keyframes drift { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(8px,-7px); } }
+@keyframes pulse { 0%, 100% { transform: scale(0.85); opacity: 0.65; } 50% { transform: scale(1.12); opacity: 1; } }
+@keyframes flutter { 0%, 100% { transform: translateY(0) rotate(-8deg); } 50% { transform: translateY(-8px) rotate(8deg); } }
+@keyframes bounce { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.6); } }
+
+.kcard-cap { display: none; }
+
+/* Lesson step */
+.lesson-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(16px, 2.5vw, 28px);
+  align-items: start;
+}
+
+.lesson-form {
+  display: grid;
+  gap: 16px;
+  width: 100%;
+  margin-bottom: 0;
+}
+
+.field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 6px;
+}
+
+.field select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2.5px solid var(--line);
+  border-radius: 14px;
+  font-size: 15px;
+  font-family: var(--font);
+  font-weight: 500;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: inset 0 2px 4px rgba(23, 51, 95, 0.04);
+}
+
+.theme-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.theme-chip {
+  padding: 6px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--ink);
+}
+
+.theme-chip.on {
+  border-color: var(--navy);
+  background: #eef4ff;
+  color: var(--navy);
+}
+
+.selected-summary strong { color: var(--navy); font-weight: 700; }
+
+/* Active keys preview keyboard */
+.kb-wrap {
+  border: 2.5px solid rgba(23, 51, 95, 0.1);
+  border-radius: 18px;
+  padding: 14px;
+  background: linear-gradient(180deg, #f8fafc, #eef4ff);
+  margin-bottom: 20px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.kb-scale {
+  transform-origin: top left;
+  width: 100%;
+  min-width: 0;
+}
+
+.kb-title {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.kb-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.kb-pill {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--navy);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.kb {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.row { display: flex; gap: 3px; justify-content: center; }
+
+.k {
+  min-width: 28px;
+  height: 28px;
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #dde3ea;
+  color: #9aa3b2;
+  opacity: 0.45;
+}
+
+.k.active {
+  opacity: 1;
+  color: #fff;
+  border-color: rgba(0,0,0,0.15);
+}
+
+.k.lp.active { background: var(--lp); }
+.k.lr.active { background: var(--lr); }
+.k.lm.active { background: var(--lm); }
+.k.li.active { background: var(--li); }
+.k.ri.active { background: var(--ri); }
+.k.rm.active { background: var(--rm); }
+.k.rr.active { background: var(--rr); }
+.k.rp.active { background: var(--rp); }
+.k.th.active { background: var(--th); color: var(--ink); }
+
+.k.wide { min-width: 120px; }
+
+/* Buttons */
+.step-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.btn {
+  padding: clamp(12px, 2vw, 14px) clamp(24px, 4vw, 32px);
+  border-radius: 999px;
+  font-size: clamp(16px, 2.5vw, 18px);
+  font-weight: 700;
+  font-family: var(--font);
+  cursor: pointer;
+  border: none;
+  transition: transform 0.12s, box-shadow 0.12s, opacity 0.15s;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.15);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn:not(:disabled):hover { transform: translateY(-2px); }
+.btn:not(:disabled):active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.15); }
+
+.btn-back {
+  background: #fff;
+  border: 2.5px solid var(--line);
+  color: var(--muted);
+  box-shadow: 0 3px 0 rgba(23, 51, 95, 0.1);
+}
+
+.btn-next {
+  background: linear-gradient(180deg, #3b82f6, #2563eb);
+  color: #fff;
+  box-shadow: 0 5px 0 #1e40af;
+}
+
+.btn-go {
+  background: linear-gradient(180deg, #4ade80, #22c55e);
+  color: #fff;
+  font-size: clamp(16px, 2.5vw, 20px);
+  padding: clamp(12px, 2vw, 14px) clamp(28px, 5vw, 40px);
+  box-shadow: 0 6px 0 #15803d, 0 12px 24px rgba(34, 197, 94, 0.35);
+  letter-spacing: 1px;
+}
+
+.footer-note {
+  padding: 12px 20px;
+  border-top: 2px dashed rgba(23, 51, 95, 0.1);
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+  background: linear-gradient(180deg, #fafafa, #fff9f0);
+  border-radius: 0 0 calc(var(--app-radius) - 3px) calc(var(--app-radius) - 3px);
+}
+
+/* Desktop / landscape — side-by-side, same child-friendly sizes */
+@media (min-width: 900px) {
+  .signin-layout {
+    grid-template-columns: 1fr minmax(220px, 280px);
+  }
+
+  .picture-grid { margin-bottom: 0; }
+
+  .code-section {
+    margin-bottom: 0;
+    padding-top: 12px;
+  }
+
+  .lesson-layout {
+    grid-template-columns: minmax(240px, 320px) 1fr;
+  }
+
+  .kb-wrap {
+    margin-bottom: 0;
+  }
+}
+
+@media (max-width: 700px) {
+  .step-dot span.step-num { display: none; }
+}
+
+@media (max-width: 560px) {
+  .step-actions { flex-direction: column-reverse; }
+  .step-actions .btn { width: 100%; text-align: center; }
+}
+
+@media (max-width: 480px) {
+  .code-slots { gap: 8px; }
+  .picture-btn { border-radius: 20px; }
+  .kcard { border-radius: 8px; padding: 3px 3px 5px; }
+  .kcard-preview { border-radius: 0; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="app">
+    <nav class="step-nav" aria-label="Setup steps">
+      <div class="step-dot active" data-step="1"><span class="step-icon">🖼️</span><span class="step-num">1</span> Sign In</div>
+      <div class="step-dot" data-step="2"><span class="step-icon">⌨️</span><span class="step-num">2</span> Keyboard</div>
+      <div class="step-dot" data-step="3"><span class="step-icon">🎵</span><span class="step-num">3</span> Lesson</div>
+    </nav>
+
+    <!-- STEP 1: Sign In -->
+    <section class="step-panel active" id="step1">
+      <div class="step-card">
+      <h2 class="step-title">Sign In</h2>
+      <p class="step-instruction">Choose 3 pictures for your code.</p>
+
+      <div class="signin-layout">
+      <div class="picture-grid" id="pictureGrid"></div>
+
+      <div class="code-section">
+        <h3 class="code-title">My picture code</h3>
+        <div class="code-slots" id="codeSlots">
+          <div class="code-slot">1</div>
+          <div class="code-slot">2</div>
+          <div class="code-slot">3</div>
+        </div>
+        <div class="code-count" id="codeCount">0 of 3</div>
+      </div>
+      </div>
+
+      <div class="step-actions">
+        <span></span>
+        <button class="btn btn-next" id="btnStep1Next" disabled>Next →</button>
+      </div>
+      </div>
+    </section>
+
+    <!-- STEP 2: Choose Keyboard -->
+    <section class="step-panel" id="step2">
+      <div class="step-card">
+      <h2 class="step-title">Choose Keyboard</h2>
+      <p class="step-instruction">Tap a theme to choose your keyboard.</p>
+
+      <div class="kgrid" id="kgrid"></div>
+
+      <div class="step-actions">
+        <button class="btn btn-back" id="btnStep2Back">← Back to Sign In</button>
+        <button class="btn btn-next" id="btnStep2Next" disabled>Next →</button>
+      </div>
+      </div>
+    </section>
+
+    <!-- STEP 3: Choose Lesson + GO -->
+    <section class="step-panel" id="step3">
+      <div class="step-card">
+      <h2 class="step-title">Choose Lesson</h2>
+      <p class="step-instruction">Pick what you want to practice today.</p>
+
+      <div class="selected-summary" id="selectedSummary"></div>
+
+      <div class="lesson-layout">
+      <div class="lesson-form">
+        <div class="field">
+          <label for="lessonSelect">Lesson</label>
+          <select id="lessonSelect">
+            <option value="">Choose a lesson...</option>
+            <option value="two">Letter Sequences</option>
+            <option value="multi">Multiple-Letter Sequences</option>
+            <option value="finger">Finger Group Sequences</option>
+            <option value="easy-keys">Easy-to-Type Keys</option>
+            <option value="hard-keys">Hard-to-Type Keys</option>
+            <option value="free">Free Play</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="setSelect">Practice set</label>
+          <select id="setSelect" disabled>
+            <option value="">Choose lesson first...</option>
+          </select>
+        </div>
+        <div class="field" id="themeWrap" style="display:none">
+          <label>Look / theme</label>
+          <div class="theme-chips" id="themeChips"></div>
+        </div>
+      </div>
+
+      <div class="kb-wrap">
+        <p class="kb-title">Active keys for this lesson</p>
+        <div class="kb-pills" id="kbPills"></div>
+        <div class="kb" id="kb"></div>
+      </div>
+      </div>
+
+      <div class="step-actions">
+        <button class="btn btn-back" id="btnStep3Back">← Back to Keyboards</button>
+        <button class="btn btn-go" id="btnGo" disabled>GO! 🚀</button>
+      </div>
+      </div>
+    </section>
+
+    <footer class="footer-note">
+      Picture code stays on this device only — no accounts needed.
+    </footer>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* Change these before R2 upload — see RHYTHMIC_TYPING_RESTART_AUDIT.md */
+  var KEYBOARD_BASE = './';
+  var SIGNIN_IMAGE_BASE = './signin-images/';
+  var PANEL_URL = './rhythmic-typing-control-panel-clean.html';
+
+  /* ---- Picture sign-in options (same images as original control panel) ---- */
+  var PICTURES = [
+    { key: 'rocket', label: 'Rocket' },
+    { key: 'sun', label: 'Sun' },
+    { key: 'tree', label: 'Tree' },
+    { key: 'bicycle', label: 'Bicycle' },
+    { key: 'apple', label: 'Apple' },
+    { key: 'guitar', label: 'Guitar' },
+    { key: 'basketball', label: 'Basketball' },
+    { key: 'fish', label: 'Fish' }
+  ];
+
+  function picSrc(key) {
+    return SIGNIN_IMAGE_BASE + key + '.png';
+  }
+
+  /* ---- Keyboard catalog — renamed themes, dark + light ---- */
+  var KEYBOARDS = [
+    { file: 'kbd-ocean.html', name: 'Ocean Keys', tone: 'dark', fx: 'bubbles', bg1: '#063a5a', bg2: '#0c5f82', key: 'rgba(255,255,255,.15)', kt: '#fff', acc: '#38bdf8', acc2: '#2dd4bf', lt: 'D', looks: [['keys', 'Ocean Keys'], ['marine', 'Marine Reef'], ['pearl', 'Pearl Blue']] },
+    { file: 'Candy_Land_keyboard.html', name: 'Candy Land', tone: 'light', fx: 'confetti', bg1: '#ffd9ec', bg2: '#ffbfe0', key: '#fff', kt: '#7a1e57', acc: '#ff47b8', acc2: '#5fd7ff', lt: 'P', looks: [] },
+    { file: 'kbd-light-01.html', name: 'Soft Light', tone: 'light', fx: 'spark', bg1: '#e0f2fe', bg2: '#c4e2ff', key: '#fff', kt: '#111827', acc: '#2563eb', acc2: '#22c55e', lt: 'F', looks: [['soft', 'Soft Light'], ['rainbow', 'Rainbow Light'], ['garden', 'Garden Light']] },
+    { file: 'kbd-fireworks.html', name: 'Fireworks', tone: 'dark', fx: 'spark', bg1: '#271049', bg2: '#3e1c64', key: '#150f33', kt: '#fff', acc: '#ffd700', acc2: '#ff44cc', lt: 'R', looks: [['fireworks', 'Fireworks'], ['rocket', 'Rocket'], ['nova', 'Nova']] },
+    { file: 'Treasure_Hunt_keyboard.html', name: 'Treasure Hunt', tone: 'dark', fx: 'coins', bg1: '#06394c', bg2: '#0a5d62', key: '#073246', kt: '#ffd99a', acc: '#ffd15c', acc2: '#5ef7ff', lt: 'J', looks: [] },
+    { file: 'kbd-light-02.html', name: 'Sky Pop', tone: 'light', fx: 'confetti', bg1: '#e9e2ff', bg2: '#d6c6ff', key: '#fff', kt: '#111827', acc: '#2563eb', acc2: '#a78bfa', lt: 'L', looks: [['sky', 'Sky Pop'], ['candy', 'Candy Pop'], ['fresh', 'Fresh Pop']] },
+    { file: 'kbd-color-pop.html', name: 'Color Pop', tone: 'light', fx: 'confetti', bg1: '#fff3e0', bg2: '#e6fbff', key: '#fff', kt: '#111827', acc: '#db2777', acc2: '#0ea5e9', lt: 'G', looks: [['pop', 'Color Pop'], ['garden', 'Garden Pop'], ['candy', 'Candy Pop']] },
+    { file: 'monster_trucks_keyboard.html', name: 'Monster Trucks', tone: 'light', fx: 'wheel', bg1: '#3a2415', bg2: '#221007', key: '#2b160d', kt: '#ffc88a', acc: '#ff4b23', acc2: '#ffb12c', lt: 'T', looks: [] },
+    { file: 'kbd-space-circles.html', name: 'Galaxy Orbit', tone: 'dark', fx: 'comet', bg1: '#1f1c58', bg2: '#3a2a7a', key: '#0b0e1d', kt: '#e0f2fe', acc: '#60a5fa', acc2: '#c084fc', lt: 'K', looks: [['galaxy', 'Galaxy'], ['orbit', 'Orbit'], ['nova', 'Nova']] },
+    { file: 'kbd-light-03.html', name: 'Bubble Stars', tone: 'light', fx: 'bubbles', bg1: '#dff7ff', bg2: '#ffe3f1', key: '#fff', kt: '#122840', acc: '#0ea5e9', acc2: '#f472b6', lt: 'E', looks: [['bubbles', 'Bubbles'], ['stars', 'Stars'], ['rainbow', 'Rainbow']] },
+    { file: 'magic_garden_keyboard.html', name: 'Magic Garden', tone: 'light', fx: 'butterfly', bg1: '#e9ffdc', bg2: '#c6efce', key: '#fff', kt: '#1f5b2e', acc: '#ff7eb3', acc2: '#8a4fc4', lt: 'G', looks: [] },
+    { file: 'underwater_glow_keyboard.html', name: 'Underwater Glow', tone: 'dark', fx: 'bubbles', bg1: '#063451', bg2: '#0a5d73', key: 'rgba(255,255,255,.14)', kt: '#fff', acc: '#57e3ff', acc2: '#a7f3d0', lt: 'H', looks: [] },
+    { file: 'kbd-neon-beats.html', name: 'Neon Beats', tone: 'dark', fx: 'notes', bg1: '#2a1206', bg2: '#4d1f0a', key: '#151515', kt: '#fff', acc: '#ff580c', acc2: '#00e0ff', lt: 'J', looks: [['bass', 'Bass Wave'], ['electric', 'Electric'], ['hot', 'Hot Neon']] },
+    { file: 'rainbow_bubble_keyboard.html', name: 'Rainbow Bubble', tone: 'light', fx: 'soda', bg1: '#f0e3ff', bg2: '#def4ff', key: '#fff', kt: '#2a3550', acc: '#ff6fae', acc2: '#37b6ff', lt: 'B', looks: [] },
+    { file: 'kbd-light-04.html', name: 'Sunny Day', tone: 'light', fx: 'butterfly', bg1: '#eef2ff', bg2: '#dde6ff', key: '#fff', kt: '#333333', acc: '#4caf50', acc2: '#2563eb', lt: 'N', looks: [['classroom', 'Classroom'], ['sunny', 'Sunny'], ['ocean', 'Ocean']] },
+    { file: 'kbd-light-05.html', name: 'Garden Glow', tone: 'light', fx: 'firefly', bg1: '#f0fdf4', bg2: '#dcfce7', key: '#fff', kt: '#111827', acc: '#22c55e', acc2: '#86efac', lt: 'M', looks: [] },
+    { file: 'kbd-light-06.html', name: 'Clean Bright', tone: 'light', fx: 'soda', bg1: '#e6f7f0', bg2: '#d0ecff', key: '#fff', kt: '#111827', acc: '#2563eb', acc2: '#22c55e', lt: 'K', looks: [['clean', 'Clean Light'], ['bright', 'Bright Light'], ['soft', 'Soft Light']] },
+    { file: 'kbd-dark-02.html', name: 'Neon Aurora', tone: 'dark', fx: 'spark', bg1: '#0a2a3a', bg2: '#103c4e', key: '#0e2330', kt: '#fff', acc: '#22d3ee', acc2: '#f472b6', lt: 'S', looks: [['neon', 'Neon Glow'], ['galaxy', 'Galaxy'], ['aurora', 'Aurora']] },
+    { file: 'kbd-dark-03.html', name: 'TypeBeat', tone: 'dark', fx: 'notes', bg1: '#1a2240', bg2: '#2c2c5e', key: '#2b3357', kt: '#fff', acc: '#FFC107', acc2: '#2ECC71', lt: 'F', looks: [['classic', 'Classic Beat'], ['blue', 'Blue Beat'], ['pink', 'Pink Beat']] },
+    { file: 'firefly_forest_keyboard.html', name: 'Firefly Forest', tone: 'dark', fx: 'firefly', bg1: '#0b3026', bg2: '#134232', key: 'rgba(255,255,255,.12)', kt: '#fff', acc: '#ffe16b', acc2: '#39e75f', lt: 'F', looks: [] },
+    { file: 'Space_world_Keyboard.html', name: 'Space World', tone: 'dark', fx: 'comet', bg1: '#161149', bg2: '#281c62', key: '#0b1130', kt: '#fff', acc: '#7c5cff', acc2: '#5ef7ff', lt: 'D', looks: [] },
+    { file: 'kbd-bright-lights.html', name: 'North Pole Lights', tone: 'dark', fx: 'spark', bg1: '#0b2f2a', bg2: '#143d31', key: 'rgba(255,255,255,.14)', kt: '#fff', acc: '#ffd447', acc2: '#39e75f', lt: 'G', looks: [['north', 'North Pole'], ['cranberry', 'Cranberry'], ['twilight', 'Twilight']] },
+    { file: 'Robot_Factory_keyboard.html', name: 'Robot Factory', tone: 'dark', fx: 'gears', bg1: '#16242b', bg2: '#243640', key: '#20323a', kt: '#fff', acc: '#ffb12c', acc2: '#39e75f', lt: 'T', looks: [] },
+    { file: 'Music_Studio_keyboard.html', name: 'Music Studio', tone: 'dark', fx: 'notes', bg1: '#1a1040', bg2: '#2b1452', key: '#1d1448', kt: '#fff', acc: '#e879f9', acc2: '#22d3ee', lt: 'S', looks: [] },
+    { file: 'seasons_keyboard.html', name: 'Seasons', tone: 'light', fx: 'butterfly', bg1: '#fef3c7', bg2: '#fde68a', key: '#fff', kt: '#78350f', acc: '#f59e0b', acc2: '#84cc16', lt: 'A', looks: [] }
+  ];
+
+  var KEYBOARDS_DISPLAY = [];
+
+  function shuffleArray(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = a[i];
+      a[i] = a[j];
+      a[j] = tmp;
+    }
+    return a;
+  }
+
+  function getKeyboardGridCols() {
+    var grid = els.kgrid;
+    var width = grid && grid.clientWidth ? grid.clientWidth : 0;
+    if (!width) width = Math.min(window.innerWidth * 0.86, 1040);
+    var gap = 12;
+    var minTrack = 96;
+    var maxTrack = 130;
+    var cols = Math.floor((width + gap) / (minTrack + gap));
+    while (cols > 2) {
+      var track = (width - gap * (cols - 1)) / cols;
+      if (track >= minTrack && track <= maxTrack) break;
+      cols--;
+    }
+    return Math.max(2, cols);
+  }
+
+  function buildKeyboardGridOrder(list, cols) {
+    var light = [];
+    var dark = [];
+    list.forEach(function (k) {
+      (k.tone === 'dark' ? dark : light).push(k);
+    });
+    light = shuffleArray(light);
+    dark = shuffleArray(dark);
+    var out = [];
+    var li = 0;
+    var di = 0;
+    var total = light.length + dark.length;
+    var row = 0;
+    var col = 0;
+    while (out.length < total) {
+      var wantLight = ((row + col) % 2) === 0;
+      var picked = null;
+      if (wantLight && li < light.length) picked = light[li++];
+      else if (!wantLight && di < dark.length) picked = dark[di++];
+      else if (li < light.length) picked = light[li++];
+      else if (di < dark.length) picked = dark[di++];
+      if (picked) out.push(picked);
+      col++;
+      if (col >= cols) {
+        col = 0;
+        row++;
+      }
+    }
+    return out;
+  }
+
+  function reshuffleKeyboardGrid() {
+    var cols = getKeyboardGridCols();
+    document.documentElement.style.setProperty('--k-cols', cols);
+    KEYBOARDS_DISPLAY = buildKeyboardGridOrder(KEYBOARDS, cols);
+    renderKeyboards();
+  }
+
+  /* ---- Lesson sets (matches uploaded control panel + keyboard finger groups) ---- */
+  var LESSON_SETS = {
+    two: [
+      { label: 'Choose a letter sequence...', letters: '' },
+      { label: 'FG — Left index', letters: 'FG' },
+      { label: 'FR — Left index', letters: 'FR' },
+      { label: 'FV — Left index', letters: 'FV' },
+      { label: 'FT — Left index', letters: 'FT' },
+      { label: 'FC — Left index + middle', letters: 'FC' },
+      { label: 'FB — Left index', letters: 'FB' },
+      { label: 'JH — Right index', letters: 'JH' },
+      { label: 'JU — Right index', letters: 'JU' },
+      { label: 'JN — Right index', letters: 'JN' },
+      { label: 'JY — Right index', letters: 'JY' },
+      { label: 'JM — Right index', letters: 'JM' },
+      { label: 'DE — Left middle', letters: 'DE' },
+      { label: 'DC — Left middle', letters: 'DC' },
+      { label: 'KI — Right middle', letters: 'KI' },
+      { label: 'SW — Left ring', letters: 'SW' },
+      { label: 'SX — Left ring', letters: 'SX' },
+      { label: 'LO — Right ring', letters: 'LO' },
+      { label: 'AQ — Left little', letters: 'AQ' },
+      { label: 'AZ — Left little', letters: 'AZ' },
+      { label: 'P — Right little', letters: 'P' }
+    ],
+    multi: [
+      { label: 'Choose a pattern...', letters: '' },
+      { label: 'FGFRFVF', letters: 'FGFRFVF' },
+      { label: 'FTFBFCF', letters: 'FTFBFCF' },
+      { label: 'JHJUNJN', letters: 'JHJUNJN' },
+      { label: 'JYJMJHN', letters: 'JYJMJHN' },
+      { label: 'DEDCDED', letters: 'DEDCDED' },
+      { label: 'DEDDECE', letters: 'DEDDECE' },
+      { label: 'KIKJKIK', letters: 'KIKJKIK' },
+      { label: 'KIKIKIN', letters: 'KIKIKIN' },
+      { label: 'SWSXSWS', letters: 'SWSXSWS' },
+      { label: 'SWSWXSX', letters: 'SWSWXSX' },
+      { label: 'LOLOLON', letters: 'LOLOLON' },
+      { label: 'AQAQAZA', letters: 'AQAQAZA' },
+      { label: 'AZAQAZA', letters: 'AZAQAZA' },
+      { label: 'PPPPPPP', letters: 'P' }
+    ],
+    finger: [
+      { label: 'Choose a finger group...', letters: '' },
+      { label: 'Left Index Finger', letters: 'FGRVTCB', pattern: 'F G F G F G F SPACE F R F R F R F SPACE F V F V F V F SPACE F T F T F T F SPACE F C F C F C F SPACE F B F B F B F' },
+      { label: 'Right Index Finger', letters: 'JHUNYM', pattern: 'J H J H J H J SPACE J U J U J U J SPACE J N J N J N J SPACE J Y J Y J Y J SPACE J M J M J M J' },
+      { label: 'Middle Fingers', letters: 'DECKI', pattern: 'D E D E D E D SPACE D C D C D C D SPACE K I K I K I K' },
+      { label: 'Ring Fingers', letters: 'SWXLO', pattern: 'S W S W S W S SPACE S X S X S X S SPACE L O L O L O L' },
+      { label: 'Left Index Rocket Run', letters: 'FGRVTCB', pattern: 'F G F R F V F SPACE F G F R F V F SPACE F T F B F C F SPACE F T F B F C F' },
+      { label: 'Right Index Rocket Run', letters: 'JHUNYM', pattern: 'J H J U J N J SPACE J Y J M J H N SPACE J H J U J N J SPACE J Y J M J H N' },
+      { label: 'Left Little Finger', letters: 'AQZ', pattern: 'A Q A Q A Q A SPACE A Z A Z A Z A' },
+      { label: 'Right Little Finger', letters: 'P', pattern: 'P P P P P P P' }
+    ],
+    'easy-keys': [
+      { label: 'Easy-to-Type Keys', letters: 'BBCDEFGHIJKMNRTUVY' }
+    ],
+    'hard-keys': [
+      { label: 'Hard-to-Type Keys', letters: 'QAZWSXOLP' }
+    ],
+    free: [
+      { label: 'Free Play — all keys', letters: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' }
+    ]
+  };
+
+  var LESSONS_WITHOUT_SETS = { 'easy-keys': true, 'hard-keys': true, free: true };
+
+  var FINGER_MAP = {
+    Q: 'lp', A: 'lp', Z: 'lp',
+    W: 'lr', S: 'lr', X: 'lr',
+    E: 'lm', D: 'lm', C: 'lm',
+    R: 'li', F: 'li', T: 'li', G: 'li', V: 'li', B: 'li',
+    Y: 'ri', H: 'ri', U: 'ri', J: 'ri', N: 'ri', M: 'ri',
+    I: 'rm', K: 'rm',
+    O: 'rr', L: 'rr',
+    P: 'rp',
+    ' ': 'th'
+  };
+
+  var KB_ROWS = [
+    'QWERTYUIOP'.split(''),
+    'ASDFGHJKL'.split(''),
+    'ZXCVBNM'.split('')
+  ];
+
+  /* ---- State ---- */
+  var state = {
+    step: 1,
+    pickedPics: [],
+    selectedKeyboard: null,
+    selectedLook: '',
+    selectedLesson: '',
+    selectedSetIndex: 0,
+    activeKeys: new Set()
+  };
+
+  /* ---- DOM refs ---- */
+  var els = {
+    pictureGrid: document.getElementById('pictureGrid'),
+    codeSlots: document.getElementById('codeSlots'),
+    codeCount: document.getElementById('codeCount'),
+    btnStep1Next: document.getElementById('btnStep1Next'),
+    kgrid: document.getElementById('kgrid'),
+    btnStep2Back: document.getElementById('btnStep2Back'),
+    btnStep2Next: document.getElementById('btnStep2Next'),
+    selectedSummary: document.getElementById('selectedSummary'),
+    lessonSelect: document.getElementById('lessonSelect'),
+    setSelect: document.getElementById('setSelect'),
+    themeWrap: document.getElementById('themeWrap'),
+    themeChips: document.getElementById('themeChips'),
+    kbPills: document.getElementById('kbPills'),
+    kb: document.getElementById('kb'),
+    btnStep3Back: document.getElementById('btnStep3Back'),
+    btnGo: document.getElementById('btnGo')
+  };
+
+  /* ---- Helpers ---- */
+  function picByKey(key) {
+    for (var i = 0; i < PICTURES.length; i++) {
+      if (PICTURES[i].key === key) return PICTURES[i];
+    }
+    return null;
+  }
+
+  function normalizeLetters(str) {
+    var s = new Set();
+    (str || '').toUpperCase().split('').forEach(function (ch) {
+      if (/[A-Z]/.test(ch)) s.add(ch);
+    });
+    if (s.size > 0) s.add('SPACE');
+    return s;
+  }
+
+  function activeKeysParam() {
+    return Array.from(state.activeKeys).sort().join(',');
+  }
+
+  function getCurrentSet() {
+    if (!state.selectedLesson) return null;
+    var sets = LESSON_SETS[state.selectedLesson];
+    if (!sets) return null;
+    return sets[state.selectedSetIndex] || null;
+  }
+
+  /* ---- Step navigation ---- */
+  function goToStep(n) {
+    state.step = n;
+    document.querySelectorAll('.step-panel').forEach(function (p) { p.classList.remove('active'); });
+    document.getElementById('step' + n).classList.add('active');
+    document.querySelectorAll('.step-dot').forEach(function (d) {
+      var s = Number(d.dataset.step);
+      d.classList.remove('active', 'done');
+      if (s === n) d.classList.add('active');
+      else if (s < n) d.classList.add('done');
+    });
+    if (n === 2) {
+      requestAnimationFrame(function () { reshuffleKeyboardGrid(); });
+    }
+    if (n === 3) renderStep3Summary();
+  }
+
+  /* ---- Step 1: Sign In ---- */
+  function renderPictures() {
+    els.pictureGrid.innerHTML = PICTURES.map(function (p) {
+      var sel = state.pickedPics.indexOf(p.key) !== -1 ? ' selected' : '';
+      return '<button type="button" class="picture-btn' + sel + '" data-key="' + p.key + '" aria-pressed="' + (sel ? 'true' : 'false') + '" aria-label="' + p.label + '" title="' + p.label + '">' +
+        '<span class="check">\u2713</span>' +
+        '<img class="pic-img" src="' + picSrc(p.key) + '" alt="' + p.label + '"></button>';
+    }).join('');
+  }
+
+  function renderCodeSlots() {
+    var slots = els.codeSlots.querySelectorAll('.code-slot');
+    for (var i = 0; i < 3; i++) {
+      var slot = slots[i];
+      if (state.pickedPics[i]) {
+        slot.className = 'code-slot filled';
+        slot.innerHTML = '<img src="' + picSrc(state.pickedPics[i]) + '" alt="Code picture ' + (i + 1) + '">';
+      } else {
+        slot.className = 'code-slot';
+        slot.textContent = String(i + 1);
+      }
+    }
+    var count = state.pickedPics.length;
+    els.codeCount.textContent = count === 3 ? '3 of 3 \u2713' : count + ' of 3';
+    els.codeCount.className = 'code-count' + (count === 3 ? ' done' : '');
+    els.btnStep1Next.disabled = count !== 3;
+  }
+
+  function togglePicture(key) {
+    var idx = state.pickedPics.indexOf(key);
+    if (idx !== -1) {
+      state.pickedPics.splice(idx, 1);
+    } else if (state.pickedPics.length < 3) {
+      state.pickedPics.push(key);
+    }
+    renderPictures();
+    renderCodeSlots();
+  }
+
+  els.pictureGrid.addEventListener('click', function (e) {
+    var btn = e.target.closest('.picture-btn');
+    if (btn) togglePicture(btn.dataset.key);
+  });
+
+  els.btnStep1Next.addEventListener('click', function () {
+    if (state.pickedPics.length === 3) goToStep(2);
+  });
+
+  /* ---- Step 2: Choose Keyboard — unique theme scene previews ---- */
+  function sparks(cx, cy, t, d) {
+    var c = [t.acc, t.acc2, '#ffffff'];
+    var o = '';
+    for (var i = 0; i < 7; i++) {
+      var a = i / 7 * Math.PI * 2;
+      var dx = (Math.cos(a) * 18).toFixed(1);
+      var dy = (Math.sin(a) * 18).toFixed(1);
+      o += '<circle class="spark" cx="' + cx + '" cy="' + cy + '" r="' + (1.4 + (i % 2)) + '" fill="' + c[i % 3] + '" style="--dx:' + dx + 'px;--dy:' + dy + 'px;animation-delay:' + (d + i * 0.03) + 's"/>';
+    }
+    return o;
+  }
+
+  function gear(cx, cy, r, col) {
+    var g = '<g class="gear"><circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="' + col + '"/>';
+    for (var a = 0; a < 8; a++) {
+      g += '<rect x="' + (cx - 1.6) + '" y="' + (cy - r - 4) + '" width="3.2" height="5" fill="' + col + '" transform="rotate(' + (a * 45) + ' ' + cx + ' ' + cy + ')"/>';
+    }
+    g += '<circle cx="' + cx + '" cy="' + cy + '" r="' + (r * 0.4) + '" fill="#0b0f12"/></g>';
+    return g;
+  }
+
+  function popL(x, y, col, sz, L, d) {
+    return '<text class="pl" x="' + x + '" y="' + y + '" text-anchor="middle" font-size="' + sz + '" font-weight="900" fill="' + col + '" style="animation-delay:' + (d || 0) + 's">' + L + '</text>';
+  }
+
+  function fxScene(t) {
+    var T = t.fx;
+    if (T === 'spark') return sparks(68, 50, t, 0) + sparks(132, 42, t, 0.5) + popL(68, 56, t.acc, 28, t.lt, 0) + popL(132, 48, t.acc2, 24, 'J', 0.5);
+    if (T === 'confetti') {
+      var c = [t.acc, t.acc2, '#ffe65c', '#8dff89', '#ff8fd7'];
+      var o = '';
+      for (var i = 0; i < 10; i++) {
+        o += '<rect class="confetti" x="' + (18 + i * 18) + '" y="6" width="5" height="7" rx="1" fill="' + c[i % 5] + '" style="animation-delay:' + (i * 0.16) + 's"/>';
+      }
+      o += '<g class="lolli"><rect x="172" y="40" width="3" height="24" rx="1.5" fill="#fff"/><circle cx="173.5" cy="34" r="10" fill="' + t.acc + '"/><circle cx="173.5" cy="34" r="10" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="5 5"/></g>';
+      return o + popL(70, 60, t.acc, 26, t.lt, 0);
+    }
+    if (T === 'coins') {
+      var xs = [40, 72, 104, 148, 178];
+      var o = '';
+      for (var j = 0; j < 5; j++) {
+        o += '<g class="coin" style="animation-delay:' + (j * 0.34) + 's"><ellipse class="cflip" cx="' + xs[j] + '" cy="56" rx="7" ry="7" fill="' + t.acc + '" stroke="#c8881f" stroke-width="1.5" style="animation-delay:' + (j * 0.2) + 's"/><text x="' + xs[j] + '" y="59" text-anchor="middle" font-size="7" font-weight="900" fill="#a86a16">$</text></g>';
+      }
+      o += '<g class="chest"><rect x="92" y="70" width="38" height="18" rx="3" fill="#6b3d1e" stroke="' + t.acc + '" stroke-width="2"/><ellipse cx="111" cy="70" rx="24" ry="7" fill="' + t.acc + '" opacity=".25"/></g>';
+      return o + popL(111, 40, t.acc, 24, t.lt, 0);
+    }
+    if (T === 'wheel') {
+      var o = '<g class="wheel"><circle cx="42" cy="52" r="19" fill="#1a0d08" stroke="#5a5e66" stroke-width="4"/><circle cx="42" cy="52" r="6" fill="#9aa3b2"/>';
+      for (var w = 0; w < 6; w++) {
+        o += '<rect x="40.5" y="35" width="3" height="9" fill="#3a3f48" transform="rotate(' + (w * 60) + ' 42 52)"/>';
+      }
+      o += '</g>';
+      o += '<line class="speed" x1="150" y1="42" x2="198" y2="42" stroke="' + t.acc2 + '" stroke-width="3" stroke-linecap="round" style="animation-delay:0s"/>';
+      o += '<line class="speed" x1="150" y1="54" x2="202" y2="54" stroke="#fff9ec" stroke-width="2.5" stroke-linecap="round" style="animation-delay:.2s"/>';
+      o += '<line class="speed" x1="150" y1="66" x2="196" y2="66" stroke="' + t.acc + '" stroke-width="3" stroke-linecap="round" style="animation-delay:.35s"/>';
+      o += '<path class="fire" d="M66 64 Q70 50 76 64 Q72 58 69 64 Z" fill="' + t.acc + '"/>';
+      o += '<circle class="dust" cx="26" cy="70" r="4" fill="#7a421e"/><circle class="dust" cx="20" cy="63" r="3" fill="#65351c" style="animation-delay:.4s"/>';
+      return o + popL(118, 40, t.acc2, 24, t.lt, 0);
+    }
+    if (T === 'bubbles') {
+      var o = '';
+      for (var b = 0; b < 5; b++) {
+        o += '<circle class="bub" cx="' + (24 + b * 20) + '" cy="' + (84 - (b % 2) * 6) + '" r="' + (3 + (b % 2) * 1.5) + '" fill="' + t.acc + '" opacity=".55" style="animation-delay:' + (b * 0.3) + 's"/>';
+      }
+      o += '<g class="fish"><ellipse cx="150" cy="46" rx="14" ry="8" fill="' + t.acc2 + '"/><polygon points="164,46 174,40 174,52" fill="' + t.acc2 + '"/><circle cx="144" cy="43" r="1.8" fill="#04222f"/></g>';
+      return o + popL(70, 52, t.acc, 24, t.lt, 0);
+    }
+    if (T === 'comet') {
+      var o = '<g class="comet"><line x1="150" y1="20" x2="178" y2="8" stroke="' + t.acc2 + '" stroke-width="2.5" stroke-linecap="round"/><circle cx="150" cy="20" r="3.5" fill="#fff"/></g>';
+      o += '<circle cx="44" cy="42" r="10" fill="' + t.acc + '"/><ellipse cx="44" cy="42" rx="16" ry="4.5" fill="none" stroke="#c7b8ff" stroke-width="1.6"/>';
+      for (var tw = 0; tw < 6; tw++) {
+        o += '<circle class="twk" cx="' + (20 + tw * 28) + '" cy="' + (14 + (tw % 3) * 10) + '" r="1.6" fill="#fff" style="animation-delay:' + (tw * 0.2) + 's"/>';
+      }
+      return o + popL(110, 60, t.acc2, 24, t.lt, 0);
+    }
+    if (T === 'firefly') {
+      var o = '';
+      for (var ff = 0; ff < 6; ff++) {
+        o += '<g class="ff" style="animation-delay:' + (ff * 0.3) + 's"><circle cx="' + (24 + ff * 28) + '" cy="' + (34 + (ff % 2) * 20) + '" r="3" fill="' + t.acc + '"/><circle cx="' + (24 + ff * 28) + '" cy="' + (34 + (ff % 2) * 20) + '" r="6" fill="' + t.acc + '" opacity=".25"/></g>';
+      }
+      return o + popL(100, 58, t.acc, 24, t.lt, 0);
+    }
+    if (T === 'butterfly') {
+      var o = '';
+      [[50, 40], [150, 34]].forEach(function (p, idx) {
+        o += '<g class="bfly" style="animation-delay:' + (idx * 0.4) + 's"><ellipse cx="' + (p[0] - 4) + '" cy="' + p[1] + '" rx="5" ry="7" fill="' + t.acc + '"/><ellipse cx="' + (p[0] + 4) + '" cy="' + p[1] + '" rx="5" ry="7" fill="' + t.acc2 + '"/><rect x="' + (p[0] - 0.7) + '" y="' + (p[1] - 7) + '" width="1.4" height="14" fill="#3a2a4a"/></g>';
+      });
+      o += '<g class="twk"><circle cx="100" cy="30" r="5" fill="' + t.acc + '"/><circle cx="100" cy="30" r="2" fill="#ffe16b"/></g>';
+      return o + popL(100, 62, t.acc2, 24, t.lt, 0);
+    }
+    if (T === 'soda') {
+      var o = '';
+      for (var f = 0; f < 8; f++) {
+        o += '<circle class="fizz" cx="' + (20 + f * 22) + '" cy="' + (84 - (f % 3) * 5) + '" r="' + (2 + (f % 3)) + '" fill="' + (f % 2 ? t.acc : t.acc2) + '" opacity=".6" style="animation-delay:' + (f * 0.22) + 's"/>';
+      }
+      var rc = ['#ff5d6c', '#ff9f3d', '#ffd84d', '#54b948', '#2f6fed', '#8a4fc4'];
+      for (var k = 0; k < 6; k++) {
+        o += '<path d="M16 ' + (40 - k * 5) + ' Q100 ' + (2 - k * 5) + ' 184 ' + (40 - k * 5) + '" fill="none" stroke="' + rc[k] + '" stroke-width="3" opacity=".8"/>';
+      }
+      return o + popL(100, 66, t.acc, 22, t.lt, 0);
+    }
+    if (T === 'gears') {
+      return gear(48, 42, 13, t.acc) + gear(150, 50, 11, t.acc2) + '<circle class="twk" cx="100" cy="26" r="3.5" fill="#ffd84d"/>' + popL(100, 62, t.acc, 24, t.lt, 0);
+    }
+    if (T === 'notes') {
+      var o = '';
+      var bc = [t.acc, t.acc2, '#ffd84d', '#39e75f'];
+      for (var n = 0; n < 5; n++) {
+        o += '<rect class="bar" x="' + (20 + n * 9) + '" y="' + (56 - n * 4) + '" width="6" height="' + (18 + n * 4) + '" rx="2" fill="' + bc[n % 4] + '" style="animation-delay:' + (n * 0.12) + 's;transform-origin:bottom"/>';
+      }
+      o += '<g class="note" style="animation-delay:.1s"><circle cx="150" cy="44" r="5" fill="' + t.acc + '"/><rect x="153.4" y="26" width="3" height="20" fill="' + t.acc + '"/></g>';
+      o += '<g class="note" style="animation-delay:.7s"><circle cx="172" cy="36" r="4" fill="' + t.acc2 + '"/><rect x="174.8" y="22" width="2.6" height="16" fill="' + t.acc2 + '"/></g>';
+      return o;
+    }
+    return sparks(100, 50, t, 0) + popL(100, 56, t.acc, 24, t.lt, 0);
+  }
+
+  function sceneSVG(k) {
+    return '<svg viewBox="0 0 200 95" preserveAspectRatio="xMidYMid meet">' + fxScene(k) + '</svg>';
+  }
+
+  function renderKeyboards() {
+    els.kgrid.innerHTML = KEYBOARDS_DISPLAY.map(function (k) {
+      var sel = state.selectedKeyboard && state.selectedKeyboard.file === k.file ? ' selected' : '';
+      return '<div class="kcard' + sel + '" data-file="' + k.file + '" title="' + k.name + '" aria-label="' + k.name + '" role="button" tabindex="0">' +
+        '<div class="kcard-preview" style="background:linear-gradient(180deg,' + k.bg1 + ',' + k.bg2 + ')">' +
+        sceneSVG(k) + '</div>' +
+        '<p class="kcard-name">' + k.name + '</p></div>';
+    }).join('');
+  }
+
+  function selectKeyboard(k) {
+    state.selectedKeyboard = k;
+    state.selectedLook = k.looks.length ? k.looks[0][0] : '';
+    renderKeyboards();
+    els.btnStep2Next.disabled = false;
+  }
+
+  function selectKeyboardByFile(file) {
+    for (var i = 0; i < KEYBOARDS.length; i++) {
+      if (KEYBOARDS[i].file === file) {
+        selectKeyboard(KEYBOARDS[i]);
+        return;
+      }
+    }
+  }
+
+  els.kgrid.addEventListener('click', function (e) {
+    var card = e.target.closest('.kcard');
+    if (card) selectKeyboardByFile(card.dataset.file);
+  });
+
+  els.btnStep2Back.addEventListener('click', function () { goToStep(1); });
+  els.btnStep2Next.addEventListener('click', function () {
+    if (state.selectedKeyboard) goToStep(3);
+  });
+
+  /* ---- Step 3: Lesson + GO ---- */
+  function renderStep3Summary() {
+    var picsHtml = state.pickedPics.map(function (k) {
+      var p = picByKey(k);
+      return '<img src="' + picSrc(k) + '" alt="' + (p ? p.label : k) + '">';
+    }).join('');
+    els.selectedSummary.innerHTML =
+      '<strong>Keyboard:</strong> ' + (state.selectedKeyboard ? state.selectedKeyboard.name : '') +
+      ' &nbsp;|&nbsp; <strong>Picture code:</strong> <span class="summary-pics">' + picsHtml + '</span>';
+    renderThemeChips();
+    updateActiveKeys();
+  }
+
+  function renderThemeChips() {
+    var k = state.selectedKeyboard;
+    if (!k || k.looks.length <= 1) {
+      els.themeWrap.style.display = 'none';
+      return;
+    }
+    els.themeWrap.style.display = 'block';
+    els.themeChips.innerHTML = k.looks.map(function (l) {
+      var on = l[0] === state.selectedLook ? ' on' : '';
+      return '<button type="button" class="theme-chip' + on + '" data-look="' + l[0] + '">' + l[1] + '</button>';
+    }).join('');
+  }
+
+  els.themeChips.addEventListener('click', function (e) {
+    var chip = e.target.closest('.theme-chip');
+    if (!chip) return;
+    state.selectedLook = chip.dataset.look;
+    renderThemeChips();
+  });
+
+  function populateSets() {
+    var lesson = state.selectedLesson;
+    var field = els.setSelect.closest('.field');
+    if (!lesson || !LESSON_SETS[lesson]) {
+      els.setSelect.innerHTML = '<option value="">Choose lesson first...</option>';
+      els.setSelect.disabled = true;
+      if (field) field.style.display = '';
+      state.activeKeys = new Set();
+      renderActiveKeyboard();
+      refreshGo();
+      return;
+    }
+    if (LESSONS_WITHOUT_SETS[lesson]) {
+      if (field) field.style.display = 'none';
+      els.setSelect.disabled = true;
+      state.selectedSetIndex = 0;
+      updateActiveKeys();
+      return;
+    }
+    if (field) field.style.display = '';
+    els.setSelect.disabled = false;
+    els.setSelect.innerHTML = LESSON_SETS[lesson].map(function (s, i) {
+      return '<option value="' + i + '">' + s.label + '</option>';
+    }).join('');
+    state.selectedSetIndex = 0;
+    updateActiveKeys();
+  }
+
+  function updateActiveKeys() {
+    var set = getCurrentSet();
+    state.activeKeys = set && set.letters ? normalizeLetters(set.letters) : new Set();
+    renderActiveKeyboard();
+    refreshGo();
+  }
+
+  function renderActiveKeyboard() {
+    els.kbPills.innerHTML = Array.from(state.activeKeys).sort().map(function (k) {
+      return '<span class="kb-pill">' + k + '</span>';
+    }).join('') || '<span style="color:var(--muted);font-size:13px">No keys selected yet</span>';
+
+    els.kb.innerHTML = KB_ROWS.map(function (row) {
+      return '<div class="row">' + row.map(function (letter) {
+        var active = state.activeKeys.has(letter);
+        var cls = 'k' + (active ? ' active ' + (FINGER_MAP[letter] || 'li') : '');
+        return '<div class="' + cls + '">' + letter + '</div>';
+      }).join('') + '</div>';
+    }).join('') +
+      '<div class="row"><div class="k wide' + (state.activeKeys.has('SPACE') ? ' active th' : '') + '">SPACE</div></div>';
+  }
+
+  function refreshGo() {
+    var set = getCurrentSet();
+    var ready = state.selectedKeyboard && state.selectedLesson && set && set.letters && state.pickedPics.length === 3;
+    if (ready && !LESSONS_WITHOUT_SETS[state.selectedLesson] && state.selectedSetIndex === 0) {
+      ready = false;
+    }
+    els.btnGo.disabled = !ready;
+  }
+
+  els.lessonSelect.addEventListener('change', function () {
+    state.selectedLesson = els.lessonSelect.value;
+    populateSets();
+  });
+
+  els.setSelect.addEventListener('change', function () {
+    state.selectedSetIndex = Number(els.setSelect.value) || 0;
+    updateActiveKeys();
+  });
+
+  els.btnStep3Back.addEventListener('click', function () { goToStep(2); });
+
+  function panelReturnUrl() {
+    return PANEL_URL + '#step3';
+  }
+
+  function savePanelState() {
+    sessionStorage.setItem('rt-panel-url', panelReturnUrl());
+    sessionStorage.setItem('rt-panel-state', JSON.stringify({
+      pickedPics: state.pickedPics.slice(),
+      keyboardFile: state.selectedKeyboard ? state.selectedKeyboard.file : '',
+      selectedLook: state.selectedLook,
+      selectedLesson: state.selectedLesson,
+      selectedSetIndex: state.selectedSetIndex
+    }));
+  }
+
+  function restorePanelState() {
+    var returnStep = sessionStorage.getItem('rt-return-step');
+    if (location.hash !== '#step3' && returnStep !== '3') return;
+    try { sessionStorage.removeItem('rt-return-step'); } catch (e) { /* ignore */ }
+    var raw = sessionStorage.getItem('rt-panel-state');
+    if (!raw) {
+      goToStep(3);
+      return;
+    }
+    try {
+      var saved = JSON.parse(raw);
+      if (saved.pickedPics && saved.pickedPics.length === 3) {
+        state.pickedPics = saved.pickedPics.slice();
+      }
+      if (saved.keyboardFile) {
+        for (var i = 0; i < KEYBOARDS.length; i++) {
+          if (KEYBOARDS[i].file === saved.keyboardFile) {
+            state.selectedKeyboard = KEYBOARDS[i];
+            break;
+          }
+        }
+      }
+      state.selectedLook = saved.selectedLook || '';
+      state.selectedLesson = saved.selectedLesson || '';
+      state.selectedSetIndex = saved.selectedSetIndex || 0;
+      renderPictures();
+      renderCodeSlots();
+      renderKeyboards();
+      if (state.selectedLesson) {
+        els.lessonSelect.value = state.selectedLesson;
+        populateSets();
+        els.setSelect.value = String(state.selectedSetIndex);
+        updateActiveKeys();
+      }
+      goToStep(3);
+    } catch (err) {
+      goToStep(3);
+    }
+  }
+
+  function buildGoUrl() {
+    var k = state.selectedKeyboard;
+    var set = getCurrentSet();
+    var params = new URLSearchParams();
+    params.set('keys', activeKeysParam());
+    params.set('child', state.pickedPics.join('-'));
+    params.set('activity', state.selectedLesson);
+    params.set('set', set.label);
+    if (set.pattern) params.set('pattern', set.pattern);
+    params.set('keyboard', k.name);
+    if (k.looks.length > 1 && state.selectedLook) {
+      params.set('look', state.selectedLook);
+    }
+    return KEYBOARD_BASE + k.file + '?' + params.toString();
+  }
+
+  els.btnGo.addEventListener('click', function () {
+    if (els.btnGo.disabled) return;
+    savePanelState();
+    window.location.href = buildGoUrl();
+  });
+
+  /* ---- Init ---- */
+  function updateLayout() {
+    var w = window.innerWidth;
+    var picCols = 4;
+    if (w < 480) picCols = 2;
+    else if (w < 900) picCols = 4;
+    /* ≥900px: sign-in uses side layout — keep 4 cols in the left panel */
+    document.documentElement.style.setProperty('--pic-cols', picCols);
+    if (state.step === 2) {
+      reshuffleKeyboardGrid();
+    } else {
+      document.documentElement.style.setProperty('--k-cols', getKeyboardGridCols());
+    }
+  }
+
+  function init() {
+    updateLayout();
+    window.addEventListener('resize', updateLayout);
+    window.addEventListener('orientationchange', updateLayout);
+    renderPictures();
+    renderCodeSlots();
+    renderKeyboards();
+    buildPreviewKeyboard();
+    refreshGo();
+    restorePanelState();
+  }
+
+  function buildPreviewKeyboard() {
+    renderActiveKeyboard();
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
