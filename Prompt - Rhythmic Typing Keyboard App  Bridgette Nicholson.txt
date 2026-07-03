@@ -1,0 +1,359 @@
+PROMPT — RHYTHMIC TYPING KEYBOARD APP
+======================================
+
+Build a single HTML file that runs in a browser as a rhythmic keyboarding activity for children.
+
+---
+
+KEYBOARD
+
+Display only the QWERTY keys and the spacebar on screen — no number row, no function keys.
+Color-code every key by which finger plays it, using the standard touch-typing finger assignment:
+
+  Left Pinky  — Q A Z  (red)
+  Left Ring   — W S X  (orange)
+  Left Middle — E D C  (yellow)
+  Left Index  — R F T G V B  (green)
+  Right Index — Y H U J N M  (blue)
+  Right Middle — I K  (purple)
+  Right Ring  — O L  (pink/rose)
+  Right Pinky — P  (teal)
+  Thumbs      — Space  (gray)
+
+Keys should be large, rounded, clearly readable, and laid out correctly.
+The keyboard panel sits on a clean, bright background.
+
+---
+
+SEQUENCES
+
+Three 8-beat patterns loop seamlessly with no pauses between them:
+
+  Set 1: F G F G F G F SPACE
+  Set 2: F R F R F R F SPACE
+  Set 3: F V F V F V F SPACE
+
+Show which set is active (a small label or indicator is enough).
+Show 8 beat dots that fill in as the child progresses through each set.
+
+---
+
+HOW IT WORKS
+
+One key glows at a time — that is the key the child must press.
+The glowing key has a small bouncing icon above it as a hint.
+The key glow pulses slowly (safe for photosensitive users — no rapid flashing).
+The key should NOT grow very large when lit. A gentle glow is enough.
+
+The app waits for the child to press the correct key before advancing.
+Wrong keys do nothing — no sound, no reaction.
+When the correct key is pressed: play its sound, show a brief animation, then after a short pause light the next key.
+After all 8 beats of a set, move immediately into the next set with no interruption.
+
+---
+
+ANIMATIONS
+
+Keep animations simple and safe (no strobing, no rapid flashing).
+Each of the five active keys (F, G, R, V, SPACE) should trigger a different visual effect when pressed.
+Animations appear above or behind the keyboard and fade in and out smoothly.
+Suggestions: expanding rings, floating particles, a brief color wash, rising shapes — keep it cheerful and gentle.
+
+---
+
+SOUND SYSTEM
+
+Use real audio files from this R2 bucket. All URLs must be direct .mp3 links with URL-encoded paths.
+
+Include a sound pack selector so the user can switch packs. Default to Drum Kit.
+
+Use this PACKS object exactly:
+
+const PACKS = {
+  animals: {
+    label: "Animal Sounds",
+    sounds: {
+      F: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/animal%20sounds%20%200.5%20sec/Single%20deep%20snort%20from%20a%20pig_AOS01003.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/animal%20sounds%20%200.5%20sec/0%20Wild%20lion%20growl%2001_SFXBible_ss00377.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/animal%20sounds%20%200.5%20sec/Pig%20oink%2005_SFXBible_ss00354.mp3"
+      ],
+      G: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/animal%20sounds%20%200.5%20sec/9%20SeaLion_SanFranciscoFeb2007a%201.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/animal%20sounds%20%200.5%20sec/1q%20Colobus%20monkey%20hoot%20happy_BLASTWAVEFX_20487.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/animal%20sounds%20%200.5%20sec/Turkey%20squawk%2004_SFXBible_ss00152.mp3"
+      ],
+      R: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/animal%20sounds%20%200.5%20sec/1w%20Frog%20croaking%20x1.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/animal%20sounds%20%200.5%20sec/Monkey_1.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/animal%20sounds%20%200.5%20sec/3%20Monkey%20screech%20single_BLASTWAVEFX_10247.mp3"
+      ],
+      V: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/animal%20sounds%20%200.5%20sec/hoolock%20gibbon%20calls-%20burma%20120495%202.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/animal%20sounds%20%200.5%20sec/Pig%20squeal_BLASTWAVEFX_20535.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/animal%20sounds%20%200.5%20sec/Leopard%20growl_BLASTWAVEFX_00143%201.mp3"
+      ],
+      SPACE: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/animal%20sounds%20%200.5%20sec/zz%20Multiple%20birds%20chirping_AOS00051.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/animal%20sounds%20%200.5%20sec/Puppy.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/animal%20sounds%20%200.5%20sec/8%20Rooster%20bawk%2008_SFXBible_ss00141.mp3"
+      ]
+    }
+  },
+
+  oneSecondDrums: {
+    label: "1-Second Drums",
+    sounds: {
+      F: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/1%20sec%20Drums/a.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/1%20sec%20Drums/c.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/1%20sec%20Drums/e.mp3"
+      ],
+      G: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/1%20sec%20Drums/b.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/1%20sec%20Drums/d.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/1%20sec%20Drums/f.mp3"
+      ],
+      R: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/1%20sec%20Drums/h.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/1%20sec%20Drums/j.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/1%20sec%20Drums/r.mp3"
+      ],
+      V: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/1%20sec%20Drums/v.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/1%20sec%20Drums/g.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/1%20sec%20Drums/i.mp3"
+      ],
+      SPACE: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/1%20sec%20Drums/k.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/1%20sec%20Drums/1.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/1%20sec%20Drums/10.mp3"
+      ]
+    }
+  },
+
+  drumKit: {
+    label: "Drum Kit",
+    sounds: {
+      F: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/KICK1.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Electro%20kick%2001.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Fuzz%20Kick.mp3"
+      ],
+      G: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/SNARE2.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/FM%20snare.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Smack%20Snare.mp3"
+      ],
+      R: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Hi%20Hat%202.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Closing%20HH.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Hihat%20033.mp3"
+      ],
+      V: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/TOM%201.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Tom%202_Kalavrezos_2011.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/woodbloc.mp3"
+      ],
+      SPACE: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Splash%2012%203.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Chime%20percussion_BLASTWAVEFX_30615.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Drum%20sounds/Maxi%20clap.mp3"
+      ]
+    }
+  },
+
+  funny: {
+    label: "Funny Sounds",
+    sounds: {
+      F: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Funny%20sounds/Boing-High.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Funny%20sounds/CARTOON%20SQUEAK%20HIGH%2001.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Funny%20sounds/squeaky_toy_1.mp3"
+      ],
+      G: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Funny%20sounds/Boing-Low.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Funny%20sounds/Cartoon%20accent%20sproing.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Funny%20sounds/Rubber%20band%20pluck%20twang%2003_SFXBible_ss01047.mp3"
+      ],
+      R: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Funny%20sounds/Cartoon%20zip%20accent%20smooth%20fast.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Funny%20sounds/Sound%20design%20cartoon%20accent%20laser%20shot%2002_SFXBible_ss05516.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Funny%20sounds/Rollover%20cartoon%20beep%20short_BLASTWAVEFX_20269.mp3"
+      ],
+      V: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Funny%20sounds/Balloon%20squicking%20funny.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Funny%20sounds/Funny%20little%20cartoon%20sound_AOS01793.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Funny%20sounds/spring%20-%20up.mp3"
+      ],
+      SPACE: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Funny%20sounds/Bells%20ring%20jingle%2001_SFXBible_ss00816.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Funny%20sounds/High-Brass-Hit.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Funny%20sounds/Sound%20design%20beep%20chime%2001_SFXBible_ss05271.mp3"
+      ]
+    }
+  },
+
+  human: {
+    label: "Human Voice",
+    sounds: {
+      F: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Human%20voice/HUMAN%20VOICE%20CLIP%20CARTOON%20MALE%20YAY%20AIRY%2001.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Human%20voice/A%20man%20says%20cool%20-excited-_Nightingale%20Music%20Productions_14287.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Human%20voice/25%20year%20old%20man%20says%20awesome_BLASTWAVEFX_03964.mp3"
+      ],
+      G: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Human%20voice/A%20toddler%20says%20-whoa-%20-very%20cute-_Nightingale%20Music%20Productions_12321.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Human%20voice/HUMAN%20VOICE%20CLIP%20MALE%20HA%20SNICKER%2001.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Human%20voice/HUMAN%20VOICE%20CLIP%20GIRL%20YOUNG%20HOWDY%20SHORT%2001.mp3"
+      ],
+      R: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Human%20voice/HUMAN%20ELEMENT%20MALE%20FEMALE%20AH%20HA%2001.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Human%20voice/HUMAN%20VOICE%20FAST%20HELLO%2001.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Human%20voice/Male%20cartoon%20voice%20says%20hooray%20shout_BLASTWAVEFX_10482.mp3"
+      ],
+      V: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Human%20voice/Young%20male%20cartoon%20voice%20says%20booyah_BLASTWAVEFX_21305.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Human%20voice/Twelve%20year%20old%20boy%20says%20yahoo_BLASTWAVEFX_13646.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Human%20voice/Three%20year%20old%20girl%20says%20nice_BLASTWAVEFX_03874.mp3"
+      ],
+      SPACE: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Human%20voice/A%20woman%20quickly%20says%20Thanks_AOS00927.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Human%20voice/Six%20year%20old%20boy%20says%20cool_BLASTWAVEFX_13453.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Human%20voice/Ten%20year%20old%20boy%20says%20hi%20cheerful_BLASTWAVEFX_03736.mp3"
+      ]
+    }
+  },
+
+  soundArt: {
+    label: "Sound Art",
+    sounds: {
+      F: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Sound%20art/Sound%20design%20accent%20digital%20bright%20chirp%20delay_BLASTWAVEFX_20083.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Sound%20art/Sound%20design%20accent%20electronic%20ascend_BLASTWAVEFX_20099.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Sound%20art/Sound%20design%20accent%20hi-tech%20bright%20warble%20short_BLASTWAVEFX_20110.mp3"
+      ],
+      G: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Sound%20art/Sound%20design%20accent%20digital%20click%20message_BLASTWAVEFX_20085.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Sound%20art/Sound%20design%20accent%20electronic%20glitch%20fast_BLASTWAVEFX_20102.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Sound%20art/Sound%20design%20accent%20electronic%20shimmer%20glitter_BLASTWAVEFX_20106.mp3"
+      ],
+      R: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Sound%20art/Sound%20design%20accent%20electronic%20warp%20sweeper_BLASTWAVEFX_20104.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Sound%20art/Sound%20design%20sweeper%20ascend_BLASTWAVEFX_20279.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Sound%20art/Delay%20Theremin%2001.mp3"
+      ],
+      V: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Sound%20art/Sound%20design%20accent%20synth%20hit%20musical_BLASTWAVEFX_20138.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Sound%20art/Sound%20design%20accent%20pixie%20dust%20tiny%20shimmer%20hit_BLASTWAVEFX_19097.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Sound%20art/Noise%20Theremin%2022.mp3"
+      ],
+      SPACE: [
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Sound%20art/Sound%20design%20shimmer%20accent%20swells%20reverb_BLASTWAVEFX_18592.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Sound%20art/Sound%20design%20sweeper%20airy%20shimmer%20fast_BLASTWAVEFX_18525.mp3",
+        "https://pub-ced567e853f84a85b4139a379f79898b.r2.dev/Sound%20art/Engine%20wind%20down.mp3"
+      ]
+    }
+  }
+};
+
+Use this exact function to choose which sound to play for a key:
+
+function soundFor(target) {
+  const pack = currentPack();
+  const list = pack.sounds[target] || pack.sounds.F;
+  return list[setIndex % list.length];
+}
+
+Preload all sounds in the current pack after the user presses Start using a pool of 5 Audio objects per file:
+
+const audioPools = new Map();
+
+function preloadPack(pack) {
+  Object.values(pack.sounds).flat().forEach(url => {
+    if (audioPools.has(url)) return;
+    const pool = [];
+    for (let i = 0; i < 5; i++) {
+      const audio = new Audio(url);
+      audio.preload = "auto";
+      audio.load();
+      pool.push(audio);
+    }
+    audioPools.set(url, pool);
+  });
+}
+
+Play each sound and stop it after one second:
+
+let stopTimers = [];
+
+function playOneSecond(url) {
+  const pool = audioPools.get(url);
+  if (!pool) { fallbackClick(); return; }
+  let audio = pool.find(a => a.paused || a.ended) || pool[0];
+  audio.pause();
+  try { audio.currentTime = 0; } catch(e) {}
+  const p = audio.play();
+  if (p && p.catch) p.catch(() => fallbackClick());
+  const timer = setTimeout(() => {
+    audio.pause();
+    try { audio.currentTime = 0; } catch(e) {}
+  }, 1000);
+  stopTimers.push(timer);
+}
+
+Stop all audio when switching packs:
+
+function stopAllAudio() {
+  stopTimers.forEach(clearTimeout);
+  stopTimers = [];
+  audioPools.forEach(pool => pool.forEach(audio => {
+    audio.pause();
+    try { audio.currentTime = 0; } catch(e) {}
+  }));
+}
+
+Include this fallback in case a file fails to play:
+
+function fallbackClick() {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const now = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = "triangle";
+  osc.frequency.setValueAtTime(190, now);
+  osc.frequency.exponentialRampToValueAtTime(80, now + .16);
+  gain.gain.setValueAtTime(.001, now);
+  gain.gain.exponentialRampToValueAtTime(.25, now + .015);
+  gain.gain.exponentialRampToValueAtTime(.001, now + .18);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(now);
+  osc.stop(now + .2);
+}
+
+When the user presses the correct key call:
+  playOneSecond(soundFor(currentTarget));
+
+When the Start button is pressed call:
+  stopAllAudio();
+  preloadPack(currentPack());
+
+---
+
+START SCREEN
+
+Show a simple start screen with:
+- A title
+- A sound pack selector (dropdown or buttons) defaulting to Drum Kit
+- A Start button
+
+---
+
+IMPORTANT RULES
+
+Only the lit key makes a sound — wrong keys do nothing.
+The app waits for the correct key before advancing.
+Sequences loop continuously with no pauses between sets.
+All animations must fade in and out smoothly — no strobing or rapid flashing.
+Everything should work in a single self-contained HTML file.
