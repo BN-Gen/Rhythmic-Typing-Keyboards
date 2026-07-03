@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fireworks Show</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Baloo+2:wght@700;800&display=swap');
+:root{
+    --left-pinky:#ff4d6d;--left-ring:#ff8c00;--left-middle:#ffe500;
+    --left-index:#7fff00;--right-index:#00eeff;--right-middle:#ff44cc;
+    --right-ring:#cc44ff;--right-pinky:#ff3333;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100%;height:100vh;overflow:hidden;user-select:none;font-family:'Baloo 2',cursive;}
+
+#sky{position:fixed;inset:0;background:#04040f;z-index:0;}
+#fx-canvas{position:fixed;inset:0;z-index:3;pointer-events:none;}
+#flash{position:fixed;inset:0;pointer-events:none;z-index:8;opacity:0;}
+
+#seq-label{
+    position:fixed;top:14px;left:50%;transform:translateX(-50%);
+    z-index:20;font-size:17px;font-weight:800;
+    color:rgba(255,255,255,.9);text-shadow:0 2px 10px rgba(0,0,0,.8);
+    background:rgba(255,255,255,.08);padding:5px 22px;border-radius:20px;
+    letter-spacing:1px;pointer-events:none;border:1px solid rgba(255,255,255,.1);
+}
+
+#start-screen{
+    position:fixed;inset:0;background:rgba(2,2,15,.96);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    z-index:9999;cursor:pointer;
+}
+#start-screen h1{
+    font-family:'Orbitron',monospace;
+    font-size:64px;font-weight:900;color:#fff;
+    text-shadow:0 0 40px rgba(255,200,80,.9),0 0 80px rgba(255,150,50,.5);
+    margin-bottom:10px;letter-spacing:4px;
+}
+#start-screen .sub{font-size:22px;color:rgba(255,220,120,.8);margin-bottom:40px;}
+#start-screen .btn{
+    font-size:26px;font-weight:700;color:#04040f;
+    background:linear-gradient(135deg,#ffd700,#ff8800);
+    padding:16px 52px;border-radius:50px;
+    box-shadow:0 8px 35px rgba(255,180,0,.6);
+    animation:btnP 1.6s ease-in-out infinite;
+}
+@keyframes btnP{0%,100%{transform:scale(.97)}50%{transform:scale(1.04)}}
+
+#game-ui{
+    position:relative;z-index:10;display:flex;flex-direction:column;
+    align-items:center;justify-content:flex-end;height:100vh;padding-bottom:0;
+}
+#header-container{
+    display:flex;flex-direction:column;align-items:center;
+    justify-content:center;flex-grow:1;width:100%;position:relative;
+    margin-bottom:10px;padding-top:50px;
+}
+#sequence-line{
+    display:flex;width:90vw;max-width:1400px;justify-content:space-between;
+    align-items:center;flex-wrap:nowrap;position:relative;margin-bottom:18px;
+}
+#space-line-row{
+    display:flex;justify-content:center;align-items:center;
+    width:100%;height:80px;position:relative;
+}
+.seq-item{
+    font-family:'Orbitron',monospace;
+    font-size:clamp(56px,7.5vw,115px);font-weight:900;
+    display:flex;align-items:center;justify-content:center;
+    text-transform:uppercase;position:relative;z-index:10;
+    text-shadow:0 0 20px currentColor,0 0 40px currentColor,0 2px 0 rgba(0,0,0,.95),0 4px 20px rgba(0,0,0,.9);
+    filter:drop-shadow(0 0 10px currentColor);
+}
+.space-target-item{
+    font-family:'Orbitron',monospace;
+    color:rgba(180,190,255,.9);font-size:36px;font-weight:700;letter-spacing:14px;
+    text-transform:uppercase;position:relative;z-index:10;
+    text-shadow:0 0 15px rgba(180,190,255,.8),0 0 30px rgba(130,150,255,.5),0 2px 0 rgba(0,0,0,.95);
+}
+
+.pop-nova    {animation:popNova .5s ease-out forwards;}
+.pop-ghost   {animation:popGhost .6s ease-in forwards;}
+.pop-implode {animation:popImplode .4s cubic-bezier(.5,0,1,1) forwards;}
+.pop-scatter {animation:popScatter .5s ease-out forwards;}
+.pop-spin    {animation:popSpin .5s ease-in forwards;}
+.pop-drop    {animation:popDrop .5s ease-in forwards;}
+.pop-space   {animation:popSpace .5s cubic-bezier(.1,.8,.1,1) forwards;}
+@keyframes popNova{0%{transform:scale(1);opacity:1}50%{transform:scale(2.2);opacity:.8}100%{transform:scale(2.8);opacity:0;filter:blur(8px)}}
+@keyframes popGhost{0%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(-120px) scaleY(1.8) scaleX(.6);opacity:0;filter:blur(4px)}}
+@keyframes popImplode{0%{transform:scale(1);opacity:1}40%{transform:scale(1.3)}100%{transform:scale(0);opacity:0}}
+@keyframes popScatter{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(0,-28px) scale(1.4);opacity:0;filter:blur(8px)}}
+@keyframes popSpin{0%{transform:scale(1) rotate(0deg);opacity:1}100%{transform:scale(0) rotate(270deg);opacity:0}}
+@keyframes popDrop{0%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(75px) scale(.6);opacity:0}}
+@keyframes popSpace{0%{transform:scale(1);opacity:1}30%{transform:scale(1.6)}100%{transform:scale(2.8);opacity:0;filter:blur(18px)}}
+
+.keyboard{
+    background:rgba(2,2,16,.96);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);padding:20px 32px 26px;
+    border-radius:28px 28px 0 0;
+    background-image:
+        repeating-linear-gradient(0deg,transparent,transparent 19px,rgba(255,255,255,.018) 19px,rgba(255,255,255,.018) 20px),
+        repeating-linear-gradient(90deg,transparent,transparent 19px,rgba(255,255,255,.018) 19px,rgba(255,255,255,.018) 20px);
+    box-shadow:0 -8px 60px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.06),0 -1px 0 rgba(255,255,255,.12);
+    display:flex;flex-direction:column;gap:10px;align-items:center;
+    position:relative;z-index:10;
+    border-top:1px solid rgba(180,180,255,.18);
+}
+.row{display:flex;gap:10px;}
+.row:nth-child(2){margin-left:23px;}
+.row:nth-child(3){margin-left:46px;}
+.key{
+    width:62px;height:62px;border-radius:10px;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Orbitron',monospace;font-size:15px;font-weight:700;
+    text-transform:uppercase;
+    background:rgba(4,4,20,.92);
+    border:2px solid var(--key-color,rgba(255,255,255,.2));
+    color:var(--key-color,rgba(255,255,255,.6));
+    text-shadow:0 0 8px var(--key-color,rgba(255,255,255,.4));
+    box-shadow:0 0 8px var(--key-color,rgba(255,255,255,.1)),
+               0 4px 0 rgba(0,0,0,.7),
+               inset 0 1px 0 rgba(255,255,255,.05),
+               inset 0 0 12px rgba(0,0,0,.5);
+    transition:transform .08s,box-shadow .08s,filter .08s;
+    cursor:default;position:relative;
+}
+.spacebar{
+    width:390px;height:62px;font-size:12px;letter-spacing:5px;
+    --key-color:rgba(160,160,210,.6);
+}
+.l-pinky{--key-color:var(--left-pinky);}
+.l-ring{--key-color:var(--left-ring);}
+.l-middle{--key-color:var(--left-middle);}
+.l-index{--key-color:var(--left-index);}
+.r-index{--key-color:var(--right-index);}
+.r-middle{--key-color:var(--right-middle);}
+.r-ring{--key-color:var(--right-ring);}
+.r-pinky{--key-color:var(--right-pinky);}
+.key.pressed{
+    transform:translateY(4px)!important;
+    box-shadow:0 0 4px var(--key-color,rgba(255,255,255,.1)),0 0 0 rgba(0,0,0,.5)!important;
+    filter:brightness(.65);
+}
+.key.lit{
+    background:rgba(255,255,255,.06)!important;
+    color:white!important;
+    border-color:white!important;
+    text-shadow:0 0 12px white,0 0 24px white,0 0 40px rgba(200,220,255,.8)!important;
+    box-shadow:
+        0 0 18px rgba(255,255,255,.9),
+        0 0 40px rgba(200,210,255,.6),
+        0 0 70px rgba(150,180,255,.3),
+        0 4px 0 rgba(0,0,0,.6),
+        inset 0 0 20px rgba(255,255,255,.08)!important;
+    transform:translateY(-6px) scale(1.12)!important;
+    z-index:15;
+}
+.key.lit::before{
+    content:'▼';position:absolute;top:-30px;
+    color:white;font-size:18px;font-family:'Baloo 2',cursive;
+    text-shadow:0 0 10px white,0 0 20px rgba(150,180,255,.9);
+    animation:arrowB .5s ease-in-out infinite alternate;
+}
+@keyframes arrowB{from{transform:translateY(0)}to{transform:translateY(-6px)}}
+</style>
+</head>
+<body>
+<div id="sky"></div>
+<canvas id="fx-canvas"></canvas>
+<div id="flash"></div>
+<div id="seq-label">✨ Sequence 1 of 6</div>
+
+<div id="start-screen" onclick="unlockGame()">
+    <h1>✨ Fireworks Show</h1>
+    <div class="sub">Rhythmic Typing Adventure</div>
+    <div class="btn">🚀 LAUNCH! 🚀</div>
+</div>
+
+<div id="game-ui">
+    <div id="header-container">
+        <div id="sequence-line"></div>
+        <div id="space-line-row"></div>
+    </div>
+    <div class="keyboard">
+        <div class="row">
+            <div class="key l-pinky" id="key-q">q</div><div class="key l-ring" id="key-w">w</div>
+            <div class="key l-middle" id="key-e">e</div><div class="key l-index" id="key-r">r</div>
+            <div class="key l-index" id="key-t">t</div><div class="key r-index" id="key-y">y</div>
+            <div class="key r-index" id="key-u">u</div><div class="key r-middle" id="key-i">i</div>
+            <div class="key r-ring" id="key-o">o</div><div class="key r-pinky" id="key-p">p</div>
+        </div>
+        <div class="row">
+            <div class="key l-pinky" id="key-a">a</div><div class="key l-ring" id="key-s">s</div>
+            <div class="key l-middle" id="key-d">d</div><div class="key l-index" id="key-f">f</div>
+            <div class="key l-index" id="key-g">g</div><div class="key r-index" id="key-h">h</div>
+            <div class="key r-index" id="key-j">j</div><div class="key r-middle" id="key-k">k</div>
+            <div class="key r-ring" id="key-l">l</div><div class="key r-pinky" id="key-semi">;</div>
+        </div>
+        <div class="row">
+            <div class="key l-pinky" id="key-z">z</div><div class="key l-ring" id="key-x">x</div>
+            <div class="key l-middle" id="key-c">c</div><div class="key l-index" id="key-v">v</div>
+            <div class="key l-index" id="key-b">b</div><div class="key r-index" id="key-n">n</div>
+            <div class="key r-index" id="key-m">m</div>
+        </div>
+        <div class="row"><div class="key thumb spacebar" id="key-space">space</div></div>
+    </div>
+</div>
+
+<script>
+// ============================================================
+// CANVAS
+// ============================================================
+const canvas = document.getElementById('fx-canvas');
+const ctx = canvas.getContext('2d');
+let W, H;
+function resize(){ W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+resize(); window.addEventListener('resize', resize);
+
+// ---- STARS (constant ambient) ----
+const stars = Array.from({length:200}, () => ({
+    x: Math.random() * window.innerWidth,
+    y: Math.random() * window.innerHeight * .85,
+    r: .5 + Math.random() * 1.8,
+    twinkle: Math.random() * Math.PI * 2,
+    twinkleSpeed: .01 + Math.random() * .025,
+    brightness: .3 + Math.random() * .7
+}));
+
+function drawStars(){
+    stars.forEach(s => {
+        s.twinkle += s.twinkleSpeed;
+        const alpha = s.brightness * (.5 + .5 * Math.sin(s.twinkle));
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+        ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+        ctx.fill();
+    });
+}
+
+// ============================================================
+// PARTICLE CLASS — handles all 6 visual effect types
+// ============================================================
+const particles = [];
+
+class Particle {
+    constructor(x, y, o){
+        this.x = x; this.y = y;
+        this.type = o.type || 'spark';
+        this.color = o.color || '#fff';
+        this.color2 = o.color2 || '#fff';
+        this.life = 1;
+        this.decay = o.decay || (.018 + Math.random() * .02);
+        this.size = o.size || (2 + Math.random() * 5);
+
+        // velocity
+        const ang = o.angle !== undefined ? o.angle : Math.random() * Math.PI * 2;
+        const spd = o.speed !== undefined ? o.speed : (2 + Math.random() * 6);
+        this.vx = Math.cos(ang) * spd * (o.sx || 1);
+        this.vy = Math.sin(ang) * spd * (o.sy || 1) + (o.yBias || 0);
+        this.gravity = o.gravity !== undefined ? o.gravity : .05;
+        this.drag = o.drag || .97;
+
+        // comet trail
+        this.trail = o.trail ? [] : null;
+        this.trailLen = o.trailLen || 14;
+
+        // ring
+        this.radius = 0;
+        this.expandSpeed = o.expandSpeed || 5;
+        this.maxRadius = o.maxRadius || 250;
+        this.lineWidth = o.lineWidth || 2.5;
+
+        // confetti
+        this.rot = Math.random() * Math.PI * 2;
+        this.rotSpeed = (Math.random() - .5) * .14;
+        this.w = o.w || (6 + Math.random() * 8);
+        this.h = o.h || (3 + Math.random() * 4);
+    }
+
+    update(){
+        if(this.trail){ this.trail.push({x:this.x, y:this.y}); if(this.trail.length > this.trailLen) this.trail.shift(); }
+        this.x += this.vx; this.vy += this.gravity; this.y += this.vy;
+        this.vx *= this.drag; this.rot += this.rotSpeed;
+        this.life -= this.decay;
+        if(this.type === 'ring'){ this.radius += this.expandSpeed; if(this.radius > this.maxRadius) this.life = 0; }
+    }
+
+    draw(){
+        if(this.life <= 0) return;
+        ctx.save(); ctx.globalAlpha = Math.max(0, this.life);
+
+        switch(this.type){
+
+            case 'firework': {
+                // Glowing spark with radial gradient
+                const g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size * 2.2);
+                g.addColorStop(0, 'white');
+                g.addColorStop(.25, this.color);
+                g.addColorStop(1, 'transparent');
+                ctx.fillStyle = g;
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size * 2.2, 0, Math.PI*2); ctx.fill();
+                break;
+            }
+
+            case 'comet': {
+                // Trail line
+                if(this.trail && this.trail.length > 1){
+                    for(let i = 1; i < this.trail.length; i++){
+                        const t = i / this.trail.length;
+                        ctx.beginPath();
+                        ctx.moveTo(this.trail[i-1].x, this.trail[i-1].y);
+                        ctx.lineTo(this.trail[i].x, this.trail[i].y);
+                        ctx.strokeStyle = this.color;
+                        ctx.lineWidth = this.size * t * .8;
+                        ctx.lineCap = 'round';
+                        ctx.globalAlpha = this.life * t * .7;
+                        ctx.stroke();
+                    }
+                }
+                ctx.globalAlpha = this.life;
+                const cg = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size * 1.5);
+                cg.addColorStop(0, 'white'); cg.addColorStop(.5, this.color); cg.addColorStop(1, 'transparent');
+                ctx.fillStyle = cg;
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size * 1.5, 0, Math.PI*2); ctx.fill();
+                break;
+            }
+
+            case 'confetti': {
+                ctx.translate(this.x, this.y); ctx.rotate(this.rot);
+                ctx.fillStyle = this.color;
+                ctx.fillRect(-this.w/2, -this.h/2, this.w, this.h);
+                // Shine on one face
+                ctx.fillStyle = 'rgba(255,255,255,.25)';
+                ctx.fillRect(-this.w/2, -this.h/2, this.w, this.h * .4);
+                break;
+            }
+
+            case 'ring': {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2);
+                ctx.strokeStyle = this.color;
+                ctx.lineWidth = Math.max(.5, this.lineWidth * this.life);
+                ctx.shadowColor = this.color; ctx.shadowBlur = 8;
+                ctx.stroke(); ctx.shadowBlur = 0;
+                break;
+            }
+
+            case 'fountain': {
+                const fg = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size * 2);
+                fg.addColorStop(0, 'white'); fg.addColorStop(.4, this.color); fg.addColorStop(1, 'transparent');
+                ctx.fillStyle = fg;
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size * 2, 0, Math.PI*2); ctx.fill();
+                break;
+            }
+
+            case 'electric': {
+                // Neon circle
+                const eg = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size * 2.5);
+                eg.addColorStop(0, 'white'); eg.addColorStop(.3, this.color); eg.addColorStop(1, 'transparent');
+                ctx.fillStyle = eg;
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size * 2.5, 0, Math.PI*2); ctx.fill();
+                break;
+            }
+
+            default: { // 'spark'
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size * .5, 0, Math.PI*2);
+                ctx.fillStyle = this.color; ctx.fill();
+            }
+        }
+        ctx.restore();
+    }
+}
+
+function addParticle(x, y, opts){ particles.push(new Particle(x, y, opts)); }
+
+// Spawn helpers per effect type
+function spawnFireworkBurst(x, y, colors, count, big){
+    for(let i=0;i<count;i++){
+        const c = colors[Math.floor(Math.random()*colors.length)];
+        addParticle(x, y, {type:'firework', color:c, size:big?(3+Math.random()*5):(2+Math.random()*3),
+            speed:big?(4+Math.random()*8):(2+Math.random()*5), decay:big?.012:.022, gravity:.04});
+    }
+}
+function spawnRings(x, y, colors, count, fast){
+    for(let i=0;i<count;i++){
+        const c = colors[Math.floor(Math.random()*colors.length)];
+        addParticle(x, y, {type:'ring', color:c,
+            expandSpeed:fast?(6+i*3):(2+i*1.5), maxRadius:fast?W*.55:200,
+            lineWidth:fast?(3-i*.3):(2.5-i*.3), decay:.008+i*.003, gravity:0});
+    }
+}
+function spawnConfettiBurst(x, y, colors, count){
+    for(let i=0;i<count;i++){
+        const c = colors[Math.floor(Math.random()*colors.length)];
+        const ang = Math.random()*Math.PI*2;
+        addParticle(x, y, {type:'confetti', color:c,
+            angle:ang, speed:3+Math.random()*7, gravity:.08, decay:.014, drag:.96,
+            w:5+Math.random()*9, h:3+Math.random()*5});
+    }
+}
+function spawnComets(x, y, colors, count, big){
+    for(let i=0;i<count;i++){
+        const c = colors[Math.floor(Math.random()*colors.length)];
+        addParticle(x, y, {type:'comet', color:c, trail:true, trailLen:big?18:10,
+            size:big?(2.5+Math.random()*3):(1.5+Math.random()*2.5),
+            speed:big?(5+Math.random()*9):(3+Math.random()*5),
+            gravity:big?.02:.03, decay:.018, drag:.98});
+    }
+}
+function spawnFountain(x, y, colors, count, big){
+    for(let i=0;i<count;i++){
+        const c = colors[Math.floor(Math.random()*colors.length)];
+        const spread = (Math.random()-.5) * (big ? Math.PI*.9 : Math.PI*.6);
+        addParticle(x, y, {type:'fountain', color:c,
+            angle:-Math.PI/2 + spread,
+            speed:big?(6+Math.random()*10):(3+Math.random()*5),
+            gravity:.06, decay:big?.012:.02, size:big?(3+Math.random()*4):(2+Math.random()*3)});
+    }
+}
+function spawnElectric(x, y, colors, count){
+    for(let i=0;i<count;i++){
+        const c = colors[Math.floor(Math.random()*colors.length)];
+        addParticle(x, y, {type:'electric', color:c, size:2+Math.random()*4,
+            speed:3+Math.random()*6, decay:.022, gravity:.03});
+    }
+}
+
+// ============================================================
+// SPACE FX — fullscreen events
+// ============================================================
+let spaceFX = null;
+
+function triggerSpaceFX(theme){
+    spaceFX = {themeIdx: theme.idx, t:0, done:new Set(), colors:theme.spaceFXColors, theme};
+}
+
+function updateSpaceFX(){
+    if(!spaceFX) return;
+    spaceFX.t += 1/60;
+    const prog = spaceFX.t / .5;
+    if(prog >= 1){ spaceFX = null; return; }
+
+    switch(spaceFX.themeIdx){
+        case 0: { // Grand finale — 6 staggered bursts
+            const pts = [
+                {x:.18,y:.22,t:.00},{x:.82,y:.18,t:.04},{x:.5,y:.12,t:.08},
+                {x:.12,y:.38,t:.03},{x:.88,y:.32,t:.06},{x:.5,y:.28,t:.12}
+            ];
+            pts.forEach((p, i) => {
+                if(spaceFX.t >= p.t && !spaceFX.done.has(i)){
+                    spaceFX.done.add(i);
+                    spawnFireworkBurst(W*p.x, H*p.y, spaceFX.colors, 22, true);
+                }
+            }); break;
+        }
+        case 1: { // Massive ring pulse — rings from center + 4 corners
+            if(!spaceFX.done.has('rings')){
+                spaceFX.done.add('rings');
+                spawnRings(W*.5, H*.45, spaceFX.colors, 5, true);
+                [[.1,.2],[.9,.2],[.1,.7],[.9,.7]].forEach(([fx,fy]) =>
+                    spawnRings(W*fx, H*fy, spaceFX.colors, 3, true));
+            } break;
+        }
+        case 2: { // Confetti explosion
+            if(!spaceFX.done.has('conf')){
+                spaceFX.done.add('conf');
+                spawnConfettiBurst(W*.5, H*.35, spaceFX.colors, 80);
+                spawnConfettiBurst(W*.5, H*.35, spaceFX.colors, 40);
+            } break;
+        }
+        case 3: { // Comet barrage — 8 comets from center in all directions
+            if(!spaceFX.done.has('comets')){
+                spaceFX.done.add('comets');
+                spawnComets(W*.5, H*.4, spaceFX.colors, 10, true);
+                [[.2,.3],[.8,.3],[.2,.6],[.8,.6]].forEach(([fx,fy]) =>
+                    spawnComets(W*fx, H*fy, spaceFX.colors, 5, true));
+            } break;
+        }
+        case 4: { // Giant fountain from center-bottom
+            if(spaceFX.t < .15 && Math.random() < .7){
+                spawnFountain(W*.5, H*.75, spaceFX.colors, 8, true);
+            } break;
+        }
+        case 5: { // Concentric ring blast — many rings at different speeds
+            if(!spaceFX.done.has('rings')){
+                spaceFX.done.add('rings');
+                for(let i=0;i<8;i++){
+                    addParticle(W*.5, H*.42, {type:'ring', color:spaceFX.colors[i%spaceFX.colors.length],
+                        expandSpeed:3+i*2.5, maxRadius:W*.65,
+                        lineWidth:4-i*.3, decay:.005+i*.001, gravity:0});
+                }
+            } break;
+        }
+    }
+}
+
+// ============================================================
+// AMBIENT EMITTER — per-sequence always-running background
+// ============================================================
+let ambFrame = 0;
+function emitAmbient(themeIdx){
+    ambFrame++;
+    switch(themeIdx){
+        case 0: // Slow gold embers rising
+            if(ambFrame%12===0){
+                for(let i=0;i<3;i++) addParticle(
+                    Math.random()*W, H*.8+Math.random()*H*.15,
+                    {type:'firework', color:['#ffd700','#ffaa00','#fff8dc'][i%3],
+                    size:1+Math.random()*1.5, angle:-Math.PI/2+(Math.random()-.5)*.6,
+                    speed:.4+Math.random()*.8, gravity:-.015, decay:.004+Math.random()*.003});
+            } break;
+        case 1: // Slow neon rings in background
+            if(ambFrame%80===0){
+                const x=W*(.1+Math.random()*.8), y=H*(.1+Math.random()*.7);
+                addParticle(x, y, {type:'ring',
+                    color:`hsla(${180+Math.random()*80},100%,70%,.15)`,
+                    expandSpeed:1.2, maxRadius:120, lineWidth:1.5, decay:.003, gravity:0});
+            } break;
+        case 2: // Gentle confetti drift from top
+            if(ambFrame%10===0){
+                const confColors=['#ff4d6d','#ffd700','#7fff00','#00eeff','#ff44cc','#ff8c00'];
+                addParticle(Math.random()*W, -10,
+                    {type:'confetti', color:confColors[Math.floor(Math.random()*confColors.length)],
+                    angle:Math.PI/2+(Math.random()-.5)*.4, speed:.6+Math.random()*.8,
+                    gravity:.015, decay:.003, drag:.99, w:6+Math.random()*8, h:3+Math.random()*4});
+            } break;
+        case 3: // Occasional slow comet across background
+            if(ambFrame%110===0){
+                const side=Math.random()>.5;
+                addParticle(side?-10:W+10, H*.05+Math.random()*H*.5,
+                    {type:'comet', color:['#b0e0ff','#e0f0ff','#80c8ff'][Math.floor(Math.random()*3)],
+                    trail:true, trailLen:22, size:2+Math.random()*2,
+                    angle:side?Math.random()*.4:Math.PI-Math.random()*.4,
+                    speed:2.5+Math.random()*2, gravity:.005, decay:.004, drag:.995});
+            } break;
+        case 4: // Gentle fountain trickle always running
+            if(ambFrame%8===0){
+                const fColors=['#ff6b6b','#ffd700','#7fff00','#00eeff','#cc44ff'];
+                addParticle(W*.3+Math.random()*W*.4, H*.8,
+                    {type:'fountain', color:fColors[Math.floor(Math.random()*fColors.length)],
+                    angle:-Math.PI/2+(Math.random()-.5)*.5,
+                    speed:1.5+Math.random()*2.5, gravity:.03, decay:.008, size:1.5+Math.random()*2});
+            } break;
+        case 5: // Very slow large pulse rings
+            if(ambFrame%120===0){
+                addParticle(W*(.2+Math.random()*.6), H*(.2+Math.random()*.5),
+                    {type:'ring', color:`hsla(${Math.random()*360},80%,70%,.12)`,
+                    expandSpeed:.8, maxRadius:180, lineWidth:1, decay:.002, gravity:0});
+            } break;
+    }
+}
+
+// ============================================================
+// FLASH
+// ============================================================
+const flashEl = document.getElementById('flash');
+function doFlash(color){
+    flashEl.style.background = color;
+    flashEl.style.transition = 'opacity .07s ease-in';
+    flashEl.style.opacity = '.2';
+    setTimeout(()=>{ flashEl.style.transition = 'opacity .4s ease-out'; flashEl.style.opacity = '0'; }, 80);
+}
+
+// ============================================================
+// SEQUENCE THEMES
+// ============================================================
+const seqThemes = [
+    {   idx:0, name:'✨ Golden Fireworks',
+        spawnLetter:(x,y)=>spawnFireworkBurst(x,y,['#ffd700','#ffee88','#ffffff','#ffaa00'],12,false),
+        spawnSpace:()=>{},// handled in spaceFX
+        spaceFXColors:['#ffd700','#ffee88','#ffffff','#ffcc44','#ff8800'],
+        soundType:'sparkle',
+        letterColors:['#ffd700','#ffee00','#ffffff'],
+    },
+    {   idx:1, name:'⚡ Neon Electric',
+        spawnLetter:(x,y)=>{spawnRings(x,y,['#00ffff','#ff00aa','#ffffff'],3,false); spawnElectric(x,y,['#00ffff','#ff00aa'],8);},
+        spaceFXColors:['#00ffff','#ff00aa','#ffffff','#aa00ff'],
+        soundType:'electric',
+        letterColors:['#00ffff','#ff44cc','#ffffff'],
+    },
+    {   idx:2, name:'🎊 Confetti Party',
+        spawnLetter:(x,y)=>spawnConfettiBurst(x,y,['#ff4d6d','#ffd700','#7fff00','#00eeff','#ff44cc','#ff8c00'],18),
+        spaceFXColors:['#ff4d6d','#ffd700','#7fff00','#00eeff','#ff44cc','#ff8c00','#ffffff'],
+        soundType:'pop',
+        letterColors:['#ffd700','#00eeff','#ff4d6d'],
+    },
+    {   idx:3, name:'☄️ Comet Storm',
+        spawnLetter:(x,y)=>spawnComets(x,y,['#b0e0ff','#ffffff','#80c8ff','#e0f8ff'],10,false),
+        spaceFXColors:['#b0e0ff','#ffffff','#80c8ff','#60a8ff'],
+        soundType:'whoosh',
+        letterColors:['#b0e0ff','#ffffff','#80c8ff'],
+    },
+    {   idx:4, name:'🌈 Color Fountain',
+        spawnLetter:(x,y)=>spawnFountain(x,y,['#ff6b6b','#ffd700','#7fff00','#00eeff','#cc44ff','#ff8c00'],14,false),
+        spaceFXColors:['#ff6b6b','#ffd700','#7fff00','#00eeff','#cc44ff','#ff8c00'],
+        soundType:'ping',
+        letterColors:['#ffd700','#7fff00','#00eeff'],
+    },
+    {   idx:5, name:'💫 Ring Pulse',
+        spawnLetter:(x,y)=>spawnRings(x,y,['#ffffff','#cc88ff','#88aaff','#ff88cc'],4,false),
+        spaceFXColors:['#ffffff','#cc88ff','#88aaff','#ff88cc','#aaffee'],
+        soundType:'resonant',
+        letterColors:['#ffffff','#cc88ff','#88aaff'],
+    },
+];
+
+// ============================================================
+// GAME
+// ============================================================
+const stageLevels=[
+    ['f','g','f','g','f','g','f','space'],
+    ['f','r','f','r','f','r','f','space'],
+    ['f','v','f','v','f','v','f','space'],
+    ['j','h','j','h','j','h','j','space'],
+    ['d','e','d','e','d','e','d','space'],
+    ['k','i','k','i','k','i','k','space'],
+];
+const fingerColors={
+    'q':'#ff4d6d','a':'#ff4d6d','z':'#ff4d6d',
+    'w':'#ff8c00','s':'#ff8c00','x':'#ff8c00',
+    'e':'#ffe500','d':'#ffe500','c':'#ffe500',
+    'r':'#7fff00','f':'#7fff00','v':'#7fff00','t':'#7fff00','g':'#7fff00','b':'#7fff00',
+    'y':'#00eeff','h':'#00eeff','n':'#00eeff','u':'#00eeff','j':'#00eeff','m':'#00eeff',
+    'i':'#cc44ff','k':'#cc44ff',
+    'o':'#ff44cc','l':'#ff44cc',
+    'p':'#ff3333',';':'#ff3333',
+};
+const frontAnimPool=['pop-nova','pop-ghost','pop-implode','pop-scatter','pop-spin','pop-drop'];
+
+let levelIdx=0, step=0, audioCtx=null, started=false, locked=false;
+let mapping=null, theme=null;
+
+const lineCont=document.getElementById('sequence-line');
+const spaceCont=document.getElementById('space-line-row');
+const seqLabel=document.getElementById('seq-label');
+
+function getKid(k){ return k==='space'?'key-space':k===';'?'key-semi':'key-'+k; }
+
+function unlockGame(){
+    document.getElementById('start-screen').style.display='none';
+    started=true;
+    try{ const AC=window.AudioContext||window.webkitAudioContext; if(AC){audioCtx=new AC(); if(audioCtx.state==='suspended') audioCtx.resume();} }catch(e){}
+    build();
+}
+
+function build(){
+    theme = seqThemes[levelIdx];
+    seqLabel.textContent = `${theme.name} — Round ${levelIdx+1} of 6`;
+    const seq = stageLevels[levelIdx];
+    const distinct = [...new Set(seq)];
+    const anims = [...frontAnimPool].sort(()=>.5-Math.random());
+    mapping = {};
+    distinct.forEach((c,i)=>{
+        if(c==='space') mapping.space={frontAnim:'pop-space',isCloser:true};
+        else mapping[c]={color:fingerColors[c]||'#fff', frontAnim:anims[i%anims.length], isCloser:false};
+    });
+    render(seq);
+}
+
+function render(seq){
+    lineCont.innerHTML=''; spaceCont.innerHTML='';
+    seq.forEach((c,i)=>{
+        if(c==='space'){
+            const el=document.createElement('div');
+            el.className='space-target-item'; el.id='seq-'+i;
+            el.innerText='SPACE'; spaceCont.appendChild(el);
+        } else {
+            const el=document.createElement('div');
+            el.className='seq-item'; el.id='seq-'+i;
+            el.style.color=fingerColors[c]||'#fff';
+            el.innerText=c; lineCont.appendChild(el);
+        }
+    });
+    step=0; lightUp(seq);
+}
+
+function lightUp(seq){
+    document.querySelectorAll('.key').forEach(el=>el.classList.remove('lit'));
+    const s=seq||stageLevels[levelIdx];
+    if(step<s.length){ const el=document.getElementById(getKid(s[step])); if(el) el.classList.add('lit'); }
+}
+
+// ============================================================
+// SOUNDS — all hard-capped at 0.18s
+// ============================================================
+function noise(dur){ const sz=Math.floor(audioCtx.sampleRate*dur); const b=audioCtx.createBuffer(1,sz,audioCtx.sampleRate); const d=b.getChannelData(0); for(let i=0;i<sz;i++) d[i]=Math.random()*2-1; const s=audioCtx.createBufferSource(); s.buffer=b; return s; }
+
+function playLetterSound(type, now){
+    if(!audioCtx||audioCtx.state!=='running') return;
+    switch(type){
+        case 'sparkle': { // High bright chime — classic firework sparkle
+            [1319,1760,2093].forEach((f,i)=>{
+                const o=audioCtx.createOscillator(); const g=audioCtx.createGain();
+                o.type='triangle'; o.frequency.value=f;
+                g.gain.setValueAtTime(.45-i*.08,now+i*.012);
+                g.gain.exponentialRampToValueAtTime(.001,now+.15+i*.01);
+                o.connect(g);g.connect(audioCtx.destination);
+                o.start(now+i*.012);o.stop(now+.18);
+            }); break;
+        }
+        case 'electric': { // Short electric zap
+            const o=audioCtx.createOscillator(); const g=audioCtx.createGain();
+            const f=audioCtx.createBiquadFilter(); f.type='bandpass'; f.frequency.setValueAtTime(3000,now); f.frequency.exponentialRampToValueAtTime(800,now+.08); f.Q.value=.4;
+            o.type='sawtooth'; o.frequency.setValueAtTime(220,now); o.frequency.exponentialRampToValueAtTime(880,now+.04); o.frequency.exponentialRampToValueAtTime(110,now+.15);
+            g.gain.setValueAtTime(.55,now); g.gain.exponentialRampToValueAtTime(.001,now+.16);
+            o.connect(f);f.connect(g);g.connect(audioCtx.destination);
+            o.start(now);o.stop(now+.18); break;
+        }
+        case 'pop': { // Cartoon pop — chirp up then cut
+            const o=audioCtx.createOscillator(); const g=audioCtx.createGain();
+            o.type='sine'; o.frequency.setValueAtTime(180,now); o.frequency.exponentialRampToValueAtTime(900,now+.07); o.frequency.exponentialRampToValueAtTime(1400,now+.12);
+            g.gain.setValueAtTime(.7,now); g.gain.exponentialRampToValueAtTime(.001,now+.16);
+            o.connect(g);g.connect(audioCtx.destination); o.start(now);o.stop(now+.18); break;
+        }
+        case 'whoosh': { // Short noise sweep — comet whoosh
+            const ns=noise(.12); const filt=audioCtx.createBiquadFilter();
+            filt.type='bandpass'; filt.frequency.setValueAtTime(4000,now); filt.frequency.exponentialRampToValueAtTime(400,now+.12); filt.Q.value=.8;
+            const g=audioCtx.createGain();
+            g.gain.setValueAtTime(.7,now); g.gain.exponentialRampToValueAtTime(.001,now+.16);
+            ns.connect(filt);filt.connect(g);g.connect(audioCtx.destination);
+            ns.start(now);ns.stop(now+.18); break;
+        }
+        case 'ping': { // Musical ping — fountain tone
+            const o=audioCtx.createOscillator(); const o2=audioCtx.createOscillator(); const g=audioCtx.createGain();
+            o.type='triangle'; o.frequency.value=880;
+            o2.type='sine'; o2.frequency.value=880*2.5;
+            const g2=audioCtx.createGain(); g2.gain.value=.15;
+            g.gain.setValueAtTime(.65,now); g.gain.exponentialRampToValueAtTime(.001,now+.16);
+            o.connect(g);o2.connect(g2);g2.connect(g);g.connect(audioCtx.destination);
+            o.start(now);o2.start(now);o.stop(now+.18);o2.stop(now+.18); break;
+        }
+        case 'resonant': { // Deep ring tone
+            const o=audioCtx.createOscillator(); const g=audioCtx.createGain();
+            o.type='sine'; o.frequency.value=220;
+            g.gain.setValueAtTime(.9,now); g.gain.exponentialRampToValueAtTime(.001,now+.17);
+            o.connect(g);g.connect(audioCtx.destination); o.start(now);o.stop(now+.18); break;
+        }
+    }
+}
+
+function playSpaceSound(themeIdx, now){
+    if(!audioCtx||audioCtx.state!=='running') return;
+    switch(themeIdx){
+        case 0: { // Firework BANG — loud impact chord
+            [55,110,165].forEach(f=>{ const o=audioCtx.createOscillator(); const g=audioCtx.createGain(); o.type='sine'; o.frequency.setValueAtTime(f*3,now); o.frequency.exponentialRampToValueAtTime(f*.3,now+.12); g.gain.setValueAtTime(.5,now); g.gain.exponentialRampToValueAtTime(.001,now+.16); o.connect(g);g.connect(audioCtx.destination); o.start(now);o.stop(now+.18); });
+            const ns=noise(.015); const nf=audioCtx.createBiquadFilter(); nf.type='highpass'; nf.frequency.value=3000; const ng=audioCtx.createGain(); ng.gain.setValueAtTime(.4,now); ng.gain.exponentialRampToValueAtTime(.001,now+.015); ns.connect(nf);nf.connect(ng);ng.connect(audioCtx.destination); ns.start(now);ns.stop(now+.018); break;
+        }
+        case 1: { // Electric SLAM — sawtooth chord
+            [55,82.5,110,165].forEach(f=>{ const o=audioCtx.createOscillator(); const g=audioCtx.createGain(); const filt=audioCtx.createBiquadFilter(); filt.type='lowpass'; filt.frequency.value=1200; o.type='sawtooth'; o.frequency.value=f; g.gain.setValueAtTime(.3,now); g.gain.exponentialRampToValueAtTime(.001,now+.16); o.connect(filt);filt.connect(g);g.connect(audioCtx.destination); o.start(now);o.stop(now+.18); }); break;
+        }
+        case 2: { // Party POP — big sine chirp
+            const o=audioCtx.createOscillator(); const g=audioCtx.createGain();
+            o.type='sine'; o.frequency.setValueAtTime(120,now); o.frequency.exponentialRampToValueAtTime(1200,now+.1);
+            g.gain.setValueAtTime(1.0,now); g.gain.exponentialRampToValueAtTime(.001,now+.16);
+            o.connect(g);g.connect(audioCtx.destination); o.start(now);o.stop(now+.18); break;
+        }
+        case 3: { // Comet RUSH — noise sweep
+            const ns=noise(.12); const filt=audioCtx.createBiquadFilter(); filt.type='bandpass'; filt.frequency.setValueAtTime(5000,now); filt.frequency.exponentialRampToValueAtTime(200,now+.14); filt.Q.value=.5; const g=audioCtx.createGain(); g.gain.setValueAtTime(1.0,now); g.gain.exponentialRampToValueAtTime(.001,now+.16); ns.connect(filt);filt.connect(g);g.connect(audioCtx.destination); ns.start(now);ns.stop(now+.18); break;
+        }
+        case 4: { // Fountain BURST — rising arpeggio all at once
+            [261,329,392,523].forEach((f,i)=>{ const o=audioCtx.createOscillator(); const g=audioCtx.createGain(); o.type='triangle'; o.frequency.value=f; g.gain.setValueAtTime(.4-i*.05,now); g.gain.exponentialRampToValueAtTime(.001,now+.16); o.connect(g);g.connect(audioCtx.destination); o.start(now);o.stop(now+.18); }); break;
+        }
+        case 5: { // Ring GONG — deep resonant chord
+            [65,87,130].forEach(f=>{ const o=audioCtx.createOscillator(); const g=audioCtx.createGain(); o.type='sine'; o.frequency.value=f; g.gain.setValueAtTime(.6,now); g.gain.exponentialRampToValueAtTime(.001,now+.17); o.connect(g);g.connect(audioCtx.destination); o.start(now);o.stop(now+.18); }); break;
+        }
+    }
+}
+
+// ============================================================
+// MAIN LOOP
+// ============================================================
+function animate(){
+    ctx.clearRect(0,0,W,H);
+    drawStars();
+    if(theme) emitAmbient(theme.idx);
+    updateSpaceFX();
+    for(let i=particles.length-1;i>=0;i--){
+        particles[i].update(); particles[i].draw();
+        if(particles[i].life<=0) particles.splice(i,1);
+    }
+    requestAnimationFrame(animate);
+}
+animate();
+
+// ============================================================
+// INPUT
+// ============================================================
+window.addEventListener('keydown', e=>{
+    if(e.key===' ') e.preventDefault();
+    if(!started||locked) return;
+    let p = e.key.toLowerCase(); if(p===' ') p='space';
+    const seq=stageLevels[levelIdx], target=seq[step];
+    const keyEl=document.getElementById(getKid(p)); if(keyEl) keyEl.classList.add('pressed');
+
+    if(p===target){
+        const cfg=mapping[p];
+        const now=audioCtx?audioCtx.currentTime:0;
+
+        if(p==='space'){
+            playSpaceSound(levelIdx, now);
+            triggerSpaceFX(theme);
+            doFlash(theme.spaceFXColors[0].replace(')',',0.15)').replace('rgb','rgba').replace('hsl','hsla')||'rgba(255,255,200,0.15)');
+        } else {
+            playLetterSound(theme.soundType, now);
+            const el=document.getElementById('seq-'+step);
+            let px=W*.5, py=H*.3;
+            if(el){ const r=el.getBoundingClientRect(); px=r.left+r.width*.5; py=r.top+r.height*.5; }
+            theme.spawnLetter(px, py);
+        }
+
+        const seqEl=document.getElementById('seq-'+step);
+        if(seqEl) seqEl.classList.add(cfg.frontAnim);
+
+        step++;
+        if(step>=seq.length){
+            locked=true;
+            document.querySelectorAll('.key').forEach(el=>el.classList.remove('lit'));
+            levelIdx = (levelIdx+1>=stageLevels.length)?0:levelIdx+1;
+            setTimeout(()=>{ build(); locked=false; }, 250);
+        } else { lightUp(seq); }
+    }
+});
+
+window.addEventListener('keyup', e=>{
+    let p=e.key.toLowerCase(); if(p===' ') p='space';
+    const el=document.getElementById(getKid(p)); if(el) el.classList.remove('pressed');
+});
+</script>
+<script src="rhythmic-typing-lesson.js"></script>
+<script src="rhythmic-typing-back.js"></script>
+</body>
+</html>
