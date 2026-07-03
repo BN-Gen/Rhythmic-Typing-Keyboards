@@ -1,0 +1,2501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Space_world_Version_13</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Orbitron:wght@700;900&family=Space+Mono:wght@700&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #02020a;
+      color: #fff;
+      font-family: 'Fredoka', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    button { font: inherit; color: inherit; }
+
+    :root {
+      --bg0: #02020a;
+      --bg1: #07103c;
+      --bg2: #4b1685;
+      --bg3: #101f5f;
+      --accent: #7ee8ff;
+      --accent2: #ff82f3;
+      --accent3: #ffe66d;
+      --panel: rgba(5, 8, 30, 0.86);
+      --panel2: rgba(13, 22, 68, 0.78);
+      --keyTop: #20294d;
+      --keyBase: #0c1024;
+      --keyGlow: rgba(126, 232, 255, 0.72);
+      --soft: rgba(255,255,255,.78);
+      --good: #6cffb1;
+      --oops: #ff7c9a;
+    }
+
+    /* MOVING SPACE BACKGROUND */
+    #stage {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 15% 16%, color-mix(in srgb, var(--accent) 26%, transparent), transparent 22%),
+        radial-gradient(circle at 86% 12%, color-mix(in srgb, var(--accent2) 24%, transparent), transparent 24%),
+        radial-gradient(circle at 52% 80%, color-mix(in srgb, var(--accent3) 12%, transparent), transparent 32%),
+        radial-gradient(ellipse at 50% 72%, var(--bg2) 0%, var(--bg1) 46%, var(--bg0) 100%);
+      transition: background 650ms ease;
+    }
+    #stage::before {
+      content: '';
+      position: absolute;
+      inset: -25%;
+      opacity: .36;
+      background:
+        repeating-linear-gradient(30deg, transparent 0 42px, rgba(255,255,255,.055) 43px 45px, transparent 46px 88px),
+        radial-gradient(circle at 20% 20%, rgba(255,255,255,.32), transparent 2px),
+        radial-gradient(circle at 70% 30%, rgba(255,255,255,.22), transparent 2px),
+        radial-gradient(circle at 42% 68%, rgba(255,255,255,.18), transparent 1.5px);
+      animation: nebulaDrift 28s linear infinite;
+    }
+    #stage::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: .15;
+      background: repeating-linear-gradient(0deg, rgba(255,255,255,.05) 0 1px, transparent 1px 5px);
+      pointer-events: none;
+    }
+    @keyframes nebulaDrift { to { transform: translate3d(-5%, 4%, 0) rotate(2deg); } }
+
+    #particleCanvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; }
+    #spaceDecor { position: absolute; inset: 0; z-index: 3; pointer-events: none; overflow: hidden; }
+    .cosmicFloat {
+      position: absolute;
+      font-size: clamp(28px, 5vw, 76px);
+      opacity: .68;
+      filter: drop-shadow(0 0 20px var(--keyGlow));
+      animation: floatSpace var(--dur, 18s) ease-in-out infinite alternate;
+    }
+    @keyframes floatSpace {
+      0% { transform: translate3d(-10px, 8px, 0) rotate(-6deg) scale(.92); }
+      100% { transform: translate3d(18px, -24px, 0) rotate(10deg) scale(1.08); }
+    }
+
+    #burstLayer { position: fixed; inset: 0; z-index: 4; pointer-events: none; overflow: hidden; }
+    .screenFlash { position: absolute; inset: 0; pointer-events: none; animation: flashOut .45s ease forwards; }
+    @keyframes flashOut { 0% { opacity: .55; } 30% { opacity: .22; } 100% { opacity: 0; } }
+    .ring {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      transform: translate(-50%,-50%) scale(0);
+      animation: ringOut .75s cubic-bezier(.2,.8,.4,1) forwards;
+    }
+    @keyframes ringOut { 0% { transform: translate(-50%,-50%) scale(0); opacity: .9; } 100% { transform: translate(-50%,-50%) scale(7); opacity: 0; } }
+    .laser { position: absolute; height: 3px; transform-origin: left center; border-radius: 999px; animation: laserOut .44s ease forwards; }
+    @keyframes laserOut { 0% { opacity: 1; transform: scaleX(0); } 48% { opacity: .85; transform: scaleX(1); } 100% { opacity: 0; transform: scaleX(1); } }
+
+    .miniSpark {
+      position: fixed;
+      z-index: 11;
+      pointer-events: none;
+      width: var(--size, 10px);
+      height: var(--size, 10px);
+      border-radius: 50%;
+      color: var(--spark, var(--accent));
+      background: currentColor;
+      box-shadow: 0 0 12px currentColor, 0 0 28px currentColor;
+      animation: miniSparkFly .58s ease-out forwards;
+    }
+    @keyframes miniSparkFly {
+      0% { opacity: .95; transform: translate(-50%, -50%) scale(.25); }
+      100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.5); }
+    }
+    .keyEffect {
+      position: fixed;
+      z-index: 12;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      font-size: var(--sz, 36px);
+      text-shadow: 0 0 12px currentColor, 0 0 30px var(--keyGlow);
+      animation: keyEffectFly .68s cubic-bezier(.17,1.25,.38,1) forwards;
+    }
+    @keyframes keyEffectFly {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(.22) rotate(var(--rot, 0deg)); }
+      18% { opacity: 1; transform: translate(-50%, -60%) scale(1.16) rotate(calc(var(--rot, 0deg) + 12deg)); }
+      100% { opacity: 0; transform: translate(calc(-50% + var(--dx, 0px)), calc(-138% + var(--dy, -24px))) scale(.72) rotate(calc(var(--rot, 0deg) + 50deg)); }
+    }
+
+
+
+    /* EXTRA MOVING THEME WORLDS - menu/background/puzzle effects only. Keyboard layout stays unchanged. */
+    .themeScene { position:absolute; inset:-8%; pointer-events:none; opacity:.62; mix-blend-mode: screen; }
+    .themeScene::before, .themeScene::after { content:''; position:absolute; pointer-events:none; }
+    .scene-hop::before { width:160px; height:160px; left:7%; top:58%; border-radius:50%; background:radial-gradient(circle at 35% 30%, var(--accent3), var(--accent2) 36%, transparent 64%); filter:blur(1px) drop-shadow(0 0 30px var(--accent2)); animation: slowPlanetBob 6s ease-in-out infinite; }
+    .scene-twinkle::before { inset:0; background:radial-gradient(circle at 15% 18%, #fff 0 1px, transparent 2px), radial-gradient(circle at 67% 32%, #fff 0 1px, transparent 2px), radial-gradient(circle at 42% 70%, #fff 0 1px, transparent 2px); background-size:120px 100px; animation: starBlink 2.2s ease-in-out infinite alternate; }
+    .scene-bounce::before { width:240px; height:240px; right:-40px; bottom:-46px; border-radius:50%; background:radial-gradient(circle at 38% 34%, #fff, var(--accent) 12%, var(--bg3) 54%, transparent 68%); animation: moonRoll 12s ease-in-out infinite alternate; }
+    .scene-launch::before { left:12%; bottom:0; width:90px; height:70%; background:linear-gradient(0deg, color-mix(in srgb, var(--accent3) 34%, transparent), transparent 70%); clip-path:polygon(42% 100%,58% 100%,100% 0,0 0); animation: launchBeam 2.4s ease-in-out infinite; }
+    .scene-wave::before { width:220px; height:220px; left:65%; top:6%; border:3px dashed color-mix(in srgb, var(--accent) 42%, transparent); border-radius:50%; animation: orbitRing 8s linear infinite; }
+    .scene-swirl::before { width:540px; height:540px; left:50%; top:52%; transform:translate(-50%,-50%); border-radius:50%; background:conic-gradient(from 20deg, transparent, color-mix(in srgb, var(--accent) 28%, transparent), transparent, color-mix(in srgb, var(--accent2) 30%, transparent), transparent); filter:blur(4px); animation: galaxySpin 18s linear infinite; }
+    .scene-alien::before { width:120px; height:120px; right:12%; top:14%; border-radius:50% 50% 42% 42%; background:radial-gradient(circle at 35% 35%, #fff 0 5px, transparent 7px), radial-gradient(circle at 65% 35%, #fff 0 5px, transparent 7px), linear-gradient(145deg, var(--accent3), var(--accent)); filter:drop-shadow(0 0 28px var(--accent)); animation: alienPeek 4.8s ease-in-out infinite; }
+    .scene-comet::before, .scene-comet::after { width:190px; height:5px; border-radius:999px; background:linear-gradient(90deg, transparent, var(--accent), #fff); filter:drop-shadow(0 0 18px var(--accent)); animation: cometAcross 3.6s linear infinite; }
+    .scene-comet::after { animation-delay:1.2s; top:44%; }
+    .scene-meteor::before { inset:0; background:linear-gradient(145deg, transparent 0 55%, color-mix(in srgb, var(--accent3) 16%, transparent) 56%, transparent 58%); animation: meteorSweep 2.9s linear infinite; }
+    .scene-pets::before { content:'🐶 🐰 🐱'; left:8%; top:15%; font-size:56px; letter-spacing:28px; filter:drop-shadow(0 0 22px var(--accent3)); animation: petParade 7s ease-in-out infinite alternate; }
+    .scene-portal::before { width:min(46vw,420px); height:min(46vw,420px); left:50%; top:49%; transform:translate(-50%,-50%); border-radius:50%; background:repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--accent2) 45%, transparent) 0 12deg, transparent 12deg 24deg), radial-gradient(circle, #000 0 32%, color-mix(in srgb, var(--accent) 28%, transparent) 34%, transparent 62%); filter:drop-shadow(0 0 42px var(--accent2)); animation: portalSpin 4.6s linear infinite; }
+    .scene-signal::before { width:60vw; height:60vw; left:20%; top:10%; border:3px solid color-mix(in srgb, var(--accent) 32%, transparent); border-radius:50%; animation: signalPulse 2.2s ease-out infinite; }
+    .scene-signal::after { width:5px; height:70%; left:52%; top:8%; background:linear-gradient(180deg, transparent, var(--accent), transparent); transform:rotate(28deg); animation: signalSweep 3s ease-in-out infinite alternate; }
+    .scene-constellation::before { inset:10% 8%; background:linear-gradient(30deg, transparent 10%, color-mix(in srgb, var(--accent) 45%, transparent) 11% 12%, transparent 13% 44%, color-mix(in srgb, var(--accent3) 45%, transparent) 45% 46%, transparent 47%), radial-gradient(circle at 12% 40%, #fff 0 4px, transparent 5px), radial-gradient(circle at 32% 25%, #fff 0 4px, transparent 5px), radial-gradient(circle at 58% 56%, #fff 0 4px, transparent 5px), radial-gradient(circle at 82% 35%, #fff 0 4px, transparent 5px); filter:drop-shadow(0 0 12px var(--accent)); animation: constellationGlow 2.4s ease-in-out infinite alternate; }
+
+    .cosmicFloat[data-motion="hop"] { animation: decorHop var(--dur, 14s) ease-in-out infinite alternate; }
+    .cosmicFloat[data-motion="twinkle"] { animation: decorTwinkle var(--dur, 12s) ease-in-out infinite alternate; }
+    .cosmicFloat[data-motion="bounce"] { animation: decorBounce var(--dur, 13s) ease-in-out infinite alternate; }
+    .cosmicFloat[data-motion="launch"] { animation: decorLaunch var(--dur, 10s) cubic-bezier(.15,.8,.35,1) infinite; }
+    .cosmicFloat[data-motion="wave"] { animation: decorWave var(--dur, 16s) ease-in-out infinite alternate; }
+    .cosmicFloat[data-motion="swirl"] { animation: decorSwirl var(--dur, 18s) linear infinite; }
+    .cosmicFloat[data-motion="alien"] { animation: decorAlien var(--dur, 13s) ease-in-out infinite alternate; }
+    .cosmicFloat[data-motion="comet"] { animation: decorComet var(--dur, 9s) linear infinite; }
+    .cosmicFloat[data-motion="meteor"] { animation: decorMeteor var(--dur, 8s) linear infinite; }
+    .cosmicFloat[data-motion="pet"] { animation: decorPet var(--dur, 14s) ease-in-out infinite alternate; }
+    .cosmicFloat[data-motion="portal"] { animation: decorPortal var(--dur, 15s) ease-in-out infinite alternate; }
+    .cosmicFloat[data-motion="signal"] { animation: decorSignal var(--dur, 12s) ease-in-out infinite alternate; }
+    .cosmicFloat[data-motion="constellation"] { animation: decorConstellation var(--dur, 12s) ease-in-out infinite alternate; }
+
+    .themeTrail { position:absolute; width:170px; height:5px; border-radius:999px; background:linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent) 82%, white 8%), transparent); filter:drop-shadow(0 0 16px var(--accent)); opacity:.76; animation: trailSlide var(--dur, 4s) linear infinite; }
+    .constellationLine { position:absolute; height:3px; transform-origin:left center; border-radius:999px; background:linear-gradient(90deg, transparent, var(--accent3), var(--accent), transparent); opacity:.62; animation: lineGlow 2.6s ease-in-out infinite alternate; }
+
+    .themeAction { position:fixed; z-index:34; left:var(--x); top:var(--y); pointer-events:none; transform:translate(-50%,-50%); font-size:clamp(32px,5vw,72px); filter:drop-shadow(0 0 18px var(--accent)) drop-shadow(0 0 32px var(--accent2)); }
+    .themeAction.launch { animation: actionLaunch .9s cubic-bezier(.16,.9,.34,1) forwards; }
+    .themeAction.hop { animation: actionHop .9s ease forwards; }
+    .themeAction.twinkle { animation: actionTwinkle .85s ease forwards; }
+    .themeAction.bounce { animation: actionBounce .9s ease forwards; }
+    .themeAction.wave { animation: actionWave .9s ease forwards; }
+    .themeAction.swirl { animation: actionSwirl .95s ease forwards; }
+    .themeAction.alien { animation: actionAlien .9s ease forwards; }
+    .themeAction.comet { animation: actionComet .88s cubic-bezier(.12,.8,.25,1) forwards; }
+    .themeAction.meteor { animation: actionMeteor .82s ease forwards; }
+    .themeAction.pet { animation: actionPet .95s ease forwards; }
+    .themeAction.portal { animation: actionPortal 1s ease forwards; }
+    .themeAction.signal { animation: actionSignal .9s ease forwards; }
+    .themeAction.constellation { animation: actionConstellation 1s ease forwards; }
+    .themeAction::after { content:''; position:absolute; left:50%; top:50%; width:16px; height:16px; border-radius:50%; background:var(--accent3); transform:translate(-50%,-50%); box-shadow:0 0 16px var(--accent3), 0 0 44px var(--accent); opacity:.55; }
+
+    @keyframes slowPlanetBob { from{transform:translateY(20px) rotate(-8deg)} to{transform:translateY(-28px) rotate(12deg)} }
+    @keyframes starBlink { from{opacity:.28; transform:scale(1)} to{opacity:.9; transform:scale(1.03)} }
+    @keyframes moonRoll { from{transform:translate(0,0) rotate(-7deg)} to{transform:translate(-40px,-22px) rotate(8deg)} }
+    @keyframes launchBeam { 0%,100%{opacity:.25; transform:scaleY(.84)} 50%{opacity:.82; transform:scaleY(1.08)} }
+    @keyframes orbitRing { to{transform:rotate(360deg)} }
+    @keyframes galaxySpin { to{transform:translate(-50%,-50%) rotate(360deg)} }
+    @keyframes alienPeek { 0%,100%{transform:translateY(0) rotate(-4deg)} 45%{transform:translateY(36px) rotate(6deg)} }
+    @keyframes cometAcross { 0%{transform:translate(-30vw, 10vh) rotate(-18deg); opacity:0} 15%,70%{opacity:.8} 100%{transform:translate(120vw, -32vh) rotate(-18deg); opacity:0} }
+    @keyframes meteorSweep { 0%{transform:translate(-30vw,-35vh); opacity:0} 20%,70%{opacity:.8} 100%{transform:translate(38vw,45vh); opacity:0} }
+    @keyframes petParade { from{transform:translateX(-10px) translateY(8px) rotate(-4deg)} to{transform:translateX(40px) translateY(-20px) rotate(5deg)} }
+    @keyframes portalSpin { to{transform:translate(-50%,-50%) rotate(360deg)} }
+    @keyframes signalPulse { 0%{transform:scale(.28); opacity:.85} 100%{transform:scale(1.16); opacity:0} }
+    @keyframes signalSweep { from{transform:rotate(16deg); opacity:.25} to{transform:rotate(60deg); opacity:.86} }
+    @keyframes constellationGlow { from{opacity:.34} to{opacity:.92} }
+    @keyframes decorHop { 0%{transform:translateY(20px) rotate(-8deg)} 45%{transform:translateY(-28px) rotate(7deg) scale(1.12)} 100%{transform:translateY(10px) rotate(3deg)} }
+    @keyframes decorTwinkle { from{opacity:.35; transform:scale(.72) rotate(-12deg)} to{opacity:.9; transform:scale(1.18) rotate(12deg)} }
+    @keyframes decorBounce { 0%,100%{transform:translateY(8px) scale(1)} 50%{transform:translateY(-36px) scale(1.08)} }
+    @keyframes decorLaunch { 0%{transform:translateY(80vh) rotate(-8deg); opacity:0} 16%{opacity:.9} 70%{opacity:.85} 100%{transform:translateY(-28vh) rotate(10deg); opacity:0} }
+    @keyframes decorWave { from{transform:translate(-16px, 10px) rotate(-12deg)} to{transform:translate(22px, -24px) rotate(14deg)} }
+    @keyframes decorSwirl { to{transform:rotate(360deg) translateX(24px) rotate(-360deg)} }
+    @keyframes decorAlien { 0%{transform:translateY(0) scale(.92)} 35%{transform:translateY(28px) scale(1.06) rotate(8deg)} 100%{transform:translateY(-18px) scale(.98) rotate(-6deg)} }
+    @keyframes decorComet { 0%{transform:translate(-70vw, 30vh) rotate(-20deg); opacity:0} 20%,80%{opacity:.85} 100%{transform:translate(85vw, -28vh) rotate(-20deg); opacity:0} }
+    @keyframes decorMeteor { 0%{transform:translate(-40vw,-25vh) rotate(30deg); opacity:0} 18%,72%{opacity:.86} 100%{transform:translate(50vw,45vh) rotate(30deg); opacity:0} }
+    @keyframes decorPet { from{transform:translateY(18px) rotate(-8deg) scale(.95)} to{transform:translateY(-28px) rotate(8deg) scale(1.08)} }
+    @keyframes decorPortal { from{transform:rotate(-22deg) scale(.78); opacity:.35} to{transform:rotate(22deg) scale(1.14); opacity:.82} }
+    @keyframes decorSignal { 0%,100%{transform:translateY(0); opacity:.45} 50%{transform:translateY(-18px); opacity:1} }
+    @keyframes decorConstellation { from{opacity:.35; transform:scale(.9)} to{opacity:1; transform:scale(1.1)} }
+    @keyframes trailSlide { 0%{transform:translateX(-35vw) translateY(20vh) rotate(-18deg); opacity:0} 18%,70%{opacity:.78} 100%{transform:translateX(105vw) translateY(-28vh) rotate(-18deg); opacity:0} }
+    @keyframes lineGlow { from{opacity:.24; filter:blur(.5px)} to{opacity:.92; filter:blur(0)} }
+    @keyframes actionLaunch { 0%{opacity:0; transform:translate(-50%,20%) scale(.4) rotate(-12deg)} 20%{opacity:1} 100%{opacity:0; transform:translate(-50%,-240%) scale(1.15) rotate(12deg)} }
+    @keyframes actionHop { 0%{opacity:0; transform:translate(-50%,-50%) scale(.35)} 30%{opacity:1; transform:translate(-20%,-130%) scale(1.12)} 65%{transform:translate(-75%,-40%) scale(.96)} 100%{opacity:0; transform:translate(15%,-88%) scale(.7)} }
+    @keyframes actionTwinkle { 0%{opacity:0; transform:translate(-50%,-50%) scale(.2) rotate(0)} 40%{opacity:1; transform:translate(-50%,-50%) scale(1.35) rotate(70deg)} 100%{opacity:0; transform:translate(-50%,-80%) scale(.5) rotate(160deg)} }
+    @keyframes actionBounce { 0%{opacity:0; transform:translate(-50%,30%) scale(.4)} 35%{opacity:1; transform:translate(-50%,-85%) scale(1.1)} 62%{transform:translate(-50%,-18%) scale(.9)} 100%{opacity:0; transform:translate(-50%,-120%) scale(.62)} }
+    @keyframes actionWave { 0%{opacity:0; transform:translate(-50%,-50%) rotate(-20deg) scale(.5)} 30%{opacity:1; transform:translate(-50%,-50%) rotate(16deg) scale(1.12)} 65%{transform:translate(-50%,-50%) rotate(-12deg) scale(1)} 100%{opacity:0; transform:translate(-50%,-90%) rotate(10deg) scale(.7)} }
+    @keyframes actionSwirl { 0%{opacity:0; transform:translate(-50%,-50%) rotate(0) scale(.2)} 45%{opacity:1; transform:translate(-50%,-50%) rotate(220deg) scale(1.22)} 100%{opacity:0; transform:translate(-50%,-50%) rotate(520deg) scale(.25)} }
+    @keyframes actionAlien { 0%{opacity:0; transform:translate(-50%,10%) scale(.3)} 28%{opacity:1; transform:translate(-50%,-55%) scale(1.16) rotate(-8deg)} 58%{transform:translate(-50%,-35%) scale(1) rotate(8deg)} 100%{opacity:0; transform:translate(-50%,-105%) scale(.66)} }
+    @keyframes actionComet { 0%{opacity:0; transform:translate(-160%,-20%) rotate(-18deg) scale(.55)} 20%{opacity:1} 100%{opacity:0; transform:translate(180%,-145%) rotate(-18deg) scale(1.05)} }
+    @keyframes actionMeteor { 0%{opacity:0; transform:translate(-150%,-190%) rotate(35deg) scale(.8)} 24%{opacity:1} 100%{opacity:0; transform:translate(120%,100%) rotate(35deg) scale(.72)} }
+    @keyframes actionPet { 0%{opacity:0; transform:translate(-50%,-50%) scale(.32) rotate(-10deg)} 35%{opacity:1; transform:translate(-50%,-90%) scale(1.08) rotate(8deg)} 72%{transform:translate(-50%,-58%) scale(1) rotate(-6deg)} 100%{opacity:0; transform:translate(-50%,-120%) scale(.68) rotate(8deg)} }
+    @keyframes actionPortal { 0%{opacity:0; transform:translate(-50%,-50%) rotate(0) scale(.2)} 40%{opacity:1; transform:translate(-50%,-50%) rotate(180deg) scale(1.28)} 100%{opacity:0; transform:translate(-50%,-50%) rotate(540deg) scale(.1)} }
+    @keyframes actionSignal { 0%{opacity:0; transform:translate(-50%,-50%) scale(.3)} 35%{opacity:1; transform:translate(-50%,-50%) scale(1.22)} 100%{opacity:0; transform:translate(-50%,-50%) scale(2.2)} }
+    @keyframes actionConstellation { 0%{opacity:0; transform:translate(-50%,-50%) scale(.25)} 30%{opacity:1; transform:translate(-50%,-50%) scale(1.08)} 65%{transform:translate(-50%,-92%) scale(1.18)} 100%{opacity:0; transform:translate(-50%,-150%) scale(.62)} }
+
+    /* TWO PAGES */
+    .page {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      display: none;
+      overflow: hidden;
+    }
+    .page.active { display: block; }
+
+    /* PAGE 1 */
+    #homePage { padding: clamp(10px, 2vw, 24px); overflow-y: auto; pointer-events: auto; }
+    #homePage::-webkit-scrollbar { width: 10px; }
+    #homePage::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--accent) 40%, transparent); border-radius: 99px; }
+
+    .homeShell {
+      width: min(1220px, 98vw);
+      margin: 0 auto;
+      min-height: 100%;
+      display: grid;
+      grid-template-columns: minmax(280px, .95fr) minmax(340px, 1.4fr);
+      grid-template-rows: auto 1fr;
+      gap: clamp(12px, 2vw, 20px);
+      align-items: stretch;
+      padding-bottom: 18px;
+    }
+    .panel {
+      border: 2px solid color-mix(in srgb, var(--accent) 42%, transparent);
+      border-radius: 30px;
+      background: linear-gradient(145deg, rgba(255,255,255,.12), rgba(255,255,255,.035)), var(--panel);
+      box-shadow: 0 18px 60px rgba(0,0,0,.43), 0 0 48px color-mix(in srgb, var(--accent) 18%, transparent), inset 0 1px 0 rgba(255,255,255,.14);
+      backdrop-filter: blur(14px);
+    }
+    .heroPanel { grid-column: 1 / 3; padding: clamp(16px, 2.8vw, 30px); position: relative; overflow: hidden; }
+    .heroPanel::before {
+      content: 'A B C 🚀 D E F 🌙 G H I ⭐ J K L 🪐 M N O';
+      position: absolute;
+      left: -2%;
+      bottom: -22px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(38px, 8vw, 96px);
+      letter-spacing: .18em;
+      color: rgba(255,255,255,.06);
+      white-space: nowrap;
+      animation: slideLetters 18s linear infinite;
+    }
+    @keyframes slideLetters { to { transform: translateX(-35%); } }
+    .heroInner { position: relative; z-index: 2; display: grid; grid-template-columns: 1.25fr .75fr; gap: 18px; align-items: center; }
+    .kicker { display: inline-flex; align-items: center; gap: 10px; font-weight: 900; color: var(--accent3); text-transform: uppercase; letter-spacing: .08em; }
+    h1 { margin: 6px 0 8px; font-family: 'Orbitron', sans-serif; font-size: clamp(34px, 6vw, 74px); line-height: .95; text-shadow: 0 0 26px var(--keyGlow), 0 8px 0 rgba(0,0,0,.28); }
+    .heroText { margin: 0; color: var(--soft); font-size: clamp(16px, 2.2vw, 22px); line-height: 1.32; max-width: 780px; }
+    .heroActions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+    .orbitPreview { position: relative; min-height: 190px; border-radius: 28px; background: rgba(255,255,255,.06); overflow: hidden; border: 1px solid rgba(255,255,255,.12); }
+    .orbitPreview::before, .orbitPreview::after { content:''; position:absolute; inset:20%; border:3px dashed color-mix(in srgb, var(--accent) 42%, transparent); border-radius:50%; animation: spin 14s linear infinite; }
+    .orbitPreview::after { inset: 32%; animation-duration: 9s; animation-direction: reverse; border-color: color-mix(in srgb, var(--accent2) 42%, transparent); }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .samplePiece { position:absolute; width:58px; height:58px; display:grid; place-items:center; font-family:'Orbitron'; font-size:28px; font-weight:900; background:linear-gradient(145deg,var(--accent3),var(--accent)); color:#071024; border-radius:16px; box-shadow:0 0 24px var(--keyGlow); }
+    .samplePiece.one { left:12%; top:16%; animation: piecePop 2.1s ease-in-out infinite alternate; }
+    .samplePiece.two { right:14%; top:35%; animation: pieceWiggle 1.7s ease-in-out infinite alternate; }
+    .samplePiece.three { left:42%; bottom:12%; animation: pieceJump 1.5s ease-in-out infinite alternate; }
+    @keyframes piecePop { to { transform: scale(1.16) rotate(5deg); } }
+    @keyframes pieceWiggle { 0%{transform:rotate(-8deg)} 100%{transform:rotate(10deg) translateY(-10px)} }
+    @keyframes pieceJump { to { transform: translateY(-18px) scale(1.08); } }
+
+    .bigButton, .pillButton, .themeButton, .navButton {
+      border: 0;
+      cursor: pointer;
+      border-radius: 999px;
+      background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 84%, white 8%), color-mix(in srgb, var(--accent2) 84%, white 5%));
+      color: #081024;
+      font-weight: 900;
+      box-shadow: 0 10px 26px rgba(0,0,0,.38), 0 0 24px color-mix(in srgb, var(--accent) 35%, transparent), inset 0 2px 0 rgba(255,255,255,.38);
+      transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+    }
+    .bigButton { padding: 15px 22px; font-size: clamp(17px, 2vw, 22px); min-height: 56px; }
+    .pillButton { padding: 11px 16px; font-size: 16px; min-height: 44px; }
+    .navButton { width: 52px; height: 52px; font-size: 25px; }
+    .bigButton:hover, .pillButton:hover, .themeButton:hover, .navButton:hover { transform: translateY(-3px) scale(1.03); filter: brightness(1.06); }
+    .bigButton:active, .pillButton:active, .themeButton:active, .navButton:active { transform: translateY(1px) scale(.98); }
+    .ghostButton { background: rgba(255,255,255,.09); color: #fff; border: 2px solid color-mix(in srgb, var(--accent) 45%, transparent); }
+
+    .themeDock { padding: 16px; display: grid; gap: 12px; align-content: start; }
+    .sectionTitle { margin: 0 0 8px; font-family: 'Orbitron', sans-serif; letter-spacing: .03em; font-size: clamp(18px, 2.2vw, 26px); }
+    .themeGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .themeButton { min-height: 58px; padding: 9px 12px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 16px; }
+    .themeButton.active { outline: 4px solid rgba(255,255,255,.24); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent3) 80%, white 10%), 0 0 32px var(--keyGlow), inset 0 2px 0 rgba(255,255,255,.42); }
+
+    .infoDock { padding: 16px; display: grid; gap: 12px; }
+    .infoCard { border-radius: 24px; padding: 14px; background: rgba(255,255,255,.08); border: 1.5px solid rgba(255,255,255,.14); }
+    .infoCard h3 { margin: 0 0 6px; font-size: 20px; }
+    .infoCard p { margin: 0; color: var(--soft); line-height: 1.34; font-size: 15px; }
+
+    .activityDock { grid-column: 2; grid-row: 2; padding: clamp(14px, 2vw, 22px); display: grid; grid-template-rows: auto auto 1fr auto; gap: 12px; min-height: 570px; }
+    .activityTop { display: flex; gap: 12px; justify-content: space-between; align-items: center; }
+    .activityTop p { margin: 4px 0 0; color: var(--soft); line-height: 1.25; }
+    .activityNav { display: flex; gap: 8px; flex: 0 0 auto; }
+    .selectedMission { position: relative; overflow: hidden; min-height: 196px; border-radius: 28px; padding: 20px; background: radial-gradient(circle at 12% 22%, color-mix(in srgb, var(--accent3) 38%, transparent), transparent 24%), linear-gradient(135deg, color-mix(in srgb, var(--accent) 24%, transparent), color-mix(in srgb, var(--accent2) 18%, transparent)), rgba(255,255,255,.08); border: 2px solid rgba(255,255,255,.16); box-shadow: inset 0 1px 0 rgba(255,255,255,.16); }
+    .selectedMission::after { content: '🧩'; position: absolute; right: 16px; top: 16px; font-size: clamp(42px, 8vw, 88px); animation: rocketBob 1.8s ease-in-out infinite alternate; filter: drop-shadow(0 0 18px var(--accent3)); }
+    @keyframes rocketBob { to { transform: translateY(-12px) rotate(7deg); } }
+    .missionBadge { display: inline-flex; padding: 7px 11px; border-radius: 999px; background: rgba(0,0,0,.25); color: var(--accent3); font-weight: 900; letter-spacing: .04em; text-transform: uppercase; }
+    .selectedMission h3 { max-width: 72%; margin: 12px 0 6px; font-size: clamp(26px, 4vw, 42px); line-height: 1; }
+    .selectedMission p { max-width: 74%; margin: 0; color: rgba(255,255,255,.82); font-size: 17px; }
+    .missionChips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 14px; max-height: 76px; overflow: hidden; padding-right: 86px; }
+    .chip { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; min-height: 34px; padding: 5px 9px; border-radius: 12px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.15); font-weight: 900; font-family: 'Space Mono', monospace; }
+
+    .activityList { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; overflow: auto; padding-right: 4px; max-height: 300px; }
+    .activityList::-webkit-scrollbar { width: 8px; }
+    .activityList::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--accent) 45%, transparent); border-radius: 99px; }
+    .activityCard { border: 1.5px solid rgba(255,255,255,.14); border-radius: 20px; background: rgba(255,255,255,.075); cursor: pointer; text-align: left; padding: 12px; min-height: 90px; box-shadow: inset 0 1px 0 rgba(255,255,255,.1); transition: transform .12s ease, background .12s ease, border-color .12s ease; }
+    .activityCard:hover { transform: translateY(-3px); background: rgba(255,255,255,.12); }
+    .activityCard.active { border-color: var(--accent3); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent3) 38%, transparent), 0 0 24px color-mix(in srgb, var(--accent3) 26%, transparent); }
+    .activityCard strong { display: block; margin-bottom: 3px; font-size: 16px; }
+    .activityCard span { display: block; color: var(--soft); font-size: 13px; }
+    .activityCard[data-mode="word"] { background: linear-gradient(145deg, color-mix(in srgb, var(--accent3) 14%, transparent), rgba(255,255,255,.075)); }
+
+    /* PAGE 2: KEYBOARD + INSTRUCTION + BACK BUTTON */
+    #keyboardPage { pointer-events: auto; padding: clamp(8px, 1.5vw, 18px); }
+    .keyboardOnlyShell { height: 100%; width: min(1180px, 99vw); margin: 0 auto; display: grid; grid-template-rows: auto minmax(120px, 1fr) auto; gap: clamp(8px, 1.3vh, 14px); align-items: end; }
+    .missionBar { align-self: start; border-radius: 26px; padding: 10px 12px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; background: linear-gradient(145deg, rgba(255,255,255,.13), rgba(255,255,255,.04)), var(--panel); border: 2px solid color-mix(in srgb, var(--accent) 42%, transparent); box-shadow: 0 16px 48px rgba(0,0,0,.4), 0 0 34px color-mix(in srgb, var(--accent) 16%, transparent), inset 0 1px 0 rgba(255,255,255,.15); backdrop-filter: blur(13px); }
+    #backHome { border: 0; cursor: pointer; min-width: 110px; min-height: 52px; border-radius: 999px; background: rgba(255,255,255,.1); border: 2px solid color-mix(in srgb, var(--accent3) 70%, transparent); font-weight: 900; box-shadow: 0 8px 22px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.15); }
+    .instructionText { min-width: 0; }
+    .instructionText strong { display: block; font-family: 'Orbitron', sans-serif; font-size: clamp(17px, 2.3vw, 25px); letter-spacing: .02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .instructionText span { display: block; color: var(--soft); font-size: clamp(13px, 1.6vw, 17px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .progressRocket { min-width: 112px; text-align: center; font-size: 13px; color: var(--soft); font-weight: 900; }
+    .progressTrack { margin-top: 5px; height: 10px; border-radius: 99px; overflow: hidden; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.14); }
+    #progressFill { width: 0%; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent3), var(--accent2)); transition: width .25s ease; }
+
+    .displayZone { align-self: stretch; display: grid; min-height: 0; }
+    .sequenceMode, .wordMode { display: none; min-height: 0; }
+    .sequenceMode.active, .wordMode.active { display: grid; }
+    .sequenceMode { grid-template-rows: auto minmax(64px, 1fr); gap: 10px; }
+    .targetStrip { border-radius: 20px; padding: 9px; background: rgba(0,0,0,.24); border: 1.5px solid rgba(255,255,255,.13); display: flex; gap: 6px; overflow: auto; min-height: 54px; }
+    .targetStrip::-webkit-scrollbar { height: 7px; }
+    .targetStrip::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--accent) 40%, transparent); border-radius: 999px; }
+    .targetToken { flex: 0 0 auto; min-width: 36px; min-height: 34px; padding: 4px 9px; border-radius: 12px; background: rgba(255,255,255,.11); border: 1px solid rgba(255,255,255,.13); font-family: 'Space Mono', monospace; font-weight: 900; display: flex; align-items: center; justify-content: center; }
+    .targetToken.done { background: color-mix(in srgb, var(--good) 26%, rgba(255,255,255,.08)); color: #d9ffe9; }
+    .targetToken.now { background: color-mix(in srgb, var(--accent3) 35%, rgba(255,255,255,.1)); color: #fff; animation: tokenPulse .75s ease-in-out infinite alternate; }
+    @keyframes tokenPulse { to { transform: translateY(-3px) scale(1.05); box-shadow: 0 0 16px color-mix(in srgb, var(--accent3) 42%, transparent); } }
+    .typedPanel { position: relative; min-height: 96px; border-radius: 26px; background: rgba(2, 4, 16, .62); border: 2px solid rgba(255,255,255,.13); overflow: hidden; box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 16px 42px rgba(0,0,0,.35); }
+    .typedPanel::before { content: 'typing galaxy'; position: absolute; right: 16px; bottom: 8px; font-family: 'Orbitron', sans-serif; font-size: clamp(24px, 4vw, 52px); opacity: .055; letter-spacing: .08em; text-transform: uppercase; }
+    #typedOutput { position: relative; z-index: 2; height: 100%; padding: clamp(12px, 2vw, 22px); font-family: 'Space Mono', monospace; font-size: clamp(22px, 4.5vw, 52px); line-height: 1.18; white-space: pre-wrap; word-break: break-word; color: #fff; text-shadow: 0 0 18px var(--keyGlow); }
+    .emptyHint { color: rgba(255,255,255,.42); font-family: 'Fredoka', sans-serif; font-size: clamp(18px, 2.8vw, 30px); }
+
+    /* WORD PUZZLE */
+    .wordMode { grid-template-rows: auto 1fr auto; gap: 10px; }
+    .wordHeader { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .wordHeader strong { font-family: 'Orbitron', sans-serif; font-size: clamp(18px, 2.4vw, 28px); }
+    .wordControls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .smallRound { min-width: 44px; min-height: 44px; border-radius: 999px; cursor: pointer; border: 2px solid rgba(255,255,255,.16); background: rgba(255,255,255,.1); font-weight: 900; box-shadow: inset 0 1px 0 rgba(255,255,255,.14); }
+    .wordPuzzleStage { position: relative; min-height: 180px; border-radius: 30px; border: 2px solid rgba(255,255,255,.14); background: radial-gradient(circle at 50% 44%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 34%), rgba(2, 4, 16, .60); overflow: hidden; box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 16px 42px rgba(0,0,0,.35); }
+    .wordPuzzleStage::before { content: 'puzzle orbit'; position: absolute; left: 18px; bottom: 8px; font-family: 'Orbitron'; letter-spacing: .12em; font-size: clamp(22px, 4vw, 46px); opacity: .055; text-transform: uppercase; }
+    .puzzleSlots { position: absolute; left: 50%; top: 55%; transform: translate(-50%, -50%); display: flex; justify-content: center; align-items: center; gap: clamp(6px, 1vw, 12px); padding: 12px; border-radius: 28px; }
+    .puzzleSlot { position: relative; width: clamp(48px, 8.2vw, 82px); height: clamp(48px, 8.2vw, 82px); border-radius: 18px; display: grid; place-items: center; font-family: 'Orbitron'; font-size: clamp(26px, 5vw, 50px); font-weight: 900; color: #fff; background: rgba(255,255,255,.08); border: 3px dashed color-mix(in srgb, var(--accent) 48%, transparent); box-shadow: inset 0 1px 0 rgba(255,255,255,.16); text-shadow: 0 0 14px var(--keyGlow); }
+    .puzzleSlot::after { content:''; position:absolute; right:-11px; top:calc(50% - 11px); width:22px; height:22px; border-radius:50%; background: color-mix(in srgb, var(--accent3) 20%, rgba(255,255,255,.08)); border:2px solid rgba(255,255,255,.1); }
+    .puzzleSlot:last-child::after { display:none; }
+    .puzzleSlot.filled { background: linear-gradient(145deg, color-mix(in srgb, var(--accent3) 88%, white 4%), color-mix(in srgb, var(--accent) 82%, white 3%)); color: #071024; border-style: solid; border-color: rgba(255,255,255,.82); box-shadow: 0 0 28px var(--keyGlow), inset 0 2px 0 rgba(255,255,255,.48); text-shadow: none; }
+    .puzzleSlot.now { animation: slotGlow .7s ease-in-out infinite alternate; }
+    @keyframes slotGlow { to { transform: translateY(-5px) scale(1.05); box-shadow: 0 0 24px color-mix(in srgb, var(--accent3) 55%, transparent); } }
+    .puzzleSlots.complete .puzzleSlot { animation: puzzleTogether .88s cubic-bezier(.15,1.2,.38,1) both; }
+    @keyframes puzzleTogether { 0%{transform:translateY(0) scale(1)} 35%{transform:translateY(-18px) scale(1.14) rotate(var(--wiggle, 0deg))} 70%{transform:translateY(4px) scale(.98)} 100%{transform:translateY(0) scale(1.05)} }
+    .scatterPiece { position: absolute; left: var(--x); top: var(--y); width: clamp(44px, 7vw, 74px); height: clamp(44px, 7vw, 74px); border-radius: 18px; display: grid; place-items: center; font-family: 'Orbitron'; font-weight: 900; font-size: clamp(24px, 4.6vw, 45px); color: #071024; background: linear-gradient(145deg, color-mix(in srgb, var(--accent2) 70%, white 22%), color-mix(in srgb, var(--accent3) 76%, white 8%)); border: 3px solid rgba(255,255,255,.75); box-shadow: 0 0 22px color-mix(in srgb, var(--accent2) 42%, transparent), inset 0 2px 0 rgba(255,255,255,.5); transform: translate(-50%, -50%) rotate(var(--r)); }
+    .scatterPiece::before { content:''; position:absolute; top:-12px; left:calc(50% - 12px); width:24px; height:24px; border-radius:50%; background:inherit; border:inherit; border-bottom:0; }
+    .scatterPiece::after { content:''; position:absolute; right:-12px; top:calc(50% - 12px); width:24px; height:24px; border-radius:50%; background:inherit; border:inherit; border-left:0; }
+    .scatterPiece.needed { animation: needMe .6s ease-in-out infinite alternate; z-index: 2; }
+    @keyframes needMe { to { transform: translate(-50%, -58%) rotate(var(--r)) scale(1.12); filter: brightness(1.15); } }
+    .scatterPiece.taken { visibility: hidden; }
+    .flyingPuzzlePiece { position: fixed; z-index: 50; pointer-events: none; width: var(--w); height: var(--h); display:grid; place-items:center; border-radius: 18px; font-family:'Orbitron'; font-weight:900; font-size: var(--fs); color:#071024; background:linear-gradient(145deg, color-mix(in srgb, var(--accent2) 70%, white 22%), color-mix(in srgb, var(--accent3) 76%, white 8%)); border:3px solid rgba(255,255,255,.82); box-shadow:0 0 32px var(--keyGlow), inset 0 2px 0 rgba(255,255,255,.5); animation: flyToSlot .72s cubic-bezier(.14,1.1,.32,1) forwards; }
+    @keyframes flyToSlot { 0%{transform:translate(0,0) scale(1) rotate(var(--startRot))} 42%{transform:translate(calc(var(--dx)*.48), calc(var(--dy)*.34 - 40px)) scale(1.22) rotate(calc(var(--startRot) + 18deg))} 100%{transform:translate(var(--dx), var(--dy)) scale(.95) rotate(0deg)} }
+    .slot-slide { animation: slotSlide .48s ease both; }
+    .slot-pop { animation: slotPop .44s cubic-bezier(.16,1.35,.36,1) both; }
+    .slot-jump { animation: slotJump .48s ease both; }
+    .slot-wiggle { animation: slotWiggle .52s ease both; }
+    .slot-spin { animation: slotSpin .48s ease both; }
+    .slot-float { animation: slotFloat .52s ease both; }
+    @keyframes slotSlide { from{transform:translateX(-40px);opacity:.2} to{transform:translateX(0);opacity:1} }
+    @keyframes slotPop { 0%{transform:scale(.2);opacity:.1} 70%{transform:scale(1.18)} 100%{transform:scale(1);opacity:1} }
+    @keyframes slotJump { 0%{transform:translateY(24px);opacity:.1} 60%{transform:translateY(-12px)} 100%{transform:translateY(0);opacity:1} }
+    @keyframes slotWiggle { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-10deg)} 60%{transform:rotate(9deg)} }
+    @keyframes slotSpin { from{transform:rotate(-140deg) scale(.4);opacity:.1} to{transform:rotate(0) scale(1);opacity:1} }
+    @keyframes slotFloat { from{transform:translateY(-26px) scale(.75);opacity:.1} to{transform:translateY(0) scale(1);opacity:1} }
+    #wordMessage { min-height: 26px; text-align: center; color: var(--soft); font-weight: 800; }
+
+    #floatingKey { position: fixed; top: clamp(90px, 18vh, 172px); left: 50%; transform: translateX(-50%) scale(.5) translateY(-26px); z-index: 35; pointer-events: none; min-width: clamp(110px, 17vw, 220px); min-height: clamp(110px, 17vw, 220px); padding: 0 20px; display: flex; align-items: center; justify-content: center; border-radius: 38px; border: 5px solid color-mix(in srgb, var(--accent) 70%, white 18%); background: linear-gradient(155deg, rgba(8,14,44,.9), rgba(1,2,10,.72)); backdrop-filter: blur(12px); font-family: 'Orbitron', sans-serif; font-size: clamp(54px, 10vw, 124px); font-weight: 900; color: #fff; letter-spacing: -.02em; box-shadow: 0 0 48px var(--keyGlow), 0 0 120px color-mix(in srgb, var(--accent2) 42%, transparent), 0 34px 94px rgba(0,0,0,.78), inset 0 2px 0 rgba(255,255,255,.25); opacity: 0; }
+    #floatingKey::after { content: attr(data-emoji); position: absolute; top: -28px; right: -24px; font-size: clamp(30px, 4.5vw, 64px); filter: drop-shadow(0 0 16px var(--accent3)); }
+    #floatingKey.show.slideIn { animation: floatingSlide .82s cubic-bezier(.18,1.25,.35,1) forwards; }
+    #floatingKey.show.popIn { animation: floatingPop .78s cubic-bezier(.18,1.35,.35,1) forwards; }
+    #floatingKey.show.jumpIn { animation: floatingJump .82s cubic-bezier(.16,1.15,.36,1) forwards; }
+    #floatingKey.show.wiggleIn { animation: floatingWiggle .82s ease forwards; }
+    #floatingKey.show.spinIn { animation: floatingSpin .82s cubic-bezier(.18,1.2,.36,1) forwards; }
+    #floatingKey.show.floatIn { animation: floatingFloat .82s ease forwards; }
+    @keyframes floatingSlide { 0% { opacity: 0; transform: translateX(-130%) scale(.5); } 20% { opacity:1; } 72% { transform: translateX(-48%) scale(1.04); } 100% { opacity:0; transform: translateX(-20%) translateY(-16px) scale(.84); } }
+    @keyframes floatingPop { 0% { opacity:0; transform:translateX(-50%) scale(.18); } 35% { opacity:1; transform:translateX(-50%) scale(1.16); } 100% { opacity:0; transform:translateX(-50%) translateY(-20px) scale(.78); } }
+    @keyframes floatingJump { 0% { opacity:0; transform:translateX(-50%) translateY(60px) scale(.45); } 38% { opacity:1; transform:translateX(-50%) translateY(-22px) scale(1.08); } 65% { transform:translateX(-50%) translateY(8px) scale(1); } 100% { opacity:0; transform:translateX(-50%) translateY(-24px) scale(.82); } }
+    @keyframes floatingWiggle { 0% { opacity:0; transform:translateX(-50%) scale(.5) rotate(-18deg); } 20% { opacity:1; } 35% { transform:translateX(-50%) scale(1.05) rotate(12deg); } 55% { transform:translateX(-50%) scale(1) rotate(-9deg); } 75% { transform:translateX(-50%) scale(1) rotate(6deg); } 100% { opacity:0; transform:translateX(-50%) translateY(-18px) scale(.82) rotate(0); } }
+    @keyframes floatingSpin { 0% { opacity:0; transform:translateX(-50%) scale(.25) rotate(-160deg); } 35% { opacity:1; transform:translateX(-50%) scale(1.12) rotate(20deg); } 100% { opacity:0; transform:translateX(-50%) translateY(-22px) scale(.78) rotate(90deg); } }
+    @keyframes floatingFloat { 0% { opacity:0; transform:translateX(-50%) translateY(30px) scale(.5); } 25% { opacity:1; } 66% { transform:translateX(-50%) translateY(-18px) scale(1.05); } 100% { opacity:0; transform:translateX(-50%) translateY(-42px) scale(.74); } }
+
+    #keyboard { width: min(1080px, 97vw); justify-self: center; border-radius: 24px; padding: clamp(9px, 1.4vw, 15px); background: linear-gradient(180deg, color-mix(in srgb, var(--bg1) 72%, black 18%), #03050f); border: 2px solid color-mix(in srgb, var(--accent) 36%, transparent); box-shadow: 0 0 0 2px rgba(0,0,0,.75), 0 -6px 48px rgba(0,0,0,.65), 0 28px 80px rgba(0,0,0,.92), inset 0 1px 0 rgba(255,255,255,.1); }
+    .kb-row { display: flex; justify-content: center; gap: clamp(4px, .65vw, 7px); margin-bottom: clamp(4px, .65vw, 7px); }
+    .kb-row:last-child { margin-bottom: 0; }
+    .key { position: relative; display: flex; align-items: center; justify-content: center; height: clamp(40px, 5.8vw, 62px); min-width: clamp(34px, 5.6vw, 62px); padding: 0 5px; border-radius: 12px; border: 2px solid rgba(255,255,255,.11); background: linear-gradient(155deg, var(--keyTop), var(--keyBase)); color: rgba(220,232,255,.94); font-family: 'Space Mono', monospace; font-weight: 900; font-size: clamp(11px, 1.5vw, 18px); letter-spacing: .03em; text-transform: uppercase; cursor: pointer; box-shadow: inset 0 2px 0 rgba(255,255,255,.09), inset 0 -3px 0 rgba(0,0,0,.38), 0 6px 12px rgba(0,0,0,.42); transition: transform 60ms ease, background 80ms ease, box-shadow 80ms ease, border-color 80ms ease, color 80ms ease; overflow: hidden; }
+    .key::before { content: ''; position: absolute; inset: auto 8px 5px 8px; height: 4px; border-radius: 99px; background: var(--stripe, var(--accent)); opacity: .62; box-shadow: 0 0 12px var(--stripe, var(--accent)); }
+    .key.active { transform: translateY(-6px) scale(1.08); border-color: rgba(255,255,255,.68); color: #fff; background: linear-gradient(155deg, color-mix(in srgb, var(--accent) 74%, #2a3970 20%), color-mix(in srgb, var(--accent2) 62%, #0b0e1d 28%)); box-shadow: 0 0 18px var(--keyGlow), 0 0 46px color-mix(in srgb, var(--accent2) 26%, transparent), inset 0 2px 0 rgba(255,255,255,.28), 0 10px 24px rgba(0,0,0,.55); }
+    .key[data-key="tab"] { min-width: clamp(62px, 8vw, 96px); font-size: clamp(10px, 1.2vw, 15px); }
+    .key[data-key="caps"] { min-width: clamp(72px, 9.6vw, 112px); font-size: clamp(10px, 1.2vw, 15px); }
+    .key[data-key="shift-l"], .key[data-key="shift-r"] { min-width: clamp(82px, 10.8vw, 130px); }
+    .key[data-key="backspace"] { min-width: clamp(76px, 10vw, 118px); }
+    .key[data-key="enter"] { min-width: clamp(82px, 10.8vw, 130px); }
+    .key[data-key="space"] { min-width: clamp(210px, 31vw, 390px); }
+    .key[data-key="ctrl-l"], .key[data-key="ctrl-r"], .key[data-key="alt-l"], .key[data-key="alt-r"], .key[data-key="fn"] { min-width: clamp(46px, 6.2vw, 76px); font-size: clamp(10px, 1.2vw, 15px); }
+    .altLabel { position: absolute; top: 6px; right: 8px; font-size: .65em; opacity: .58; }
+    .key[data-f="lp"] { --stripe:#ff7070; }
+    .key[data-f="lr"] { --stripe:#ffab4d; }
+    .key[data-f="lm"] { --stripe:#ffe86d; }
+    .key[data-f="li"] { --stripe:#73ff9c; }
+    .key[data-f="ri"] { --stripe:#75ffd7; }
+    .key[data-f="rm"] { --stripe:#ffe86d; }
+    .key[data-f="rr"] { --stripe:#ffab4d; }
+    .key[data-f="rp"] { --stripe:#ff7070; }
+    .motion-slide { animation: keySlide .24s ease; }
+    .motion-pop { animation: keyPop .25s cubic-bezier(.16,1.3,.35,1); }
+    .motion-jump { animation: keyJump .25s ease; }
+    .motion-wiggle { animation: keyWiggle .28s ease; }
+    .motion-spin { animation: keySpin .28s ease; }
+    .motion-float { animation: keyFloat .3s ease; }
+    @keyframes keySlide { 0%{transform:translateX(-5px)} 50%{transform:translateX(6px) translateY(-5px) scale(1.08)} 100%{transform:translateX(0)} }
+    @keyframes keyPop { 0%{transform:scale(.86)} 60%{transform:translateY(-7px) scale(1.14)} 100%{transform:scale(1)} }
+    @keyframes keyJump { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px) scale(1.06)} }
+    @keyframes keyWiggle { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-5deg) translateY(-4px)} 60%{transform:rotate(5deg) translateY(-4px)} }
+    @keyframes keySpin { 0%{transform:rotate(-9deg)} 60%{transform:rotate(8deg) translateY(-5px) scale(1.08)} 100%{transform:rotate(0)} }
+    @keyframes keyFloat { 0%{transform:translateY(2px)} 50%{transform:translateY(-9px) scale(1.07)} 100%{transform:translateY(0)} }
+
+    .celebrationCard { position: fixed; left: 50%; top: 42%; transform: translate(-50%, -50%) scale(.7); z-index: 60; pointer-events: none; opacity: 0; min-width: min(430px, 82vw); border-radius: 34px; padding: 24px; text-align: center; background: linear-gradient(145deg, color-mix(in srgb, var(--accent3) 88%, white 8%), color-mix(in srgb, var(--accent2) 78%, white 8%)); color: #081024; box-shadow: 0 28px 90px rgba(0,0,0,.55), 0 0 52px var(--keyGlow); }
+    .celebrationCard strong { display:block; font-family:'Orbitron'; font-size: clamp(28px, 5vw, 52px); }
+    .celebrationCard span { display:block; font-size: clamp(16px, 2.4vw, 24px); font-weight:900; }
+    .celebrationCard.show { animation: celebrationPop 1.65s ease forwards; }
+    @keyframes celebrationPop { 0%{opacity:0;transform:translate(-50%,-50%) scale(.55) rotate(-4deg)} 18%,74%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(1deg)} 100%{opacity:0;transform:translate(-50%,-60%) scale(.86) rotate(4deg)} }
+
+    @media (max-width: 860px) {
+      html, body { overflow: auto; }
+      .page { position: absolute; min-height: 100dvh; overflow: auto; }
+      .homeShell { grid-template-columns: 1fr; width: min(720px, 98vw); }
+      .heroPanel, .activityDock { grid-column: 1; grid-row: auto; }
+      .heroInner { grid-template-columns: 1fr; }
+      .themeGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .activityList { grid-template-columns: 1fr; max-height: 300px; }
+      .selectedMission h3, .selectedMission p { max-width: 100%; padding-right: 78px; }
+      .missionChips { padding-right: 0; }
+      .keyboardOnlyShell { min-height: 100dvh; grid-template-rows: auto minmax(220px, 1fr) auto; }
+      .missionBar { grid-template-columns: auto 1fr; }
+      .progressRocket { grid-column: 1 / 3; width: 100%; }
+      .puzzleSlots { top: 58%; }
+    }
+    @media (max-width: 560px) {
+      .themeGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .missionBar { border-radius: 18px; padding: 8px; gap: 7px; }
+      #backHome { min-width: 86px; min-height: 44px; }
+      .instructionText strong, .instructionText span { white-space: normal; }
+      .keyboardOnlyShell { gap: 8px; }
+      .kb-row { gap: 3px; }
+      #keyboard { width: 99vw; padding: 7px; }
+      .key { border-radius: 9px; min-width: clamp(25px, 7.1vw, 40px); height: clamp(35px, 8.2vw, 46px); font-size: clamp(8px, 2.8vw, 12px); }
+      .key[data-key="space"] { min-width: 42vw; }
+      .key[data-key="backspace"], .key[data-key="enter"], .key[data-key="shift-l"], .key[data-key="shift-r"], .key[data-key="caps"] { min-width: 13vw; }
+      .wordHeader { align-items:flex-start; flex-direction:column; }
+      .wordControls { justify-content:flex-start; }
+    }
+
+
+    /* LINE-BY-LINE SEQUENCE VIEW
+       Shows only one workbook line at a time, like: F G F R F V F space.
+       The keyboard layout itself is unchanged. */
+    .sequenceMode { grid-template-rows: auto; align-content: center; justify-items: center; gap: 0; }
+    .sequenceMode.active { display: grid; }
+    .sequenceMode .typedPanel { display: none !important; }
+    .targetStrip {
+      width: min(780px, 96vw);
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      overflow: visible;
+      min-height: clamp(64px, 9vh, 92px);
+      padding: clamp(10px, 1.5vw, 16px);
+      border-radius: 24px;
+      border-color: color-mix(in srgb, var(--good) 62%, transparent);
+      background: linear-gradient(145deg, color-mix(in srgb, var(--good) 13%, rgba(0,0,0,.28)), rgba(0,0,0,.28));
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--good) 20%, transparent), 0 0 32px color-mix(in srgb, var(--accent) 22%, transparent), inset 0 1px 0 rgba(255,255,255,.16);
+    }
+    .targetToken {
+      min-width: clamp(42px, 5.5vw, 58px);
+      min-height: clamp(38px, 5vw, 48px);
+      padding: 6px 13px;
+      border-radius: 16px;
+      font-size: clamp(15px, 2vw, 22px);
+      transition: transform .18s ease, opacity .18s ease, background .18s ease, box-shadow .18s ease;
+    }
+    .targetToken.now {
+      transform: translateY(-5px) scale(1.08);
+      box-shadow: 0 0 22px color-mix(in srgb, var(--accent3) 45%, transparent), inset 0 1px 0 rgba(255,255,255,.25);
+    }
+    .targetToken.done { opacity: .72; transform: scale(.96); }
+    .targetToken.flashIn { animation: sequenceTokenArrive .42s cubic-bezier(.16, 1.28, .35, 1) both; }
+    @keyframes sequenceTokenArrive {
+      0% { opacity: 0; transform: translateY(-18px) scale(.78) rotate(-4deg); }
+      70% { opacity: 1; transform: translateY(3px) scale(1.08) rotate(2deg); }
+      100% { opacity: 1; transform: translateY(0) scale(1) rotate(0); }
+    }
+  
+
+    /* SIMPLE THEMES-ONLY MENU UPDATE */
+    body.simpleMode .infoDock,
+    body.simpleMode .activityDock,
+    body.simpleMode .displayZone,
+    body.simpleMode .progressRocket {
+      display: none !important;
+    }
+    body.simpleMode .homeShell {
+      width: min(1120px, 98vw);
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto;
+      align-content: start;
+    }
+    body.simpleMode .heroPanel,
+    body.simpleMode .themeDock {
+      grid-column: 1 !important;
+      grid-row: auto !important;
+    }
+    body.simpleMode .heroInner {
+      grid-template-columns: minmax(0, 1.1fr) minmax(220px, .55fr);
+    }
+    body.simpleMode .themeDock {
+      min-height: auto;
+      padding: clamp(16px, 2.4vw, 26px);
+    }
+    body.simpleMode .themeGrid {
+      grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
+    }
+    body.simpleMode .themeButton {
+      min-height: 72px;
+      justify-content: flex-start;
+      text-align: left;
+      padding: 12px 16px;
+    }
+    body.simpleMode .themeHint {
+      margin-bottom: 10px;
+      font-size: clamp(15px, 1.8vw, 19px);
+      line-height: 1.35;
+    }
+    body.simpleMode .keyboardOnlyShell {
+      grid-template-rows: auto 1fr;
+      align-items: end;
+    }
+    body.simpleMode #keyboard {
+      align-self: end;
+    }
+    body.simpleMode .missionBar {
+      grid-template-columns: auto minmax(0, 1fr);
+    }
+    @media (max-width: 760px) {
+      body.simpleMode .heroInner { grid-template-columns: 1fr; }
+      body.simpleMode .orbitPreview { min-height: 130px; }
+      body.simpleMode .themeGrid { grid-template-columns: 1fr; }
+    }
+
+
+
+    /* EXTRA DYNAMIC VISUAL EFFECTS
+       These add theme-specific moving surprises all around the screen.
+       They do not change the keyboard layout or key markup. */
+    .dynamicThemeFx {
+      position: fixed;
+      left: var(--x, 50vw);
+      top: var(--y, 30vh);
+      z-index: 32;
+      pointer-events: none;
+      font-size: var(--fxSize, clamp(28px, 5vw, 76px));
+      line-height: 1;
+      filter:
+        drop-shadow(0 0 12px var(--fxColor, var(--accent)))
+        drop-shadow(0 0 30px var(--fxColor2, var(--accent2)));
+      transform: translate(-50%, -50%);
+      will-change: transform, opacity, filter;
+    }
+    .dynamicThemeFx.launchFly { animation: dynamicLaunchFly var(--fxDur, 1.2s) cubic-bezier(.16,.9,.28,1) forwards; }
+    .dynamicThemeFx.planetHop { animation: dynamicPlanetHop var(--fxDur, 1.1s) ease forwards; }
+    .dynamicThemeFx.moonBounce { animation: dynamicMoonBounce var(--fxDur, 1.2s) ease-out forwards; }
+    .dynamicThemeFx.astronautFloat { animation: dynamicAstronautFloat var(--fxDur, 1.45s) ease-in-out forwards; }
+    .dynamicThemeFx.galaxySwirl { animation: dynamicGalaxySwirl var(--fxDur, 1.25s) ease forwards; }
+    .dynamicThemeFx.alienPeekFx { animation: dynamicAlienPeek var(--fxDur, 1.25s) ease forwards; }
+    .dynamicThemeFx.petBounceFx { animation: dynamicPetBounce var(--fxDur, 1.25s) ease forwards; }
+    .dynamicThemeFx.constellationSpark { animation: dynamicConstellationSpark var(--fxDur, 1.1s) ease forwards; }
+    .dynamicThemeFx.cometSweepFx { animation: dynamicCometSweep var(--fxDur, 1.1s) cubic-bezier(.12,.82,.24,1) forwards; }
+    .dynamicThemeFx.meteorDropFx { animation: dynamicMeteorDrop var(--fxDur, 1.05s) ease-in forwards; }
+    .dynamicThemeFx.portalPopFx { animation: dynamicPortalPop var(--fxDur, 1.2s) ease forwards; }
+    .dynamicThemeFx.signalScanFx { animation: dynamicSignalScan var(--fxDur, 1.15s) ease forwards; }
+    .dynamicThemeFx.starPopFx { animation: dynamicStarPop var(--fxDur, 1.05s) ease forwards; }
+    .dynamicThemeFx.wiggleDriftFx { animation: dynamicWiggleDrift var(--fxDur, 1.25s) ease forwards; }
+
+    .screenThemeLine {
+      position: fixed;
+      left: var(--x, 20vw);
+      top: var(--y, 20vh);
+      width: var(--lineW, 180px);
+      height: var(--lineH, 4px);
+      z-index: 31;
+      pointer-events: none;
+      border-radius: 999px;
+      transform-origin: left center;
+      transform: rotate(var(--lineR, 0deg)) scaleX(0);
+      background: linear-gradient(90deg, transparent, var(--fxColor, var(--accent3)), var(--fxColor2, var(--accent)), transparent);
+      box-shadow: 0 0 18px var(--fxColor, var(--accent));
+      animation: dynamicLineDraw var(--fxDur, 1s) ease forwards;
+    }
+    .screenThemePortal {
+      position: fixed;
+      left: var(--x, 50vw);
+      top: var(--y, 30vh);
+      width: var(--portalSize, 140px);
+      height: var(--portalSize, 140px);
+      z-index: 30;
+      pointer-events: none;
+      border-radius: 50%;
+      transform: translate(-50%, -50%) scale(.15) rotate(0deg);
+      opacity: 0;
+      background:
+        radial-gradient(circle, rgba(0,0,0,.92) 0 29%, transparent 31%),
+        repeating-conic-gradient(from 0deg, var(--fxColor, var(--accent)) 0 13deg, transparent 13deg 25deg, var(--fxColor2, var(--accent2)) 25deg 38deg, transparent 38deg 50deg);
+      filter: drop-shadow(0 0 24px var(--fxColor, var(--accent))) drop-shadow(0 0 44px var(--fxColor2, var(--accent2)));
+      animation: dynamicPortalRing var(--fxDur, 1.25s) ease forwards;
+    }
+    .skySticker {
+      position: absolute;
+      z-index: 4;
+      pointer-events: none;
+      font-size: clamp(18px, 3.2vw, 54px);
+      opacity: .0;
+      filter: drop-shadow(0 0 18px var(--accent));
+      animation: skyStickerMove var(--dur, 10s) ease-in-out infinite;
+    }
+    @keyframes dynamicLaunchFly {
+      0% { opacity: 0; transform: translate(-50%, 70%) scale(.35) rotate(-18deg); }
+      18% { opacity: 1; }
+      65% { opacity: 1; transform: translate(calc(-50% + var(--dx, 70px)), calc(-50% - 110px)) scale(1.14) rotate(10deg); }
+      100% { opacity: 0; transform: translate(calc(-50% + var(--dx, 150px)), calc(-50% - 210px)) scale(.75) rotate(18deg); }
+    }
+    @keyframes dynamicPlanetHop {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(.35) rotate(-10deg); }
+      25% { opacity: 1; transform: translate(calc(-50% + var(--dx1, 42px)), calc(-50% - 68px)) scale(1.12) rotate(8deg); }
+      58% { transform: translate(calc(-50% + var(--dx2, -34px)), calc(-50% + 6px)) scale(.94) rotate(-8deg); }
+      100% { opacity: 0; transform: translate(calc(-50% + var(--dx, 80px)), calc(-50% - 80px)) scale(.72) rotate(18deg); }
+    }
+    @keyframes dynamicMoonBounce {
+      0% { opacity: 0; transform: translate(-50%, 28%) scale(.35); filter: blur(1px) drop-shadow(0 0 12px var(--fxColor)); }
+      26% { opacity: 1; transform: translate(-50%, -112%) scale(1.12); filter: blur(0) drop-shadow(0 0 22px var(--fxColor)); }
+      56% { transform: translate(calc(-50% + 16px), -36%) scale(.95); }
+      78% { transform: translate(calc(-50% - 10px), -82%) scale(1.03); }
+      100% { opacity: 0; transform: translate(calc(-50% + var(--dx, 45px)), -130%) scale(.72); }
+    }
+    @keyframes dynamicAstronautFloat {
+      0% { opacity: 0; transform: translate(-50%, -20%) scale(.45) rotate(-20deg); }
+      20%, 78% { opacity: 1; }
+      50% { transform: translate(calc(-50% + 32px), calc(-50% - 48px)) scale(1.12) rotate(14deg); }
+      100% { opacity: 0; transform: translate(calc(-50% + var(--dx, -65px)), calc(-50% - 124px)) scale(.78) rotate(-30deg); }
+    }
+    @keyframes dynamicGalaxySwirl {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(.18) rotate(0deg); }
+      25% { opacity: 1; transform: translate(-50%, -50%) scale(1.22) rotate(160deg); }
+      70% { opacity: .88; transform: translate(calc(-50% + var(--dx, 28px)), calc(-50% + var(--dy, -18px))) scale(.95) rotate(420deg); }
+      100% { opacity: 0; transform: translate(calc(-50% + var(--dx, 60px)), calc(-50% + var(--dy, -42px))) scale(.2) rotate(680deg); }
+    }
+    @keyframes dynamicAlienPeek {
+      0% { opacity: 0; transform: translate(-50%, 45%) scale(.25) rotate(-8deg); }
+      25% { opacity: 1; transform: translate(-50%, -50%) scale(1.15) rotate(8deg); }
+      55% { transform: translate(calc(-50% + 18px), calc(-50% - 10px)) scale(1) rotate(-7deg); }
+      100% { opacity: 0; transform: translate(calc(-50% + var(--dx, -40px)), calc(-50% - 80px)) scale(.58) rotate(18deg); }
+    }
+    @keyframes dynamicPetBounce {
+      0% { opacity: 0; transform: translate(-50%, 20%) scale(.35) rotate(-15deg); }
+      30% { opacity: 1; transform: translate(-50%, -88%) scale(1.14) rotate(10deg); }
+      64% { transform: translate(calc(-50% + 18px), -44%) scale(1) rotate(-8deg); }
+      100% { opacity: 0; transform: translate(calc(-50% + var(--dx, 46px)), -112%) scale(.72) rotate(12deg); }
+    }
+    @keyframes dynamicConstellationSpark {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(.15); }
+      35% { opacity: 1; transform: translate(-50%, -50%) scale(1.25); }
+      72% { opacity: .95; transform: translate(calc(-50% + var(--dx, 26px)), calc(-50% + var(--dy, -24px))) scale(.9); }
+      100% { opacity: 0; transform: translate(calc(-50% + var(--dx, 52px)), calc(-50% + var(--dy, -46px))) scale(.28); }
+    }
+    @keyframes dynamicCometSweep {
+      0% { opacity: 0; transform: translate(-210%, -40%) rotate(-20deg) scale(.5); }
+      18%, 72% { opacity: 1; }
+      100% { opacity: 0; transform: translate(210%, -170%) rotate(-20deg) scale(1.05); }
+    }
+    @keyframes dynamicMeteorDrop {
+      0% { opacity: 0; transform: translate(-170%, -230%) rotate(36deg) scale(.8); }
+      22%, 76% { opacity: 1; }
+      100% { opacity: 0; transform: translate(140%, 125%) rotate(36deg) scale(.65); }
+    }
+    @keyframes dynamicPortalPop {
+      0% { opacity: 0; transform: translate(-50%, -50%) rotate(0deg) scale(.12); }
+      36% { opacity: 1; transform: translate(-50%, -50%) rotate(190deg) scale(1.22); }
+      68% { transform: translate(-50%, -50%) rotate(380deg) scale(.95); }
+      100% { opacity: 0; transform: translate(-50%, -50%) rotate(580deg) scale(.05); }
+    }
+    @keyframes dynamicSignalScan {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(.2); }
+      30% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(2.2); }
+    }
+    @keyframes dynamicStarPop {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(.12) rotate(-50deg); }
+      38% { opacity: 1; transform: translate(-50%, -50%) scale(1.35) rotate(16deg); }
+      100% { opacity: 0; transform: translate(calc(-50% + var(--dx, 20px)), calc(-50% + var(--dy, -58px))) scale(.44) rotate(130deg); }
+    }
+    @keyframes dynamicWiggleDrift {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(.35) rotate(-18deg); }
+      24% { opacity: 1; transform: translate(-50%, -70%) scale(1.15) rotate(12deg); }
+      48% { transform: translate(calc(-50% + 18px), -56%) scale(1) rotate(-10deg); }
+      72% { transform: translate(calc(-50% - 10px), -82%) scale(1.05) rotate(8deg); }
+      100% { opacity: 0; transform: translate(calc(-50% + var(--dx, 55px)), calc(-50% + var(--dy, -108px))) scale(.66) rotate(0); }
+    }
+    @keyframes dynamicLineDraw {
+      0% { opacity: 0; transform: rotate(var(--lineR, 0deg)) scaleX(0); }
+      25%, 70% { opacity: .95; transform: rotate(var(--lineR, 0deg)) scaleX(1); }
+      100% { opacity: 0; transform: rotate(var(--lineR, 0deg)) scaleX(.15); }
+    }
+    @keyframes dynamicPortalRing {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(.12) rotate(0deg); }
+      35% { opacity: .92; transform: translate(-50%, -50%) scale(1) rotate(190deg); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(1.65) rotate(520deg); }
+    }
+    @keyframes skyStickerMove {
+      0% { opacity: 0; transform: translate3d(-12px, 10px, 0) rotate(-10deg) scale(.76); }
+      18%, 74% { opacity: .78; }
+      100% { opacity: 0; transform: translate3d(var(--sx, 40px), var(--sy, -35px), 0) rotate(var(--sr, 12deg)) scale(1.15); }
+    }
+
+
+
+
+    /* NEON CSS SYMBOL SYSTEM
+       Replaces cute emoji stickers with CSS-drawn neon objects.
+       These are abstract space shapes that match the electric keyboard colours. */
+    .themeIcon.neonGlyph,
+    .cosmicFloat.neonGlyph,
+    .keyEffect.neonGlyph,
+    .themeAction.neonGlyph,
+    .dynamicThemeFx.neonGlyph,
+    .skySticker.neonGlyph {
+      display: inline-block;
+      position: relative;
+      width: 1em;
+      height: 1em;
+      font-size: 0 !important;
+      color: var(--fxColor, var(--accent));
+      --g1: var(--fxColor, var(--accent));
+      --g2: var(--fxColor2, var(--accent2));
+      --g3: var(--accent3);
+      filter: drop-shadow(0 0 10px currentColor) drop-shadow(0 0 28px var(--g2));
+    }
+    .themeIcon.neonGlyph { width: 38px; height: 38px; flex: 0 0 38px; color: var(--accent); }
+    .cosmicFloat.neonGlyph { width: clamp(34px, 5.2vw, 84px); height: clamp(34px, 5.2vw, 84px); opacity: .54; }
+    .keyEffect.neonGlyph { width: var(--sz, 36px); height: var(--sz, 36px); }
+    .themeAction.neonGlyph { width: clamp(34px,5vw,74px); height: clamp(34px,5vw,74px); color: var(--accent); }
+    .dynamicThemeFx.neonGlyph { width: var(--fxSize, 54px); height: var(--fxSize, 54px); color: var(--fxColor, var(--accent)); }
+    .skySticker.neonGlyph { width: clamp(20px, 3.5vw, 58px); height: clamp(20px, 3.5vw, 58px); }
+    .neonGlyph::before,
+    .neonGlyph::after { content: ''; position: absolute; pointer-events: none; }
+
+    .neonGlyph.star::before,
+    .neonGlyph.spark::before {
+      inset: 8%;
+      background: linear-gradient(135deg, #fff, var(--g3) 35%, currentColor 68%, var(--g2));
+      clip-path: polygon(50% 0, 61% 34%, 98% 35%, 68% 56%, 79% 94%, 50% 70%, 21% 94%, 32% 56%, 2% 35%, 39% 34%);
+      box-shadow: 0 0 18px currentColor;
+    }
+    .neonGlyph.spark::before { clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); }
+    .neonGlyph.orb::before,
+    .neonGlyph.planet::before {
+      inset: 18%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 34% 28%, #fff 0 9%, currentColor 10% 38%, var(--g2) 72%, transparent 74%);
+      box-shadow: inset 0 -10px 18px rgba(0,0,0,.25), 0 0 26px currentColor;
+    }
+    .neonGlyph.planet::after {
+      left: 2%; top: 39%; width: 96%; height: 23%;
+      border: 2px solid var(--g3);
+      border-left-color: transparent; border-right-color: transparent;
+      border-radius: 50%;
+      transform: rotate(-17deg);
+      box-shadow: 0 0 18px var(--g3);
+    }
+    .neonGlyph.moon::before {
+      inset: 10%; border-radius: 50%;
+      background: radial-gradient(circle at 68% 36%, rgba(0,0,0,.92) 0 38%, transparent 39%), radial-gradient(circle at 35% 40%, #fff, currentColor 38%, var(--g2));
+      box-shadow: 0 0 24px currentColor;
+    }
+    .neonGlyph.rocket::before {
+      left: 31%; top: 4%; width: 38%; height: 68%; border-radius: 50% 50% 38% 38%;
+      background: linear-gradient(180deg, #fff, currentColor 42%, var(--g2));
+      box-shadow: inset 0 -8px 12px rgba(0,0,0,.28), 0 0 24px currentColor;
+      clip-path: polygon(50% 0, 88% 24%, 74% 100%, 26% 100%, 12% 24%);
+    }
+    .neonGlyph.rocket::after {
+      left: 36%; top: 69%; width: 28%; height: 29%;
+      background: radial-gradient(circle at 50% 20%, #fff, var(--g3) 35%, transparent 70%);
+      clip-path: polygon(50% 100%, 0 0, 100% 0);
+      animation: neonFlamePulse .36s ease-in-out infinite alternate;
+    }
+    .neonGlyph.flame::before {
+      inset: 10% 24%; border-radius: 55% 55% 48% 48%;
+      background: radial-gradient(circle at 50% 18%, #fff, var(--g3) 22%, currentColor 55%, transparent 76%);
+      clip-path: polygon(50% 0, 82% 34%, 72% 100%, 50% 82%, 29% 100%, 18% 34%);
+      animation: neonFlamePulse .42s ease-in-out infinite alternate;
+    }
+    @keyframes neonFlamePulse { to { transform: scaleY(1.22) translateY(2px); filter: brightness(1.35); } }
+
+    .neonGlyph.comet::before,
+    .neonGlyph.meteor::before {
+      left: 8%; top: 43%; width: 72%; height: 14%; border-radius: 999px;
+      background: linear-gradient(90deg, transparent, currentColor 38%, #fff 86%);
+      box-shadow: 0 0 18px currentColor;
+      transform: rotate(-22deg);
+    }
+    .neonGlyph.comet::after,
+    .neonGlyph.meteor::after {
+      right: 5%; top: 34%; width: 28%; height: 28%; border-radius: 50%;
+      background: radial-gradient(circle, #fff, var(--g3) 35%, currentColor 72%);
+      box-shadow: 0 0 22px var(--g3);
+    }
+    .neonGlyph.meteor::before { transform: rotate(34deg); background: linear-gradient(90deg, transparent, var(--g3), currentColor); }
+    .neonGlyph.meteor::after { top: 45%; }
+
+    .neonGlyph.galaxy::before,
+    .neonGlyph.portal::before {
+      inset: 3%; border-radius: 50%;
+      background: repeating-conic-gradient(from 0deg, currentColor 0 14deg, transparent 14deg 25deg, var(--g2) 25deg 39deg, transparent 39deg 52deg);
+      box-shadow: 0 0 26px currentColor, inset 0 0 18px var(--g2);
+      animation: neonSpin 2.7s linear infinite;
+    }
+    .neonGlyph.galaxy::after,
+    .neonGlyph.portal::after {
+      inset: 31%; border-radius: 50%;
+      background: radial-gradient(circle, #fff 0 12%, rgba(0,0,0,.96) 13% 54%, currentColor 56% 62%, transparent 64%);
+      box-shadow: 0 0 18px var(--g3);
+    }
+    .neonGlyph.blackhole::before { inset: 2%; border-radius: 50%; background: repeating-conic-gradient(currentColor 0 12deg, transparent 12deg 26deg, var(--g2) 26deg 38deg, transparent 38deg 52deg); animation: neonSpin 1.8s linear infinite; }
+    .neonGlyph.blackhole::after { inset: 28%; border-radius: 50%; background: #000; box-shadow: 0 0 22px var(--g2), inset 0 0 12px #000; }
+    @keyframes neonSpin { to { transform: rotate(360deg); } }
+
+    .neonGlyph.satellite::before {
+      left: 32%; top: 38%; width: 36%; height: 24%; border-radius: 6px;
+      background: linear-gradient(135deg, #fff, currentColor 45%, var(--g2));
+      box-shadow: 0 0 22px currentColor;
+      transform: rotate(-18deg);
+    }
+    .neonGlyph.satellite::after {
+      inset: 18% 4%;
+      background:
+        linear-gradient(90deg, transparent 0 18%, var(--g3) 19% 23%, transparent 24% 76%, var(--g3) 77% 81%, transparent 82%),
+        radial-gradient(ellipse at 10% 50%, transparent 0 42%, currentColor 43% 48%, transparent 49%),
+        radial-gradient(ellipse at 90% 50%, transparent 0 42%, currentColor 43% 48%, transparent 49%);
+      transform: rotate(-18deg);
+      filter: drop-shadow(0 0 12px currentColor);
+    }
+    .neonGlyph.signal::before {
+      left: 12%; top: 12%; width: 76%; height: 76%; border-radius: 50%;
+      border: 3px solid transparent; border-top-color: currentColor; border-right-color: currentColor;
+      transform: rotate(-44deg); box-shadow: 0 0 16px currentColor;
+      animation: neonPing 1.2s ease-out infinite;
+    }
+    .neonGlyph.signal::after { left: 44%; top: 44%; width: 12%; height: 12%; border-radius: 50%; background: #fff; box-shadow: 0 0 20px var(--g3); }
+    @keyframes neonPing { 0% { opacity:.25; transform: rotate(-44deg) scale(.45); } 70% { opacity:1; } 100% { opacity:0; transform: rotate(-44deg) scale(1.15); } }
+
+    .neonGlyph.astronaut::before {
+      inset: 9%; border: 3px solid currentColor; border-radius: 50%;
+      background: radial-gradient(circle at 50% 44%, rgba(255,255,255,.22) 0 7%, transparent 8%), linear-gradient(180deg, rgba(255,255,255,.16), rgba(0,0,0,.15));
+      box-shadow: 0 0 24px currentColor, inset 0 0 18px rgba(255,255,255,.18);
+    }
+    .neonGlyph.astronaut::after {
+      left: 24%; top: 34%; width: 52%; height: 28%; border-radius: 999px;
+      background: linear-gradient(90deg, var(--g2), #fff, currentColor);
+      box-shadow: 0 0 18px var(--g2);
+    }
+    .neonGlyph.alien::before,
+    .neonGlyph.ufo::before {
+      left: 9%; top: 41%; width: 82%; height: 34%; border-radius: 50%;
+      background: radial-gradient(circle at 50% 46%, #fff 0 6%, currentColor 7% 23%, var(--g2) 65%, transparent 68%);
+      box-shadow: 0 0 24px currentColor;
+    }
+    .neonGlyph.alien::after,
+    .neonGlyph.ufo::after {
+      left: 31%; top: 22%; width: 38%; height: 28%; border-radius: 50% 50% 12% 12%;
+      border: 2px solid currentColor; border-bottom: 0;
+      box-shadow: 0 0 14px currentColor;
+    }
+    .neonGlyph.petdrone::before {
+      inset: 20%; border-radius: 22% 22% 42% 42%;
+      background: linear-gradient(135deg, #fff, currentColor 34%, var(--g2));
+      box-shadow: 0 0 22px currentColor;
+      clip-path: polygon(20% 18%, 80% 18%, 94% 55%, 68% 88%, 32% 88%, 6% 55%);
+    }
+    .neonGlyph.petdrone::after {
+      left: 10%; right: 10%; top: 48%; height: 4px;
+      background: linear-gradient(90deg, transparent, var(--g3), transparent);
+      box-shadow: 0 0 14px var(--g3);
+      transform: rotate(-8deg);
+    }
+
+    .neonGlyph.constellation::before {
+      inset: 12%;
+      background:
+        linear-gradient(28deg, transparent 0 38%, currentColor 39% 42%, transparent 43%),
+        linear-gradient(-22deg, transparent 0 48%, var(--g3) 49% 52%, transparent 53%),
+        radial-gradient(circle at 18% 62%, #fff 0 6%, transparent 7%),
+        radial-gradient(circle at 42% 34%, #fff 0 6%, transparent 7%),
+        radial-gradient(circle at 70% 58%, #fff 0 6%, transparent 7%),
+        radial-gradient(circle at 86% 22%, #fff 0 5%, transparent 6%);
+      filter: drop-shadow(0 0 12px currentColor);
+    }
+    .neonGlyph.telescope::before {
+      left: 18%; top: 42%; width: 66%; height: 15%; border-radius: 999px;
+      background: linear-gradient(90deg, var(--g2), #fff, currentColor);
+      transform: rotate(-24deg); box-shadow: 0 0 18px currentColor;
+    }
+    .neonGlyph.telescope::after { left: 47%; top: 54%; width: 4px; height: 28%; background: var(--g3); box-shadow: 0 0 12px var(--g3); transform: rotate(8deg); }
+    .neonGlyph.burst::before {
+      inset: 4%; border-radius: 50%;
+      background: radial-gradient(circle, #fff 0 8%, var(--g3) 9% 18%, transparent 19%), conic-gradient(from 0deg, transparent, currentColor, transparent, var(--g2), transparent);
+      clip-path: polygon(50% 0, 58% 32%, 90% 10%, 68% 42%, 100% 50%, 68% 58%, 90% 90%, 58% 68%, 50% 100%, 42% 68%, 10% 90%, 32% 58%, 0 50%, 32% 42%, 10% 10%, 42% 32%);
+      animation: neonPulse .65s ease-in-out infinite alternate;
+    }
+    @keyframes neonPulse { to { transform: scale(1.12) rotate(6deg); filter: brightness(1.28); } }
+
+    #floatingKey::after { display: none !important; content: '' !important; }
+    .scene-pets::before {
+      content:'' !important;
+      left: 8%; top: 15%; width: 240px; height: 90px;
+      background:
+        radial-gradient(circle at 20% 50%, #fff 0 5px, currentColor 6px 19px, transparent 21px),
+        radial-gradient(circle at 50% 34%, #fff 0 5px, var(--accent2) 6px 19px, transparent 21px),
+        radial-gradient(circle at 78% 58%, #fff 0 5px, var(--accent3) 6px 19px, transparent 21px),
+        linear-gradient(90deg, transparent 0 8%, currentColor 9% 10%, transparent 11% 40%, var(--accent2) 41% 42%, transparent 43% 68%, var(--accent3) 69% 70%, transparent 71%);
+      filter: drop-shadow(0 0 22px var(--accent3));
+      animation: petParade 7s ease-in-out infinite alternate;
+    }
+
+    /* LETTERS-ONLY KEYBOARD CLEANUP
+       Keyboard page now shows only the Back button, then the letters + spacebar.
+       No instruction banner, no progress bar, no number/punctuation/control keys. */
+    body.simpleMode #keyboardPage { padding: clamp(10px, 1.6vw, 20px); }
+    body.simpleMode .keyboardOnlyShell {
+      grid-template-rows: auto 1fr;
+      align-items: stretch;
+      gap: clamp(10px, 2vh, 20px);
+    }
+    body.simpleMode .missionBar {
+      display: flex !important;
+      align-self: start;
+      justify-content: flex-start;
+      align-items: center;
+      width: 100%;
+      padding: 0;
+      margin: 0;
+      background: transparent !important;
+      border: 0 !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+    }
+    body.simpleMode .missionBar .instructionText,
+    body.simpleMode .missionBar .progressRocket { display: none !important; }
+    body.simpleMode #backHome {
+      min-width: 104px;
+      min-height: 48px;
+      padding: 0 18px;
+      border-radius: 999px;
+      background: linear-gradient(145deg, rgba(255,255,255,.18), rgba(255,255,255,.06));
+      border: 2px solid color-mix(in srgb, var(--accent3) 78%, transparent);
+      color: #fff;
+      font-size: clamp(15px, 1.8vw, 19px);
+      box-shadow: 0 10px 28px rgba(0,0,0,.32), 0 0 20px color-mix(in srgb, var(--accent3) 22%, transparent), inset 0 1px 0 rgba(255,255,255,.2);
+    }
+    body.simpleMode #keyboard {
+      width: min(980px, 98vw);
+      align-self: end;
+      justify-self: center;
+      padding: clamp(12px, 1.8vw, 20px);
+    }
+    body.simpleMode .kb-row {
+      gap: clamp(6px, 1vw, 11px);
+      margin-bottom: clamp(7px, 1vw, 12px);
+    }
+    body.simpleMode .key {
+      min-width: clamp(44px, 7.2vw, 74px);
+      height: clamp(50px, 7vw, 72px);
+      border-radius: 16px;
+      font-size: clamp(19px, 2.7vw, 30px);
+    }
+    body.simpleMode .homeLetters { transform: translateX(3.5%); }
+    body.simpleMode .bottomLetters { transform: translateX(-.5%); }
+    body.simpleMode .key[data-key="space"] {
+      min-width: min(560px, 74vw);
+      height: clamp(52px, 7vw, 74px);
+      font-size: clamp(18px, 2.4vw, 28px);
+      letter-spacing: .09em;
+    }
+    @media (max-width: 560px) {
+      body.simpleMode #keyboard { width: 99vw; padding: 8px; }
+      body.simpleMode .kb-row { gap: 4px; margin-bottom: 5px; }
+      body.simpleMode .key { min-width: clamp(30px, 8.8vw, 42px); height: clamp(42px, 10vw, 52px); border-radius: 11px; font-size: clamp(13px, 4vw, 18px); }
+      body.simpleMode .homeLetters { transform: translateX(4%); }
+      body.simpleMode .bottomLetters { transform: none; }
+      body.simpleMode .key[data-key="space"] { min-width: 68vw; }
+    }
+
+
+    /* KEYBOARD VARIETY MENU */
+    .keyboardDock .themeButton { gap: 12px; }
+    .keyboardGlyph {
+      flex: 0 0 42px;
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 15px;
+      font-weight: 900;
+      letter-spacing: -.03em;
+      color: #071024;
+      background: linear-gradient(145deg, var(--accent3), var(--accent));
+      box-shadow: 0 0 18px var(--keyGlow), inset 0 2px 0 rgba(255,255,255,.38);
+    }
+    .themeName, .themeMini { display: block; }
+    .themeMini { margin-top: 2px; font-size: 12px; line-height: 1.12; opacity: .74; font-weight: 800; }
+    body.simpleMode .keyboardVarietyGrid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+    body.simpleMode .keyboardDock { min-height: auto; }
+    body.simpleMode .keyboardButton.active { outline: 4px solid rgba(255,255,255,.24); }
+    body.simpleMode .keyboardVarietyLayout #keyboard .key { min-width: clamp(42px, 7vw, 76px); }
+    body.simpleMode .keyboardVarietyLayout #keyboard .key[data-key="space"] { min-width: min(520px, 72vw); }
+
+  </style>
+
+
+<!-- Space World responsive keyboard fit patch: added so the keyboard auto-scales to the screen size. -->
+<style id="spaceWorldResponsiveKeyboardFitCSS">
+  html, body { width: 100%; max-width: 100%; }
+  #keyboard {
+    max-width: calc(100vw - 12px) !important;
+    transform-origin: bottom center !important;
+    will-change: transform;
+  }
+  .keyboardOnlyShell {
+    width: min(1180px, 100vw) !important;
+    max-width: 100vw !important;
+  }
+  .kb-row {
+    max-width: 100% !important;
+    flex-wrap: nowrap !important;
+  }
+  #keyboard .key {
+    touch-action: manipulation;
+  }
+  @media (max-width: 900px) {
+    #keyboard {
+      padding: clamp(6px, 1.5vw, 12px) !important;
+      border-radius: clamp(14px, 4vw, 24px) !important;
+    }
+    .kb-row {
+      gap: clamp(3px, 0.9vw, 6px) !important;
+      margin-bottom: clamp(3px, 0.9vw, 6px) !important;
+    }
+  }
+  @media (max-height: 620px) {
+    #floatingKey {
+      top: 8vh !important;
+      min-width: clamp(78px, 13vw, 140px) !important;
+      min-height: clamp(78px, 13vw, 140px) !important;
+      font-size: clamp(42px, 8vw, 78px) !important;
+    }
+  }
+</style>
+<script id="spaceWorldResponsiveKeyboardFitJS">
+(function () {
+  function fitSpaceKeyboardToScreen() {
+    var kb = document.getElementById('keyboard');
+    if (!kb) return;
+
+    var cs = window.getComputedStyle(kb);
+    var isFixed = cs.position === 'fixed';
+    var baseTransform = isFixed ? 'translateX(-50%) ' : '';
+
+    kb.style.transformOrigin = 'bottom center';
+    kb.style.maxWidth = 'calc(100vw - 12px)';
+    kb.style.transform = baseTransform + 'scale(1)';
+
+    var rect = kb.getBoundingClientRect();
+    if (!rect.width || !rect.height || rect.width < 30 || rect.height < 20) return;
+
+    var backButton = document.getElementById('backBtn') ||
+      document.querySelector('.backButton, .backBtn, [data-back], button[aria-label="Back"]');
+    var topReserved = 6;
+    if (backButton && !isFixed) {
+      var backRect = backButton.getBoundingClientRect();
+      if (backRect.height && backRect.bottom > 0) topReserved = Math.max(topReserved, backRect.bottom + 8);
+    }
+
+    var availableWidth = Math.max(240, window.innerWidth - 12);
+    var availableHeight = Math.max(160, window.innerHeight - topReserved - 8);
+    var scale = Math.min(1, availableWidth / rect.width, availableHeight / rect.height);
+    scale = Math.max(0.28, Math.floor(scale * 1000) / 1000);
+
+    kb.style.setProperty('--screen-fit-scale', scale);
+    kb.style.transform = baseTransform + 'scale(' + scale + ')';
+  }
+
+  window.fitSpaceKeyboardToScreen = fitSpaceKeyboardToScreen;
+  window.addEventListener('resize', fitSpaceKeyboardToScreen);
+  window.addEventListener('orientationchange', function () { setTimeout(fitSpaceKeyboardToScreen, 220); });
+  document.addEventListener('DOMContentLoaded', function () {
+    fitSpaceKeyboardToScreen();
+    setTimeout(fitSpaceKeyboardToScreen, 250);
+    setTimeout(fitSpaceKeyboardToScreen, 900);
+  });
+  document.addEventListener('click', function () { setTimeout(fitSpaceKeyboardToScreen, 90); });
+  document.addEventListener('keydown', function () { setTimeout(fitSpaceKeyboardToScreen, 30); });
+
+  if ('MutationObserver' in window) {
+    var mo = new MutationObserver(function () { setTimeout(fitSpaceKeyboardToScreen, 50); });
+    document.addEventListener('DOMContentLoaded', function () {
+      mo.observe(document.body, { attributes: true, childList: true, subtree: true, attributeFilter: ['class', 'style'] });
+    });
+  }
+})();
+</script>
+
+</head>
+<body data-theme="rocket" class="simpleMode">
+  <div id="stage">
+    <canvas id="particleCanvas"></canvas>
+    <div id="spaceDecor"></div>
+  </div>
+  <div id="burstLayer"></div>
+  <div id="floatingKey"></div>
+  <div id="celebration" class="celebrationCard"><strong>Mission Complete!</strong><span>Super space typing!</span></div>
+
+  <main id="homePage" class="page active" aria-label="Menu, activities, and information">
+    <div class="homeShell">
+      <section class="panel heroPanel">
+        <div class="heroInner">
+          <div>
+            <div class="kicker">🌟 Space Missions</div>
+            <h1>Pick your space world.</h1>
+            <p class="heroText">Choose a fun moving space theme and keyboard variety, then blast off. Press or tap any key and watch the letter pop, slide, jump, wiggle, spin, or float with sounds and space effects.</p>
+            <div class="heroActions">
+              <button class="bigButton" id="startSelected">🚀 Go to keyboard</button>
+              
+            </div>
+          </div>
+          <div class="orbitPreview" aria-hidden="true">
+            <div class="samplePiece one">C</div>
+            <div class="samplePiece two">A</div>
+            <div class="samplePiece three">T</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel themeDock" aria-label="Theme menu">
+        <h2 class="sectionTitle">Space themes</h2><p class="themeHint">Pick a world, then press <strong>Go to keyboard</strong>. Each theme changes the background, moving friends, key effects, sounds, and celebrations.</p>
+        <div class="themeGrid" id="themeGrid"></div>
+      </section>
+
+
+      <section class="panel infoDock" aria-label="Information">
+        <h2 class="sectionTitle">Information</h2>
+        <article class="infoCard">
+          <h3>🧩 Word puzzles</h3>
+          <p>Letters start as puzzle pieces. The child presses each letter on the keyboard, and the matching piece flies into place.</p>
+        </article>
+        <article class="infoCard">
+          <h3>🎵 Sounds and movement</h3>
+          <p>Every key has its own generated sound and its own motion style: slide, pop, jump, wiggle, spin, or float. The chosen theme adds extra rockets, aliens, pets, comets, moon dust, signals, or constellations.</p>
+        </article>
+        <article class="infoCard">
+          <h3>📘 Workbook activities</h3>
+          <p>Sequence missions now show one short workbook line at a time, including space. When the child finishes the line, the next example refreshes onto the screen. Word lists can still be expanded later.</p>
+        </article>
+      </section>
+
+      <section class="panel activityDock" aria-label="Activities">
+        <div class="activityTop">
+          <div>
+            <h2 class="sectionTitle">Activities</h2>
+            <p>Use the arrows or tap a mission card. Puzzle word missions make letters come together one by one.</p>
+          </div>
+          <div class="activityNav">
+            <button class="navButton" id="prevActivity" aria-label="Previous activity">‹</button>
+            <button class="navButton" id="nextActivity" aria-label="Next activity">›</button>
+          </div>
+        </div>
+        <div class="selectedMission" id="selectedMission"></div>
+        <div class="activityList" id="activityList"></div>
+        <button class="bigButton" id="startSelectedBottom">Blast off with this mission 🚀</button>
+      </section>
+    </div>
+  </main>
+
+  <main id="keyboardPage" class="page" aria-label="Keyboard page">
+    <div class="keyboardOnlyShell">
+      <section class="missionBar" aria-label="Current instruction">
+        <button id="backHome">← Back</button>
+        <div class="instructionText">
+          <strong id="missionTitle">Space Keyboard</strong>
+          <span id="missionInstruction">Press or tap any key. Watch the effect first, then the letter appears big.</span>
+        </div>
+        <div class="progressRocket">
+          <span id="progressLabel">Free play</span>
+          <div class="progressTrack"><div id="progressFill"></div></div>
+        </div>
+      </section>
+
+      <section class="displayZone" aria-label="Typing display">
+        <div id="sequenceMode" class="sequenceMode active">
+          <div class="targetStrip" id="targetStrip" aria-label="Mission target letters"></div>
+          <div class="typedPanel"><div id="typedOutput"><span class="emptyHint">Tap keys to make letters fly in...</span></div></div>
+        </div>
+        <div id="wordMode" class="wordMode">
+          <div class="wordHeader">
+            <strong id="wordTitle">Puzzle word</strong>
+            <div class="wordControls">
+              <button class="smallRound" id="prevWord" aria-label="Previous word">‹</button>
+              <span id="wordCounter">1 / 1</span>
+              <button class="smallRound" id="nextWord" aria-label="Next word">›</button>
+            </div>
+          </div>
+          <div class="wordPuzzleStage" id="wordPuzzleStage">
+            <div class="puzzleSlots" id="puzzleSlots"></div>
+            <div class="scatterPieces" id="scatterPieces"></div>
+          </div>
+          <div id="wordMessage">Press the glowing puzzle letter.</div>
+        </div>
+      </section>
+
+      <section id="keyboard" aria-label="On-screen keyboard">
+        <div class="kb-row letters-row topLetters">
+          <button class="key" data-key="q" data-f="lp">Q</button>
+          <button class="key" data-key="w" data-f="lr">W</button>
+          <button class="key" data-key="e" data-f="lm">E</button>
+          <button class="key" data-key="r" data-f="li">R</button>
+          <button class="key" data-key="t" data-f="li">T</button>
+          <button class="key" data-key="y" data-f="ri">Y</button>
+          <button class="key" data-key="u" data-f="ri">U</button>
+          <button class="key" data-key="i" data-f="rm">I</button>
+          <button class="key" data-key="o" data-f="rr">O</button>
+          <button class="key" data-key="p" data-f="rp">P</button>
+        </div>
+        <div class="kb-row letters-row homeLetters">
+          <button class="key" data-key="a" data-f="lp">A</button>
+          <button class="key" data-key="s" data-f="lr">S</button>
+          <button class="key" data-key="d" data-f="lm">D</button>
+          <button class="key" data-key="f" data-f="li">F</button>
+          <button class="key" data-key="g" data-f="li">G</button>
+          <button class="key" data-key="h" data-f="ri">H</button>
+          <button class="key" data-key="j" data-f="ri">J</button>
+          <button class="key" data-key="k" data-f="rm">K</button>
+          <button class="key" data-key="l" data-f="rr">L</button>
+        </div>
+        <div class="kb-row letters-row bottomLetters">
+          <button class="key" data-key="z" data-f="lp">Z</button>
+          <button class="key" data-key="x" data-f="lr">X</button>
+          <button class="key" data-key="c" data-f="lm">C</button>
+          <button class="key" data-key="v" data-f="li">V</button>
+          <button class="key" data-key="b" data-f="li">B</button>
+          <button class="key" data-key="n" data-f="ri">N</button>
+          <button class="key" data-key="m" data-f="rm">M</button>
+        </div>
+        <div class="kb-row spaceOnlyRow">
+          <button class="key" data-key="space" data-f="">SPACE</button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const root = document.documentElement;
+    const body = document.body;
+    const homePage = document.getElementById('homePage');
+    const keyboardPage = document.getElementById('keyboardPage');
+    const keyboard = document.getElementById('keyboard');
+    const burstLayer = document.getElementById('burstLayer');
+    const decorLayer = document.getElementById('spaceDecor');
+    const floatingKey = document.getElementById('floatingKey');
+    const typedOutput = document.getElementById('typedOutput');
+    const targetStrip = document.getElementById('targetStrip');
+    const progressLabel = document.getElementById('progressLabel');
+    const progressFill = document.getElementById('progressFill');
+    const missionTitle = document.getElementById('missionTitle');
+    const missionInstruction = document.getElementById('missionInstruction');
+    const celebration = document.getElementById('celebration');
+    const sequenceMode = document.getElementById('sequenceMode');
+    const wordMode = document.getElementById('wordMode');
+    const wordTitle = document.getElementById('wordTitle');
+    const wordCounter = document.getElementById('wordCounter');
+    const wordMessage = document.getElementById('wordMessage');
+    const puzzleSlots = document.getElementById('puzzleSlots');
+    const scatterPieces = document.getElementById('scatterPieces');
+
+    const THEMES = {
+      rocket: { label:'Rocket Launch', short:'neon blast-off', icon:'rocket', motion:'launch', scene:'launch', vars:['#06020a','#261140','#6d101e','#ff5d73','#7ee8ff','#ffb545','#fff06d'], decor:['rocket','flame','comet','satellite','spark','burst'], effects:['rocket','flame','comet','spark','burst'], action:['rocket','flame','burst'] },
+      planets: { label:'Planet Hop', short:'orbital jumps', icon:'planet', motion:'hop', scene:'hop', vars:['#04030f','#0c2b55','#6840a6','#f6b44b','#8ff2ff','#ff8c66','#ffe36d'], decor:['planet','orb','moon','comet','spark','ring'], effects:['planet','orb','comet','spark','moon'], action:['planet','orb','moon'] },
+      moon: { label:'Moon Bounce', short:'low-gravity glow', icon:'moon', motion:'bounce', scene:'bounce', vars:['#050713','#111935','#353e68','#cbd8ff','#f8fbff','#9fb4ff','#d9e3ff'], decor:['moon','orb','satellite','spark','meteor','constellation'], effects:['moon','orb','spark','meteor','satellite'], action:['moon','orb','meteor'] },
+      astronaut: { label:'Astronaut Helper', short:'visor lights', icon:'astronaut', motion:'wave', scene:'wave', vars:['#020812','#063250','#175b6a','#84f4ff','#ffffff','#ff8fe9','#b8ff8a'], decor:['astronaut','satellite','ufo','orb','spark','signal'], effects:['astronaut','satellite','ufo','spark','orb'], action:['astronaut','satellite','ufo'] },
+      galaxy: { label:'Galaxy Rainbow', short:'swirls and beams', icon:'galaxy', motion:'swirl', scene:'swirl', vars:['#02020a','#07103c','#4b1685','#7ee8ff','#ff82f3','#ffe66d','#8dffea'], decor:['galaxy','ufo','spark','star','planet','portal'], effects:['galaxy','spark','star','portal','ufo'], action:['galaxy','star','spark'] },
+      aliens: { label:'Alien Signals', short:'ufo neon pulses', icon:'alien', motion:'alien', scene:'alien', vars:['#02060c','#09331f','#175d48','#8dff7a','#7ee8ff','#fff06d','#c77dff'], decor:['alien','ufo','orb','signal','spark','planet'], effects:['alien','ufo','signal','spark','orb'], action:['alien','ufo','signal'] },
+      pets: { label:'Space Drones', short:'glowing companions', icon:'petdrone', motion:'pet', scene:'pets', vars:['#070316','#22124c','#452f7d','#ffb7f1','#aef7ff','#fff08a','#b8ff8a'], decor:['petdrone','orb','rocket','moon','spark','signal'], effects:['petdrone','orb','spark','rocket','moon'], action:['petdrone','orb','spark'] },
+      constellation: { label:'Constellation Map', short:'laser star links', icon:'constellation', motion:'constellation', scene:'constellation', vars:['#010410','#06163a','#142d5f','#9fd8ff','#fff5a8','#ffffff','#7ee8ff'], decor:['constellation','star','spark','telescope','galaxy','signal'], effects:['constellation','star','spark','telescope','signal'], action:['constellation','star','spark'] },
+      comet: { label:'Comet Trail', short:'fast glowing trails', icon:'comet', motion:'comet', scene:'comet', trails:true, vars:['#02030b','#09203b','#381044','#7ee8ff','#ff8df0','#ffe06d','#8dffea'], decor:['comet','star','spark','meteor','rocket','planet'], effects:['comet','star','spark','meteor','rocket'], action:['comet','star','meteor'] },
+      meteor: { label:'Meteor Shower', short:'falling neon rocks', icon:'meteor', motion:'meteor', scene:'meteor', trails:true, vars:['#070206','#2b1010','#5a260c','#ff9d4d','#ffe06d','#ff6b8a','#7ee8ff'], decor:['meteor','comet','flame','burst','spark','orb'], effects:['meteor','comet','flame','spark','burst'], action:['meteor','comet','flame'] },
+      blackhole: { label:'Black Hole Portal', short:'spin and pull', icon:'blackhole', motion:'portal', scene:'portal', vars:['#000006','#11051f','#26004a','#c77dff','#7ee8ff','#ff82f3','#fff06d'], decor:['blackhole','portal','galaxy','star','spark','ufo'], effects:['blackhole','portal','galaxy','spark','star'], action:['blackhole','portal','galaxy'] },
+      satellite: { label:'Satellite Signal', short:'scan beams', icon:'satellite', motion:'signal', scene:'signal', vars:['#010713','#062642','#0d4c67','#7ee8ff','#b8ff8a','#fff06d','#ffffff'], decor:['satellite','signal','telescope','orb','spark','constellation'], effects:['satellite','signal','spark','orb','telescope'], action:['satellite','signal','spark'] },
+      stars: { label:'Star Party', short:'laser twinkles', icon:'star', motion:'twinkle', scene:'twinkle', vars:['#020511','#081f45','#473d04','#ffe56d','#fff7a8','#7ee8ff','#ffcc4d'], decor:['star','spark','burst','constellation','meteor','comet'], effects:['star','spark','burst','constellation','meteor'], action:['star','spark','burst'] }
+    };
+    const themeOrder = ['rocket','planets','moon','astronaut','galaxy','aliens','pets','constellation','comet','meteor','blackhole','satellite','stars'];
+    let currentTheme = 'rocket';
+
+    const WORDS = {
+      easy3: ['BEE','BED','BEG','BET','DEN','END','FED','FEE','FEN','GEM','GET','HEM','HEN','HER','JET','KEN','KEY','MEN','MET','RED','TEN','VET','YET'],
+      easy4: ['BEEN','BEEF','BEET','BEND','BENT','CENT','DEED','DEER','DEBT','DEEM','FEET','FEED','FEND','FERN','FREE','FRET','GERM','GENT','HEED','HEFT','HERD','HERE','HERB','JEER','KEEN','KNEE','MEET','MEEK','MEND','NEED'],
+      easy5: ['THREE','THERE','ETHER','NEVER','ENTER','METER','REFER','DEFER','FREED','BREED','GREED','GREEN','TEENY','FEVER','TREND'],
+      hard3: ['LAP','PAL','SAP','POP','LOP','SOP','OWL','WAS','SAW','ALL'],
+      hard4: ['SOAP','LOOP','POLL','POOL','WALL','FALL','WALK','SOLO','ALSO','SOLD','SLOW'],
+      hard5: ['SPILLS','LOOPS','POLLS','WALLS','FALLS','WALKS','POPS','LOLLS','SPOIL','SLOOP']
+    };
+
+    const ACTIVITIES = [
+      { mode:'free', kind:'Free Play', title:'Free Play Keyboard', finger:'All keys', instruction:'Press or tap any key. Watch the space effect first, then the letter appears big.', tokens:[] },
+      { mode:'sequence', kind:'2-Letter', title:'Left Index Finger', finger:'F with G, R, V, T, C, B', instruction:'Practise the left pointer finger patterns from the workbook.', tokens:'F G F G F G F SPACE F R F R F R F SPACE F V F V F V F SPACE F T F T F T F SPACE F C F C F C F SPACE F B F B F B F'.split(' ') },
+      { mode:'sequence', kind:'2-Letter', title:'Right Index Finger', finger:'J with H, U, N, Y, M', instruction:'Practise the right pointer finger patterns from the workbook.', tokens:'J H J H J H J SPACE J U J U J U J SPACE J N J N J N J SPACE J Y J Y J Y J SPACE J M J M J M J'.split(' ') },
+      { mode:'sequence', kind:'2-Letter', title:'Middle Fingers', finger:'D/E, D/C, K/I', instruction:'Practise middle finger patterns with a steady beat.', tokens:'D E D E D E D SPACE D C D C D C D SPACE K I K I K I K'.split(' ') },
+      { mode:'sequence', kind:'2-Letter', title:'Ring Fingers', finger:'S/W, S/X, L/O', instruction:'Practise ring finger patterns gently and slowly.', tokens:'S W S W S W S SPACE S X S X S X S SPACE L O L O L O L'.split(' ') },
+      { mode:'sequence', kind:'Multiple', title:'Left Index Rocket Run', finger:'FGFRFVF and FTFBFCF', instruction:'Try the longer left pointer finger mission.', tokens:'F G F R F V F SPACE F G F R F V F SPACE F T F B F C F SPACE F T F B F C F'.split(' ') },
+      { mode:'word', kind:'Puzzle Words', title:'Easy 3-Letter Word Puzzle', finger:'BEE, BED, BEG, BET...', instruction:'Press each glowing letter. The puzzle pieces fly together to build one word at a time.', words:WORDS.easy3 },
+      { mode:'word', kind:'Puzzle Words', title:'Easy 4-Letter Word Puzzle', finger:'BEEN, BEEF, BEET, BEND...', instruction:'Build four-letter workbook words by snapping letter pieces together.', words:WORDS.easy4 },
+      { mode:'word', kind:'Puzzle Words', title:'Easy 5-Letter Word Puzzle', finger:'THREE, THERE, ETHER...', instruction:'Build longer easy words with flying puzzle pieces.', words:WORDS.easy5 },
+      { mode:'word', kind:'Hard Puzzle', title:'Hard 3-Letter Word Puzzle', finger:'LAP, PAL, SAP, POP...', instruction:'Practise ring and little finger words as a puzzle game.', words:WORDS.hard3 },
+      { mode:'word', kind:'Hard Puzzle', title:'Hard 4-Letter Word Puzzle', finger:'SOAP, LOOP, POLL...', instruction:'Make hard words by pressing the letters in order.', words:WORDS.hard4 },
+      { mode:'word', kind:'Hard Puzzle', title:'Hard Longer Word Puzzle', finger:'SPILLS, LOOPS, POLLS...', instruction:'Make longer hard words by snapping every letter into the puzzle.', words:WORDS.hard5 }
+    ];
+
+    let selectedActivity = 5;
+    let activeActivity = ACTIVITIES[0];
+    let targetIndex = 0;
+    let sequenceChunkIndex = 0;
+    let typedText = '';
+    let capsOn = false;
+    let shiftOn = false;
+    let currentWordIndex = 0;
+    let wordProgress = 0;
+    let puzzleLocked = false;
+    const downKeys = new Set();
+
+    const KEY_ORDER = ['q','w','e','r','t','y','u','i','o','p','a','s','d','f','g','h','j','k','l','z','x','c','v','b','n','m','space'];
+    const MOTIONS = ['slide','pop','jump','wiggle','spin','float'];
+    const FLOATING = ['slideIn','popIn','jumpIn','wiggleIn','spinIn','floatIn'];
+    const SLOT_MOTIONS = ['slot-slide','slot-pop','slot-jump','slot-wiggle','slot-spin','slot-float'];
+    const OUTPUT = {
+      backtick: { normal:'`', shift:'~' }, semicolon: { normal:';', shift:':' }, comma: { normal:',', shift:'<' }, period: { normal:'.', shift:'>' },
+      '1': { normal:'1', shift:'!' }, '2': { normal:'2', shift:'@' }, '3': { normal:'3', shift:'#' }, '4': { normal:'4', shift:'$' }, '5': { normal:'5', shift:'%' },
+      '6': { normal:'6', shift:'^' }, '7': { normal:'7', shift:'&' }, '8': { normal:'8', shift:'*' }, '9': { normal:'9', shift:'(' }, '0': { normal:'0', shift:')' }
+    };
+
+    const FINGER_MAP = { q:'lp', w:'lr', e:'lm', r:'li', t:'li', y:'ri', u:'ri', i:'rm', o:'rr', p:'rp', a:'lp', s:'lr', d:'lm', f:'li', g:'li', h:'ri', j:'ri', k:'rm', l:'rr', z:'lp', x:'lr', c:'lm', v:'li', b:'li', n:'ri', m:'rm', space:'' };
+    const KEYBOARD_VARIETIES = {
+      qwerty: { label:'QWERTY', short:'classic keyboard rows', icon:'QW', rows:[
+        { className:'topLetters', keys:['q','w','e','r','t','y','u','i','o','p'] },
+        { className:'homeLetters', keys:['a','s','d','f','g','h','j','k','l'] },
+        { className:'bottomLetters', keys:['z','x','c','v','b','n','m'] },
+        { className:'spaceOnlyRow', keys:['space'] }
+      ] },
+      alphabet: { label:'ABC Order', short:'letters A to Z', icon:'AB', rows:[
+        { className:'abcLetters', keys:['a','b','c','d','e','f','g','h','i'] },
+        { className:'abcLetters', keys:['j','k','l','m','n','o','p','q','r'] },
+        { className:'abcLetters', keys:['s','t','u','v','w','x','y','z'] },
+        { className:'spaceOnlyRow', keys:['space'] }
+      ] },
+      vowels: { label:'Vowels', short:'A E I O U and Y', icon:'AE', rows:[
+        { className:'focusLetters', keys:['a','e','i','o','u','y'] },
+        { className:'spaceOnlyRow', keys:['space'] }
+      ] },
+      left: { label:'Left Side', short:'left-hand keys', icon:'LF', rows:[
+        { className:'focusLetters', keys:['q','w','e','r','t'] },
+        { className:'focusLetters', keys:['a','s','d','f','g'] },
+        { className:'focusLetters', keys:['z','x','c','v','b'] },
+        { className:'spaceOnlyRow', keys:['space'] }
+      ] },
+      right: { label:'Right Side', short:'right-hand keys', icon:'RT', rows:[
+        { className:'focusLetters', keys:['y','u','i','o','p'] },
+        { className:'focusLetters', keys:['h','j','k','l'] },
+        { className:'focusLetters', keys:['n','m'] },
+        { className:'spaceOnlyRow', keys:['space'] }
+      ] },
+      wordbuilder: { label:'Word Builder', short:'common puzzle letters', icon:'WB', rows:[
+        { className:'focusLetters', keys:['b','e','d','g','t'] },
+        { className:'focusLetters', keys:['h','n','r','m','f'] },
+        { className:'focusLetters', keys:['j','k','v','y'] },
+        { className:'spaceOnlyRow', keys:['space'] }
+      ] }
+    };
+    const keyboardVarietyOrder = ['qwerty','alphabet','vowels','left','right','wordbuilder'];
+    let currentKeyboardVariety = 'qwerty';
+    const keyEls = {};
+
+    function keyboardLabel(key) { return key === 'space' ? 'SPACE' : key.toUpperCase(); }
+    function clearKeyElements() { Object.keys(keyEls).forEach(k => delete keyEls[k]); }
+    function renderKeyboardVariety(name) {
+      const layout = KEYBOARD_VARIETIES[name] || KEYBOARD_VARIETIES.qwerty;
+      currentKeyboardVariety = KEYBOARD_VARIETIES[name] ? name : 'qwerty';
+      keyboard.innerHTML = '';
+      clearKeyElements();
+      body.classList.toggle('keyboardVarietyLayout', currentKeyboardVariety !== 'qwerty');
+      layout.rows.forEach((row, rowIndex) => {
+        const rowEl = document.createElement('div');
+        const isSpaceRow = row.keys.length === 1 && row.keys[0] === 'space';
+        rowEl.className = 'kb-row ' + (isSpaceRow ? 'spaceOnlyRow' : 'letters-row ') + (row.className || '');
+        row.keys.forEach((key, keyIndex) => {
+          const btn = document.createElement('button');
+          btn.className = 'key';
+          btn.dataset.key = key;
+          btn.dataset.f = FINGER_MAP[key] || '';
+          btn.dataset.motion = MOTIONS[(rowIndex * 10 + keyIndex) % MOTIONS.length];
+          btn.textContent = keyboardLabel(key);
+          btn.addEventListener('pointerdown', e => {
+            e.preventDefault();
+            triggerKey(btn.dataset.key, { source: 'click' });
+          });
+          keyEls[key] = btn;
+          rowEl.appendChild(btn);
+        });
+        keyboard.appendChild(rowEl);
+      });
+      document.querySelectorAll('.keyboardButton').forEach(btn => btn.classList.toggle('active', btn.dataset.keyboard === currentKeyboardVariety));
+      if (window.fitSpaceKeyboardToScreen) setTimeout(window.fitSpaceKeyboardToScreen, 40);
+    }
+
+    const themeGrid = document.getElementById('themeGrid');
+    themeOrder.forEach(name => {
+      const t = THEMES[name];
+      const btn = document.createElement('button');
+      btn.className = 'themeButton';
+      btn.dataset.theme = name;
+      btn.innerHTML = `<span class="themeIcon neonGlyph ${t.icon}" aria-hidden="true"></span><span><span class="themeName">${t.label}</span><span class="themeMini">${t.short || 'moving space world'}</span></span>`;
+      btn.title = t.label + ': ' + (t.short || 'space theme');
+      btn.addEventListener('click', () => setTheme(name));
+      themeGrid.appendChild(btn);
+    });
+
+    const keyboardVarietyGrid = document.getElementById('keyboardVarietyGrid');
+    if (keyboardVarietyGrid) {
+      keyboardVarietyOrder.forEach(name => {
+        const layout = KEYBOARD_VARIETIES[name];
+        const btn = document.createElement('button');
+        btn.className = 'themeButton keyboardButton';
+        btn.dataset.keyboard = name;
+        btn.innerHTML = `<span class="keyboardGlyph" aria-hidden="true">${layout.icon}</span><span><span class="themeName">${layout.label}</span><span class="themeMini">${layout.short}</span></span>`;
+        btn.title = layout.label + ': ' + layout.short;
+        btn.addEventListener('click', () => {
+          renderKeyboardVariety(name);
+          twinkleBurst(innerWidth * .42, innerHeight * .42, 18);
+        });
+        keyboardVarietyGrid.appendChild(btn);
+      });
+    }
+    renderKeyboardVariety('qwerty');
+
+    const activityList = document.getElementById('activityList');
+    const selectedMission = document.getElementById('selectedMission');
+    function renderActivities() {
+      activityList.innerHTML = '';
+      ACTIVITIES.slice(1).forEach((act, offset) => {
+        const index = offset + 1;
+        const card = document.createElement('button');
+        card.className = 'activityCard' + (index === selectedActivity ? ' active' : '');
+        card.dataset.index = index;
+        card.dataset.mode = act.mode;
+        card.innerHTML = `<strong>${act.kind}: ${act.title}</strong><span>${act.finger}</span>`;
+        card.addEventListener('click', () => selectActivity(index));
+        activityList.appendChild(card);
+      });
+      const act = ACTIVITIES[selectedActivity];
+      const preview = act.mode === 'word' ? act.words.slice(0, 8) : getSequenceChunks(act)[0].slice(0, 12);
+      const firstTokens = preview.map(tok => `<span class="chip">${tok === 'SPACE' ? 'space' : tok}</span>`).join('');
+      selectedMission.innerHTML = `<span class="missionBadge">${act.kind}</span><h3>${act.title}</h3><p>${act.instruction}</p><div class="missionChips">${firstTokens}</div>`;
+      [...activityList.children].forEach(card => card.classList.toggle('active', Number(card.dataset.index) === selectedActivity));
+    }
+    function selectActivity(index) {
+      selectedActivity = Math.max(1, Math.min(ACTIVITIES.length - 1, index));
+      renderActivities();
+      twinkleBurst(innerWidth * .5, innerHeight * .35, 12);
+    }
+    document.getElementById('prevActivity').addEventListener('click', () => selectActivity(selectedActivity <= 1 ? ACTIVITIES.length - 1 : selectedActivity - 1));
+    document.getElementById('nextActivity').addEventListener('click', () => selectActivity(selectedActivity >= ACTIVITIES.length - 1 ? 1 : selectedActivity + 1));
+    document.getElementById('startSelected').addEventListener('click', () => openKeyboard(ACTIVITIES[0]));
+    document.getElementById('startSelectedBottom').addEventListener('click', () => openKeyboard(ACTIVITIES[0]));
+    const startFreeBtn = document.getElementById('startFree');
+    if (startFreeBtn) startFreeBtn.addEventListener('click', () => openKeyboard(ACTIVITIES[0]));
+    document.getElementById('backHome').addEventListener('click', goHome);
+    document.getElementById('prevWord').addEventListener('click', () => changeWord(-1));
+    document.getElementById('nextWord').addEventListener('click', () => changeWord(1));
+
+    function setTheme(name) {
+      currentTheme = name;
+      const t = THEMES[name];
+      const [bg0,bg1,bg2,accent,accent2,accent3,bg3] = t.vars;
+      root.style.setProperty('--bg0', bg0);
+      root.style.setProperty('--bg1', bg1);
+      root.style.setProperty('--bg2', bg2);
+      root.style.setProperty('--bg3', bg3);
+      root.style.setProperty('--accent', accent);
+      root.style.setProperty('--accent2', accent2);
+      root.style.setProperty('--accent3', accent3);
+      root.style.setProperty('--keyGlow', hexToRgba(accent, .72));
+      body.dataset.theme = name;
+      document.querySelectorAll('.themeButton').forEach(btn => btn.classList.toggle('active', btn.dataset.theme === name));
+      makeDecor(t);
+      twinkleBurst(innerWidth * .72, innerHeight * .18, 26);
+    }
+    function makeDecor(theme) {
+      decorLayer.innerHTML = '';
+      const scene = document.createElement('div');
+      scene.className = 'themeScene scene-' + (theme.scene || theme.motion || 'twinkle');
+      decorLayer.appendChild(scene);
+      const icons = theme.decor || ['spark'];
+      const spots = [[8,10],[82,8],[16,68],[88,62],[48,12],[74,82],[30,30],[58,66],[10,44],[90,34],[44,84],[64,20]];
+      spots.forEach((pos, i) => {
+        const el = document.createElement('div');
+        el.className = 'cosmicFloat neonGlyph ' + icons[i % icons.length];
+        el.dataset.motion = theme.motion || 'twinkle';
+        el.style.left = pos[0] + '%';
+        el.style.top = pos[1] + '%';
+        el.style.setProperty('--dur', (9 + i * 1.35 + (i % 3) * 1.6) + 's');
+        el.style.animationDelay = (i * -.42) + 's';
+        decorLayer.appendChild(el);
+      });
+      if (theme.trails || theme.motion === 'comet' || theme.motion === 'meteor') {
+        for (let i = 0; i < 4; i++) {
+          const trail = document.createElement('div');
+          trail.className = 'themeTrail';
+          trail.style.top = (18 + i * 18) + '%';
+          trail.style.left = (-20 - i * 8) + '%';
+          trail.style.setProperty('--dur', (3.8 + i * .7) + 's');
+          trail.style.animationDelay = (-i * 1.1) + 's';
+          decorLayer.appendChild(trail);
+        }
+      }
+      if (theme.motion === 'constellation') {
+        [[15,35,180,18],[31,28,230,25],[53,54,220,-18],[72,38,160,14]].forEach((line, i) => {
+          const l = document.createElement('div');
+          l.className = 'constellationLine';
+          l.style.left = line[0] + '%';
+          l.style.top = line[1] + '%';
+          l.style.width = line[2] + 'px';
+          l.style.transform = `rotate(${line[3]}deg)`;
+          l.style.animationDelay = (i * .25) + 's';
+          decorLayer.appendChild(l);
+        });
+      }
+    }
+    function hexToRgba(hex, alpha) {
+      const clean = hex.replace('#','');
+      const value = parseInt(clean.length === 3 ? clean.split('').map(c => c + c).join('') : clean, 16);
+      const r = (value >> 16) & 255;
+      const g = (value >> 8) & 255;
+      const b = value & 255;
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    function openKeyboard(activity) {
+      activeActivity = activity;
+      typedText = '';
+      targetIndex = 0;
+      sequenceChunkIndex = 0;
+      currentWordIndex = 0;
+      wordProgress = 0;
+      puzzleLocked = false;
+      typedOutput.innerHTML = '<span class="emptyHint">Tap keys to make letters fly in...</span>';
+      homePage.classList.remove('active');
+      keyboardPage.classList.add('active');
+      missionTitle.textContent = activity.title;
+      missionInstruction.textContent = activity.instruction;
+      if (activity.mode === 'word') {
+        sequenceMode.classList.remove('active');
+        wordMode.classList.add('active');
+        renderWordPuzzle();
+      } else {
+        wordMode.classList.remove('active');
+        sequenceMode.classList.add('active');
+        renderTarget();
+      }
+      updateProgress();
+      setTimeout(() => { const firstKey = keyEls.f || Object.values(keyEls)[0]; if (firstKey) firstKey.focus({ preventScroll:true }); }, 50);
+    }
+    function goHome() {
+      keyboardPage.classList.remove('active');
+      homePage.classList.add('active');
+    }
+
+    function getSequenceChunks(activity) {
+      const tokens = activity.tokens || [];
+      if (!tokens.length) return [];
+      const chunks = [];
+      let line = [];
+      tokens.forEach(tok => {
+        line.push(tok);
+        if (tok === 'SPACE') {
+          chunks.push(line.slice());
+          line = [];
+        }
+      });
+      if (line.length) chunks.push(line.slice());
+      return chunks.filter(chunk => chunk.length);
+    }
+    function currentSequenceChunk() {
+      const chunks = getSequenceChunks(activeActivity);
+      return chunks[sequenceChunkIndex] || chunks[0] || [];
+    }
+    function renderTarget() {
+      targetStrip.innerHTML = '';
+      const chunks = getSequenceChunks(activeActivity);
+      if (!chunks.length) {
+        targetStrip.innerHTML = '<span class="targetToken now flashIn">FREE PLAY</span><span class="targetToken flashIn">tap</span><span class="targetToken flashIn">press</span><span class="targetToken flashIn">listen</span><span class="targetToken flashIn">watch</span>';
+        return;
+      }
+      const tokens = currentSequenceChunk();
+      targetStrip.setAttribute('aria-label', `Workbook line ${sequenceChunkIndex + 1} of ${chunks.length}`);
+      tokens.forEach((tok, i) => {
+        const span = document.createElement('span');
+        span.className = 'targetToken flashIn' + (i < targetIndex ? ' done' : i === targetIndex ? ' now' : '');
+        span.style.animationDelay = (i * 35) + 'ms';
+        span.textContent = tok === 'SPACE' ? 'space' : tok;
+        targetStrip.appendChild(span);
+      });
+    }
+
+    function renderWordPuzzle() {
+      const words = activeActivity.words || [];
+      const word = words[currentWordIndex] || '';
+      wordProgress = 0;
+      puzzleLocked = false;
+      wordTitle.textContent = 'Build: ' + word;
+      wordCounter.textContent = `${currentWordIndex + 1} / ${words.length}`;
+      wordMessage.textContent = 'Press the glowing puzzle letter.';
+      puzzleSlots.classList.remove('complete');
+      puzzleSlots.innerHTML = '';
+      scatterPieces.innerHTML = '';
+      [...word].forEach((letter, index) => {
+        const slot = document.createElement('div');
+        slot.className = 'puzzleSlot' + (index === 0 ? ' now' : '');
+        slot.dataset.index = String(index);
+        slot.style.setProperty('--wiggle', ((index % 2 ? 5 : -5) + 'deg'));
+        puzzleSlots.appendChild(slot);
+
+        const piece = document.createElement('div');
+        piece.className = 'scatterPiece' + (index === 0 ? ' needed' : '');
+        piece.textContent = letter;
+        piece.dataset.index = String(index);
+        const spot = scatterSpot(index, word.length);
+        piece.style.setProperty('--x', spot.x + '%');
+        piece.style.setProperty('--y', spot.y + '%');
+        piece.style.setProperty('--r', spot.r + 'deg');
+        scatterPieces.appendChild(piece);
+      });
+      updateProgress();
+    }
+    function scatterSpot(index, total) {
+      const spots = [
+        {x:15,y:23,r:-12},{x:82,y:20,r:10},{x:18,y:77,r:8},{x:80,y:76,r:-10},{x:50,y:18,r:5},{x:50,y:84,r:-6},
+        {x:32,y:33,r:13},{x:68,y:35,r:-12},{x:34,y:70,r:-4},{x:66,y:68,r:9}
+      ];
+      const s = spots[index % spots.length];
+      if (total <= 3 && index === 1) return {x:82,y:25,r:s.r};
+      return s;
+    }
+    function currentWord() {
+      return (activeActivity.words || [])[currentWordIndex] || '';
+    }
+    function changeWord(direction) {
+      if (activeActivity.mode !== 'word') return;
+      const words = activeActivity.words || [];
+      currentWordIndex = (currentWordIndex + direction + words.length) % words.length;
+      renderWordPuzzle();
+      twinkleBurst(innerWidth * .5, innerHeight * .38, 18);
+    }
+
+    function updateProgress() {
+      if (activeActivity.mode === 'word') {
+        const word = currentWord();
+        progressLabel.textContent = `${wordProgress} / ${word.length}`;
+        progressFill.style.width = word ? Math.round((wordProgress / word.length) * 100) + '%' : '0%';
+        return;
+      }
+      const chunks = getSequenceChunks(activeActivity);
+      const tokens = currentSequenceChunk();
+      if (!chunks.length) {
+        progressLabel.textContent = 'Free play';
+        progressFill.style.width = '100%';
+        return;
+      }
+      const overall = ((sequenceChunkIndex + (tokens.length ? targetIndex / tokens.length : 0)) / chunks.length) * 100;
+      progressLabel.textContent = `Line ${sequenceChunkIndex + 1} / ${chunks.length} · ${targetIndex} / ${tokens.length}`;
+      progressFill.style.width = Math.min(100, Math.round(overall)) + '%';
+    }
+
+    const canvas = document.getElementById('particleCanvas');
+    const ctx = canvas.getContext('2d');
+    let W = 0, H = 0;
+    function resize() { W = canvas.width = innerWidth; H = canvas.height = innerHeight; }
+    addEventListener('resize', resize);
+    resize();
+
+    const ambient = [];
+    const bursts = [];
+    class AmbientParticle {
+      constructor(init = false) { this.reset(init); }
+      reset(init = false) {
+        this.x = Math.random() * W;
+        this.y = init ? Math.random() * H : H + 10;
+        this.vy = -(Math.random() * .58 + .12);
+        this.vx = (Math.random() - .5) * .34;
+        this.r = Math.random() * 1.9 + .4;
+        this.a = Math.random() * .5 + .08;
+        this.hue = [190,210,245,275,55,315][Math.floor(Math.random() * 6)];
+      }
+      tick() { this.x += this.vx; this.y += this.vy; this.a -= .00045; if (this.y < -8 || this.a <= 0) this.reset(false); }
+      draw() { ctx.beginPath(); ctx.arc(this.x,this.y,this.r,0,Math.PI*2); ctx.fillStyle=`hsla(${this.hue},100%,74%,${this.a})`; ctx.fill(); }
+    }
+    for (let i = 0; i < 125; i++) ambient.push(new AmbientParticle(true));
+    function addCanvasBurst(x, y, hue, count = 26) {
+      for (let i = 0; i < count; i++) {
+        const a = (Math.PI * 2 * i / count) + Math.random() * .28;
+        const s = Math.random() * 7.5 + 2;
+        bursts.push({x, y, vx:Math.cos(a)*s, vy:Math.sin(a)*s-1.8, r:Math.random()*3+.8, a:.96, hue});
+      }
+    }
+    function animateCanvas() {
+      requestAnimationFrame(animateCanvas);
+      ctx.clearRect(0,0,W,H);
+      ambient.forEach(p => { p.tick(); p.draw(); });
+      for (let i = bursts.length - 1; i >= 0; i--) {
+        const b = bursts[i];
+        b.x += b.vx; b.y += b.vy; b.vy += .16; b.a -= .028;
+        if (b.a <= 0) { bursts.splice(i,1); continue; }
+        ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,Math.PI*2); ctx.fillStyle=`hsla(${b.hue},100%,68%,${b.a})`; ctx.fill();
+      }
+    }
+    animateCanvas();
+
+    function cssBurst(x, y, hue) {
+      const sat = 92, li = 66;
+      const flash = document.createElement('div');
+      flash.className = 'screenFlash';
+      flash.style.background = `radial-gradient(ellipse at ${x}px ${y}px, hsla(${hue},${sat}%,${li}%,.28) 0%, hsla(${hue},${sat}%,${li}%,.08) 38%, transparent 70%)`;
+      burstLayer.appendChild(flash);
+      flash.addEventListener('animationend', () => flash.remove(), { once:true });
+      for (let j = 0; j < 2; j++) {
+        const ring = document.createElement('div');
+        ring.className = 'ring';
+        const size = j ? 58 : 98;
+        ring.style.cssText = `left:${x}px;top:${y}px;width:${size}px;height:${size}px;border:${j ? 2 : 3}px solid hsla(${hue},${sat}%,${j ? 82 : li}%,${j ? .6 : .85});box-shadow:0 0 18px hsla(${hue},${sat}%,${li}%,.5);animation-delay:${j * .06}s;animation-duration:${j ? .52 : .72}s;`;
+        burstLayer.appendChild(ring);
+        ring.addEventListener('animationend', () => ring.remove(), { once:true });
+      }
+      for (let i = 0; i < 4; i++) {
+        const ang = (90 * i) + Math.random() * 26 - 13;
+        const len = Math.random() * 160 + 70;
+        const lz = document.createElement('div');
+        lz.className = 'laser';
+        lz.style.cssText = `left:${x}px;top:${y}px;width:${len}px;background:linear-gradient(90deg, hsla(${hue},${sat}%,88%,.92), hsla(${hue+35},${sat}%,70%,0));transform:rotate(${ang}deg) scaleX(0);animation-duration:${.32 + Math.random() * .18}s;`;
+        burstLayer.appendChild(lz);
+        lz.addEventListener('animationend', () => lz.remove(), { once:true });
+      }
+    }
+    function twinkleBurst(x, y, amount = 16) {
+      const theme = THEMES[currentTheme];
+      for (let i = 0; i < amount; i++) {
+        const spark = document.createElement('div');
+        spark.className = 'miniSpark';
+        spark.style.left = x + 'px';
+        spark.style.top = y + 'px';
+        spark.style.setProperty('--dx', (Math.random() * 160 - 80) + 'px');
+        spark.style.setProperty('--dy', (Math.random() * 120 - 80) + 'px');
+        spark.style.setProperty('--size', (Math.random() * 8 + 6) + 'px');
+        spark.style.setProperty('--spark', theme.vars[3 + (i % 3)] || 'var(--accent)');
+        document.body.appendChild(spark);
+        spark.addEventListener('animationend', () => spark.remove(), { once:true });
+      }
+    }
+
+    let AC = null;
+    function getAudio() {
+      if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)();
+      if (AC.state === 'suspended') AC.resume();
+      return AC;
+    }
+    /* Warm energetic theme audio engine.
+       The keyboard layout is unchanged. Each space theme still has its own
+       generated sound family, but the notes have been lowered and softened
+       so they feel exciting without becoming sharp or squeaky. */
+    const NOTE_STEPS = [0,2,4,5,7,9,11,12,14,16,17,19,21,23,24,21,19,17,16,14,12,11,9,7,5,4,2];
+    const SOUND_THEMES = {
+      rocket: { base:92, wave:'sawtooth', second:'triangle', motion:'rise', attack:.008, decay:.34, gain:.20, filter:'lowpass', q:1.9, shine:.07, color:'blast', chord:[0,5,9] },
+      planets: { base:110, wave:'triangle', second:'sine', motion:'bounce', attack:.006, decay:.30, gain:.21, filter:'lowpass', q:1.4, shine:.07, color:'orb', chord:[0,4,7] },
+      moon: { base:123, wave:'sine', second:'triangle', motion:'float', attack:.025, decay:.55, gain:.18, filter:'lowpass', q:1.0, shine:.06, color:'bell', chord:[0,5,12] },
+      astronaut: { base:128, wave:'square', second:'sine', motion:'radio', attack:.006, decay:.24, gain:.15, filter:'bandpass', q:3.5, shine:.05, color:'radio', chord:[0,5,10] },
+      galaxy: { base:98, wave:'triangle', second:'sine', motion:'swirl', attack:.018, decay:.48, gain:.18, filter:'lowpass', q:1.5, shine:.07, color:'dream', chord:[0,4,7,12] },
+      aliens: { base:116, wave:'square', second:'sawtooth', motion:'wobble', attack:.009, decay:.36, gain:.15, filter:'bandpass', q:3.4, shine:.05, color:'wobble', chord:[0,3,8] },
+      pets: { base:132, wave:'triangle', second:'square', motion:'chirp', attack:.007, decay:.28, gain:.17, filter:'lowpass', q:1.8, shine:.06, color:'buddy', chord:[0,4,9] },
+      constellation: { base:146, wave:'sine', second:'triangle', motion:'crystal', attack:.006, decay:.55, gain:.14, filter:'lowpass', q:1.2, shine:.07, color:'crystal', chord:[0,5,12,17] },
+      comet: { base:118, wave:'sawtooth', second:'sine', motion:'sweep', attack:.006, decay:.30, gain:.18, filter:'bandpass', q:2.5, shine:.06, color:'speed', chord:[0,7,12] },
+      meteor: { base:72, wave:'sine', second:'triangle', motion:'thump', attack:.004, decay:.34, gain:.22, filter:'lowpass', q:1.2, shine:.04, color:'impact', chord:[0,5,10] },
+      blackhole: { base:64, wave:'sine', second:'sawtooth', motion:'warp', attack:.014, decay:.52, gain:.17, filter:'bandpass', q:4.0, shine:.05, color:'warp', chord:[0,6,12] },
+      satellite: { base:136, wave:'square', second:'sine', motion:'scan', attack:.005, decay:.22, gain:.14, filter:'bandpass', q:4.0, shine:.05, color:'scan', chord:[0,7,12] },
+      stars: { base:150, wave:'sine', second:'triangle', motion:'sparkle', attack:.005, decay:.42, gain:.15, filter:'lowpass', q:1.0, shine:.08, color:'sparkle', chord:[0,4,7,12] }
+    };
+    let soundPressCount = 0;
+
+    function keySoundIndex(key) {
+      return Math.max(0, KEY_ORDER.indexOf(key));
+    }
+    function keyFrequency(key, palette, octaveLift = 0) {
+      const i = keySoundIndex(key);
+      const step = NOTE_STEPS[i % NOTE_STEPS.length] + octaveLift;
+      return palette.base * Math.pow(2, step / 12);
+    }
+    function safeGainParam(param, value, time) {
+      param.cancelScheduledValues(time);
+      param.setValueAtTime(Math.max(.0001, value), time);
+    }
+    function envelopeGain(ac, now, peak, attack, decay, hold = 0) {
+      const g = ac.createGain();
+      safeGainParam(g.gain, .0001, now);
+      g.gain.exponentialRampToValueAtTime(Math.max(.0001, peak), now + Math.max(.002, attack));
+      g.gain.exponentialRampToValueAtTime(.0001, now + Math.max(.03, attack + hold + decay));
+      return g;
+    }
+    function makeTone(ac, opts) {
+      const now = opts.now;
+      const osc = ac.createOscillator();
+      const gain = envelopeGain(ac, now + (opts.delay || 0), opts.gain, opts.attack, opts.decay, opts.hold || 0);
+      const filter = ac.createBiquadFilter();
+      osc.type = opts.wave || 'sine';
+      osc.frequency.setValueAtTime(Math.max(20, opts.freq), now + (opts.delay || 0));
+      if (opts.endFreq) osc.frequency.exponentialRampToValueAtTime(Math.max(20, opts.endFreq), now + (opts.delay || 0) + opts.decay);
+      if (opts.detune) osc.detune.setValueAtTime(opts.detune, now + (opts.delay || 0));
+      filter.type = opts.filter || 'lowpass';
+      filter.frequency.setValueAtTime(Math.max(60, Math.min(9000, opts.filterFreq || opts.freq * 5)), now + (opts.delay || 0));
+      if (opts.endFilter) filter.frequency.exponentialRampToValueAtTime(Math.max(60, Math.min(9000, opts.endFilter)), now + (opts.delay || 0) + opts.decay);
+      filter.Q.value = opts.q || 1.5;
+      if (opts.mod) {
+        const mod = ac.createOscillator();
+        const modGain = ac.createGain();
+        mod.frequency.setValueAtTime(opts.mod.rate || 7, now + (opts.delay || 0));
+        modGain.gain.setValueAtTime(opts.mod.depth || 18, now + (opts.delay || 0));
+        mod.connect(modGain); modGain.connect(osc.frequency);
+        mod.start(now + (opts.delay || 0)); mod.stop(now + (opts.delay || 0) + opts.decay + .08);
+      }
+      osc.connect(filter); filter.connect(gain); gain.connect(opts.dest || ac.destination);
+      osc.start(now + (opts.delay || 0));
+      osc.stop(now + (opts.delay || 0) + opts.attack + opts.decay + (opts.hold || 0) + .08);
+      return osc;
+    }
+    function makeNoise(ac, opts) {
+      const now = opts.now;
+      const dur = Math.max(.03, opts.dur || .16);
+      const buffer = ac.createBuffer(1, Math.floor(ac.sampleRate * dur), ac.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < data.length; i++) {
+        const fade = 1 - i / data.length;
+        data[i] = (Math.random() * 2 - 1) * fade;
+      }
+      const source = ac.createBufferSource();
+      const gain = envelopeGain(ac, now + (opts.delay || 0), opts.gain || .08, opts.attack || .004, dur, 0);
+      const filter = ac.createBiquadFilter();
+      source.buffer = buffer;
+      filter.type = opts.filter || 'bandpass';
+      filter.frequency.setValueAtTime(opts.start || 1200, now + (opts.delay || 0));
+      if (opts.end) filter.frequency.exponentialRampToValueAtTime(Math.max(80, opts.end), now + (opts.delay || 0) + dur);
+      filter.Q.value = opts.q || 1.4;
+      source.connect(filter); filter.connect(gain); gain.connect(opts.dest || ac.destination);
+      source.start(now + (opts.delay || 0));
+    }
+    function playWrongSound(ac, now) {
+      makeTone(ac, { now, freq:165, endFreq:92, wave:'sawtooth', gain:.12, attack:.006, decay:.18, filter:'lowpass', filterFreq:1200, endFilter:450, q:1.6 });
+      makeTone(ac, { now, delay:.08, freq:125, endFreq:85, wave:'triangle', gain:.07, attack:.006, decay:.16, filter:'lowpass', filterFreq:850, q:1.2 });
+    }
+    function playExcitedSparkle(ac, now, freq, palette, idx) {
+      const intervals = palette.chord || [0,4,7];
+      const interval = intervals[idx % intervals.length];
+      const sparkleFreq = Math.min(980, freq * Math.pow(2, (5 + interval * .45) / 12));
+      makeTone(ac, { now, delay:.018, freq:sparkleFreq, endFreq:sparkleFreq * 1.04, wave:'sine', gain:palette.shine || .06, attack:.005, decay:.18, filter:'lowpass', filterFreq:1600, q:.9 });
+      if (idx % 4 === 0) {
+        makeTone(ac, { now, delay:.06, freq:Math.min(1050, sparkleFreq * 1.12), wave:'triangle', gain:(palette.shine || .06) * .55, attack:.006, decay:.16, filter:'lowpass', filterFreq:1700, q:.9 });
+      }
+    }
+    function playMiniFanfare(ac, now, palette, freq) {
+      const chord = palette.chord || [0,4,7,12];
+      chord.slice(0, 4).forEach((step, i) => {
+        const f = Math.min(900, freq * Math.pow(2, (3 + step * .45) / 12));
+        makeTone(ac, { now, delay:.035 + i * .045, freq:f, wave:i % 2 ? 'triangle' : 'sine', gain:.045, attack:.006, decay:.22, filter:'lowpass', filterFreq:1500, q:.9 });
+      });
+    }
+    function playSpaceBarCelebration(ac, now, palette, freq) {
+      makeNoise(ac, { now, dur:.36, gain:.055, start:1400, end:260, filter:'bandpass', q:1.0 });
+      [0,7,12,16].forEach((step, i) => {
+        const f = freq * Math.pow(2, step / 12);
+        makeTone(ac, { now, delay:i * .055, freq:f, endFreq:f * 1.12, wave:palette.second || 'triangle', gain:.075, attack:.006, decay:.28, filter:palette.filter, filterFreq:f * 7, q:palette.q });
+      });
+    }
+    function playThemeGesture(ac, now, palette, key, freq, idx) {
+      const base = { now, freq, wave:palette.wave, gain:palette.gain, attack:palette.attack, decay:palette.decay, filter:palette.filter, filterFreq:freq * 5.5, q:palette.q };
+      switch (palette.motion) {
+        case 'rise':
+          makeTone(ac, { ...base, endFreq:freq * 1.55, endFilter:freq * 10, decay:palette.decay });
+          makeNoise(ac, { now, dur:.20, gain:.035, start:140, end:1400, filter:'bandpass', q:1.1 });
+          break;
+        case 'bounce':
+          makeTone(ac, { ...base, endFreq:freq * .84, decay:palette.decay * .72 });
+          makeTone(ac, { ...base, delay:.09, freq:freq * 1.25, endFreq:freq * 1.05, gain:palette.gain * .55, decay:palette.decay * .68 });
+          break;
+        case 'float':
+          makeTone(ac, { ...base, endFreq:freq * 1.04, decay:palette.decay, hold:.04 });
+          makeTone(ac, { ...base, delay:.035, freq:freq * 1.5, wave:'sine', gain:palette.gain * .36, decay:palette.decay * .85, filter:'lowpass', filterFreq:1200, q:1.1 });
+          break;
+        case 'radio':
+          makeTone(ac, { ...base, decay:.09, filterFreq:freq * 8, q:6.5 });
+          makeTone(ac, { ...base, delay:.075, freq:freq * 1.33, gain:palette.gain * .65, decay:.09, filterFreq:freq * 9, q:6.5 });
+          if (idx % 3 === 1) makeNoise(ac, { now, delay:.025, dur:.08, gain:.025, start:1200, end:700, filter:'bandpass', q:5 });
+          break;
+        case 'swirl':
+          makeTone(ac, { ...base, endFreq:freq * 1.22, endFilter:freq * 9, mod:{rate:5.5, depth:12 + idx % 6}, decay:palette.decay });
+          makeTone(ac, { ...base, delay:.055, freq:freq * 1.5, wave:'sine', gain:palette.gain * .45, decay:.26, filter:'lowpass', filterFreq:1500, q:1.4 });
+          break;
+        case 'wobble':
+          makeTone(ac, { ...base, mod:{rate:8 + (idx % 5), depth:22 + idx % 8}, endFreq:freq * .96, decay:palette.decay });
+          break;
+        case 'chirp':
+          makeTone(ac, { ...base, endFreq:freq * 1.85, decay:.14, filterFreq:freq * 7 });
+          makeTone(ac, { ...base, delay:.08, freq:freq * 1.5, endFreq:freq * 2.1, gain:palette.gain * .45, decay:.12 });
+          break;
+        case 'crystal':
+          [1, 1.5, 2.98].forEach((mul, i) => makeTone(ac, { now, delay:i * .018, freq:freq * mul, wave:'sine', gain:palette.gain * (i ? .28 : .62), attack:.002, decay:palette.decay * (1 - i * .12), filter:'lowpass', filterFreq:1300 + i * 120, q:1.2 }));
+          break;
+        case 'sweep':
+          makeTone(ac, { ...base, endFreq:freq * 1.72, endFilter:freq * 11, decay:.22 });
+          makeNoise(ac, { now, dur:.24, gain:.035, start:1500, end:520, filter:'bandpass', q:1.3 });
+          break;
+        case 'thump':
+          makeTone(ac, { ...base, endFreq:freq * .48, decay:.22, filterFreq:freq * 7 });
+          makeNoise(ac, { now, dur:.055, gain:.055, start:900, end:240, filter:'lowpass', q:1.2 });
+          break;
+        case 'warp':
+          makeTone(ac, { ...base, endFreq:freq * .58, mod:{rate:4 + idx % 4, depth:18}, decay:palette.decay, filterFreq:freq * 6, endFilter:freq * 2.2 });
+          makeTone(ac, { ...base, delay:.08, freq:freq * 1.55, endFreq:freq * 1.15, wave:'triangle', gain:palette.gain * .35, decay:.22, filter:'bandpass', filterFreq:freq * 9, q:4 });
+          break;
+        case 'scan':
+          makeTone(ac, { ...base, decay:.075, filterFreq:freq * 12, q:7 });
+          makeTone(ac, { ...base, delay:.07, freq:freq * 1.18, decay:.075, filterFreq:freq * 12, q:7 });
+          makeTone(ac, { ...base, delay:.14, freq:freq * 1.5, gain:palette.gain * .55, decay:.08, filterFreq:freq * 13, q:7 });
+          break;
+        case 'sparkle':
+        default:
+          makeTone(ac, { ...base, endFreq:freq * 1.08, decay:palette.decay });
+          makeTone(ac, { ...base, delay:.055, freq:freq * 1.5, wave:'sine', gain:palette.gain * .55, decay:.22, filter:'lowpass', filterFreq:1500, q:1 });
+          break;
+      }
+    }
+    function playSound(key, isWrong = false) {
+      const ac = getAudio();
+      const palette = SOUND_THEMES[currentTheme] || SOUND_THEMES.rocket;
+      const now = ac.currentTime;
+      const idx = keySoundIndex(key);
+      const freq = key === 'space' ? palette.base * 1.18 : keyFrequency(key, palette);
+      if (isWrong) {
+        playWrongSound(ac, now);
+        return;
+      }
+      soundPressCount++;
+      playThemeGesture(ac, now, palette, key, freq, idx);
+      playExcitedSparkle(ac, now, freq, palette, idx);
+      if (key === 'space') playSpaceBarCelebration(ac, now + .02, palette, freq);
+      if (soundPressCount % 8 === 0) playMiniFanfare(ac, now + .03, palette, Math.max(150, freq * .75));
+    }
+
+    function triggerKey(key) {
+      const el = keyEls[key];
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const hue = keyHue(key);
+      const motion = el.dataset.motion || 'pop';
+      el.classList.add('active', 'motion-' + motion);
+      setTimeout(() => el.classList.remove('active'), 180);
+      el.addEventListener('animationend', () => MOTIONS.forEach(m => el.classList.remove('motion-' + m)), { once:true });
+      playSound(key);
+      addCanvasBurst(cx, cy, hue, 28);
+      cssBurst(cx, cy, hue);
+      makeKeyEffect(cx, cy, key);
+      twinkleBurst(cx, cy, 10);
+      themeMoment(cx, cy, key);
+      setTimeout(() => {
+        const action = performKeyAction(key, { cx, cy, rect, hue });
+        showFloating(action.label, key, action.displayClass);
+      }, 155);
+    }
+    function makeKeyEffect(x, y, key) {
+      const theme = THEMES[currentTheme];
+      const orderIndex = Math.max(0, KEY_ORDER.indexOf(key));
+      const icon = theme.effects[orderIndex % theme.effects.length];
+      const el = document.createElement('div');
+      el.className = 'keyEffect keyEffect-' + (theme.motion || 'twinkle') + ' neonGlyph ' + icon;
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+      el.style.color = theme.vars[3 + (orderIndex % 3)] || 'var(--accent)';
+      el.style.setProperty('--dx', (Math.random() * 90 - 45) + 'px');
+      el.style.setProperty('--dy', (Math.random() * 40 - 35) + 'px');
+      el.style.setProperty('--rot', (Math.random() * 40 - 20) + 'deg');
+      el.style.setProperty('--sz', (30 + (orderIndex % 5) * 5) + 'px');
+      document.body.appendChild(el);
+      el.addEventListener('animationend', () => el.remove(), { once:true });
+    }
+    function themeMoment(x, y, key) {
+      const theme = THEMES[currentTheme] || THEMES.rocket;
+      const orderIndex = Math.max(0, KEY_ORDER.indexOf(key));
+      const iconList = theme.action || theme.effects || ['spark'];
+      const icon = iconList[orderIndex % iconList.length];
+      const action = document.createElement('div');
+      action.className = 'themeAction ' + (theme.motion || 'twinkle') + ' neonGlyph ' + icon;
+      action.style.setProperty('--x', x + 'px');
+      action.style.setProperty('--y', y + 'px');
+      document.body.appendChild(action);
+      action.addEventListener('animationend', () => action.remove(), { once:true });
+      if (activeActivity.mode === 'word' && /^[a-z]$/.test(key)) {
+        const word = currentWord();
+        const expected = word[wordProgress];
+        if (expected && key.toUpperCase() === expected) {
+          setTimeout(() => twinkleBurst(innerWidth * .5, innerHeight * .42, 12), 120);
+        }
+      }
+    }
+    function keyHue(key) {
+      const i = Math.max(0, KEY_ORDER.indexOf(key));
+      return (i * 31 + (currentTheme.length * 22)) % 360;
+    }
+
+    function performKeyAction(key, meta) {
+      let label = '';
+      let typedToken = null;
+      const displayClass = FLOATING[Math.max(0, KEY_ORDER.indexOf(key)) % FLOATING.length];
+
+      if (activeActivity.mode === 'word') {
+        if (/^[a-z]$/.test(key)) {
+          const letter = key.toUpperCase();
+          label = letter;
+          handlePuzzleLetter(letter, key, meta);
+          return { label, displayClass };
+        }
+        if (key === 'backspace') { undoPuzzleLetter(); label = '⌫'; }
+        else if (key === 'space') { label = 'SPACE'; wrongPuzzlePulse(); }
+        else if (key === 'enter') { label = '↵'; changeWord(1); }
+        else if (key === 'tab') { label = 'TAB'; }
+        else if (key === 'caps') { capsOn = !capsOn; label = capsOn ? 'CAPS ON' : 'CAPS'; }
+        else if (key.includes('shift')) { shiftOn = !shiftOn; label = 'SHIFT'; }
+        else if (key.includes('ctrl')) label = 'CTRL';
+        else if (key.includes('alt')) label = 'ALT';
+        else if (key === 'fn') label = 'FN';
+        else label = (getOutputChar(key) || key).toUpperCase();
+        return { label, displayClass };
+      }
+
+      if (key === 'backspace') { typedText = typedText.slice(0, -1); label = '⌫'; }
+      else if (key === 'enter') { typedText += '\n'; label = '↵'; typedToken = 'ENTER'; }
+      else if (key === 'tab') { typedText += '    '; label = 'TAB'; typedToken = 'SPACE'; }
+      else if (key === 'space') { typedText += ' '; label = 'SPACE'; typedToken = 'SPACE'; }
+      else if (key === 'caps') { capsOn = !capsOn; body.classList.toggle('capsOn', capsOn); label = capsOn ? 'CAPS ON' : 'CAPS'; }
+      else if (key === 'shift-l' || key === 'shift-r') { shiftOn = !shiftOn; body.classList.toggle('shiftOn', shiftOn); label = 'SHIFT'; }
+      else if (key === 'ctrl-l' || key === 'ctrl-r') { label = 'CTRL'; }
+      else if (key === 'alt-l' || key === 'alt-r') { label = 'ALT'; }
+      else if (key === 'fn') { label = 'FN'; }
+      else {
+        const char = getOutputChar(key);
+        typedText += char;
+        label = char.toUpperCase();
+        typedToken = char.toUpperCase();
+        if (shiftOn) { shiftOn = false; body.classList.remove('shiftOn'); }
+      }
+      renderTypedOutput();
+      if (typedToken) checkMission(typedToken);
+      return { label, displayClass };
+    }
+    function getOutputChar(key) {
+      if (/^[a-z]$/.test(key)) {
+        const upper = capsOn !== shiftOn;
+        return upper ? key.toUpperCase() : key.toLowerCase();
+      }
+      const pair = OUTPUT[key];
+      if (pair) return shiftOn ? pair.shift : pair.normal;
+      return key;
+    }
+    function renderTypedOutput() {
+      if (!typedText) { typedOutput.innerHTML = ''; return; }
+      typedOutput.textContent = typedText.slice(-260);
+    }
+    function checkMission(typedToken) {
+      const tokens = currentSequenceChunk();
+      if (!tokens.length || targetIndex >= tokens.length) return;
+      const expected = tokens[targetIndex];
+      if (typedToken === expected) {
+        targetIndex += 1;
+        renderTarget();
+        updateProgress();
+        if (targetIndex >= tokens.length) completeSequenceLine();
+      } else {
+        const now = targetStrip.querySelector('.targetToken.now');
+        if (now) shakeElement(now);
+      }
+    }
+    function completeSequenceLine() {
+      const chunks = getSequenceChunks(activeActivity);
+      if (!chunks.length) return;
+      const lastLine = sequenceChunkIndex >= chunks.length - 1;
+      twinkleBurst(innerWidth * .5, innerHeight * .38, 24);
+      if (lastLine) {
+        celebrate('Mission Complete!', 'All the space lines are done!');
+        setTimeout(() => {
+          if (activeActivity.mode !== 'sequence') return;
+          sequenceChunkIndex = 0;
+          targetIndex = 0;
+          typedText = '';
+          renderTarget();
+          updateProgress();
+        }, 1500);
+      } else {
+        setTimeout(() => {
+          if (activeActivity.mode !== 'sequence') return;
+          sequenceChunkIndex += 1;
+          targetIndex = 0;
+          typedText = '';
+          renderTarget();
+          updateProgress();
+          twinkleBurst(innerWidth * .5, innerHeight * .38, 18);
+        }, 650);
+      }
+    }
+
+    function handlePuzzleLetter(letter, key, meta) {
+      if (puzzleLocked) return;
+      const word = currentWord();
+      const expected = word[wordProgress];
+      if (!expected) return;
+      if (letter !== expected) {
+        playSound(key, true);
+        wrongPuzzlePulse();
+        wordMessage.textContent = `Try ${expected} next.`;
+        return;
+      }
+      puzzleLocked = true;
+      flyPuzzlePiece(wordProgress, meta, () => {
+        wordProgress += 1;
+        refreshPuzzleNeed();
+        updateProgress();
+        wordMessage.textContent = wordProgress >= word.length ? 'The word came together!' : `Great! Now press ${word[wordProgress]}.`;
+        puzzleLocked = false;
+        if (wordProgress >= word.length) completeWordPuzzle();
+      });
+    }
+    function flyPuzzlePiece(index, meta, done) {
+      const piece = scatterPieces.querySelector(`.scatterPiece[data-index="${index}"]`);
+      const slot = puzzleSlots.querySelector(`.puzzleSlot[data-index="${index}"]`);
+      if (!piece || !slot) { done(); return; }
+      const pieceRect = piece.getBoundingClientRect();
+      const slotRect = slot.getBoundingClientRect();
+      const clone = document.createElement('div');
+      clone.className = 'flyingPuzzlePiece';
+      clone.textContent = piece.textContent;
+      clone.style.left = pieceRect.left + 'px';
+      clone.style.top = pieceRect.top + 'px';
+      clone.style.setProperty('--w', pieceRect.width + 'px');
+      clone.style.setProperty('--h', pieceRect.height + 'px');
+      clone.style.setProperty('--fs', getComputedStyle(piece).fontSize);
+      clone.style.setProperty('--dx', (slotRect.left + slotRect.width/2 - (pieceRect.left + pieceRect.width/2)) + 'px');
+      clone.style.setProperty('--dy', (slotRect.top + slotRect.height/2 - (pieceRect.top + pieceRect.height/2)) + 'px');
+      clone.style.setProperty('--startRot', ((index % 2 ? 12 : -12) + 'deg'));
+      document.body.appendChild(clone);
+      piece.classList.add('taken');
+      clone.addEventListener('animationend', () => {
+        clone.remove();
+        slot.textContent = piece.textContent;
+        slot.classList.add('filled', SLOT_MOTIONS[index % SLOT_MOTIONS.length]);
+        slot.classList.remove('now');
+        twinkleBurst(slotRect.left + slotRect.width/2, slotRect.top + slotRect.height/2, 16);
+        done();
+      }, { once:true });
+    }
+    function refreshPuzzleNeed() {
+      scatterPieces.querySelectorAll('.scatterPiece').forEach(p => p.classList.remove('needed'));
+      puzzleSlots.querySelectorAll('.puzzleSlot').forEach(s => s.classList.remove('now'));
+      const nextPiece = scatterPieces.querySelector(`.scatterPiece[data-index="${wordProgress}"]`);
+      const nextSlot = puzzleSlots.querySelector(`.puzzleSlot[data-index="${wordProgress}"]`);
+      if (nextPiece) nextPiece.classList.add('needed');
+      if (nextSlot) nextSlot.classList.add('now');
+    }
+    function undoPuzzleLetter() {
+      if (activeActivity.mode !== 'word' || puzzleLocked || wordProgress <= 0) return;
+      wordProgress -= 1;
+      const piece = scatterPieces.querySelector(`.scatterPiece[data-index="${wordProgress}"]`);
+      const slot = puzzleSlots.querySelector(`.puzzleSlot[data-index="${wordProgress}"]`);
+      if (piece) piece.classList.remove('taken');
+      if (slot) { slot.textContent = ''; slot.className = 'puzzleSlot'; }
+      refreshPuzzleNeed();
+      updateProgress();
+      wordMessage.textContent = `Back one piece. Press ${currentWord()[wordProgress]}.`;
+    }
+    function wrongPuzzlePulse() {
+      const slot = puzzleSlots.querySelector(`.puzzleSlot[data-index="${wordProgress}"]`);
+      const piece = scatterPieces.querySelector(`.scatterPiece[data-index="${wordProgress}"]`);
+      if (slot) shakeElement(slot);
+      if (piece) shakeElement(piece);
+    }
+    function completeWordPuzzle() {
+      puzzleSlots.classList.add('complete');
+      celebrate('Word Complete!', currentWord() + ' came together!');
+      setTimeout(() => {
+        if (activeActivity.mode === 'word' && keyboardPage.classList.contains('active')) changeWord(1);
+      }, 1900);
+    }
+    function shakeElement(el) {
+      el.animate([
+        { transform:'translateX(0)' },
+        { transform:'translateX(-8px)' },
+        { transform:'translateX(8px)' },
+        { transform:'translateX(-5px)' },
+        { transform:'translateX(0)' }
+      ], { duration: 320, easing:'ease-out' });
+    }
+
+    function celebrate(title, message) {
+      celebration.classList.remove('show');
+      celebration.querySelector('strong').textContent = title || 'Mission Complete!';
+      celebration.querySelector('span').textContent = message || 'Super space typing!';
+      void celebration.offsetWidth;
+      celebration.classList.add('show');
+      for (let i = 0; i < 70; i++) setTimeout(() => twinkleBurst(Math.random()*innerWidth, Math.random()*innerHeight*.74, 4), i * 10);
+      setTimeout(() => celebration.classList.remove('show'), 1700);
+    }
+
+    function showFloating(label, key, displayClass) {
+      const theme = THEMES[currentTheme];
+      const orderIndex = Math.max(0, KEY_ORDER.indexOf(key));
+      floatingKey.className = '';
+      floatingKey.textContent = label;
+      floatingKey.dataset.emoji = '';
+      void floatingKey.offsetWidth;
+      floatingKey.classList.add('show', displayClass || 'popIn');
+      setTimeout(() => floatingKey.className = '', 860);
+    }
+
+    function codeToKey(e) {
+      const { code, key } = e;
+      if (code === 'Space') return 'space';
+      if (/^Key[A-Z]$/.test(code)) return code.replace('Key','').toLowerCase();
+      if (key && /^[a-zA-Z]$/.test(key)) return key.toLowerCase();
+      return null;
+    }
+    window.addEventListener('keydown', e => {
+      if (!keyboardPage.classList.contains('active')) return;
+      const dk = codeToKey(e);
+      if (!dk || downKeys.has(dk)) return;
+      e.preventDefault();
+      downKeys.add(dk);
+      triggerKey(dk);
+    });
+    window.addEventListener('keyup', e => {
+      const dk = codeToKey(e);
+      if (dk) downKeys.delete(dk);
+    });
+    window.addEventListener('contextmenu', e => e.preventDefault());
+
+
+
+    /* Extra dynamic theme visuals.
+       This layer makes effects appear in different places, move in different ways,
+       and match the selected space world. The keyboard itself is left unchanged. */
+    const THEME_DYNAMIC = {
+      rocket: { modes:['launchFly','cometSweepFx','starPopFx'], icons:['rocket','flame','comet','spark','satellite'], line:true },
+      planets: { modes:['planetHop','moonBounce','wiggleDriftFx'], icons:['planet','orb','moon','spark','comet'], line:true },
+      moon: { modes:['moonBounce','astronautFloat','starPopFx'], icons:['moon','orb','meteor','spark','constellation'], dust:true },
+      astronaut: { modes:['astronautFloat','signalScanFx','wiggleDriftFx'], icons:['astronaut','satellite','telescope','signal','spark'], line:true },
+      galaxy: { modes:['galaxySwirl','starPopFx','portalPopFx'], icons:['galaxy','star','spark','portal','blackhole'], portal:true, line:true },
+      aliens: { modes:['alienPeekFx','wiggleDriftFx','planetHop'], icons:['alien','ufo','signal','spark','planet'], portal:true },
+      pets: { modes:['petBounceFx','moonBounce','wiggleDriftFx'], icons:['petdrone','orb','spark','signal','moon'], dust:true },
+      constellation: { modes:['constellationSpark','starPopFx','signalScanFx'], icons:['constellation','star','spark','telescope','signal'], line:true },
+      comet: { modes:['cometSweepFx','starPopFx','launchFly'], icons:['comet','meteor','spark','star','rocket'], line:true },
+      meteor: { modes:['meteorDropFx','cometSweepFx','starPopFx'], icons:['meteor','comet','flame','burst','spark'], line:true },
+      blackhole: { modes:['portalPopFx','galaxySwirl','starPopFx'], icons:['blackhole','portal','galaxy','spark','star'], portal:true },
+      satellite: { modes:['signalScanFx','astronautFloat','constellationSpark'], icons:['satellite','signal','telescope','spark','orb'], line:true },
+      stars: { modes:['starPopFx','constellationSpark','wiggleDriftFx'], icons:['star','spark','burst','constellation','meteor'], line:true }
+    };
+    let dynamicFxCount = 0;
+    const oldThemeMoment = themeMoment;
+    themeMoment = function(x, y, key) {
+      oldThemeMoment(x, y, key);
+      spawnDynamicThemeEffects(x, y, key);
+    };
+    const oldMakeDecor = makeDecor;
+    makeDecor = function(theme) {
+      oldMakeDecor(theme);
+      addDynamicSkyStickers(theme);
+    };
+
+    function usableScreenPoint() {
+      const keyboardIsOpen = keyboardPage.classList.contains('active');
+      let minY = keyboardIsOpen ? Math.max(78, innerHeight * .12) : 70;
+      let maxY = keyboardIsOpen ? innerHeight * .68 : innerHeight * .86;
+      const keyboardRect = keyboard.getBoundingClientRect();
+      if (keyboardIsOpen && keyboardRect.top > 0) maxY = Math.min(maxY, keyboardRect.top - 46);
+      maxY = Math.max(minY + 60, maxY);
+      return {
+        x: 42 + Math.random() * Math.max(80, innerWidth - 84),
+        y: minY + Math.random() * Math.max(60, maxY - minY)
+      };
+    }
+    function spawnDynamicThemeEffects(x, y, key) {
+      const cfg = THEME_DYNAMIC[currentTheme] || THEME_DYNAMIC.stars;
+      const theme = THEMES[currentTheme] || THEMES.rocket;
+      const keyIndex = Math.max(0, KEY_ORDER.indexOf(key));
+      const count = 2 + (keyIndex % 3) + (dynamicFxCount % 2);
+      dynamicFxCount++;
+      spawnThemeSprite(x, y, cfg, theme, keyIndex, true);
+      for (let i = 0; i < count; i++) {
+        const p = usableScreenPoint();
+        setTimeout(() => spawnThemeSprite(p.x, p.y, cfg, theme, keyIndex + i + 1, false), 45 + i * 80);
+      }
+      if (cfg.line && dynamicFxCount % 2 === 0) {
+        setTimeout(() => spawnThemeLine(theme), 95);
+      }
+      if (cfg.portal && dynamicFxCount % 3 === 0) {
+        const p = usableScreenPoint();
+        setTimeout(() => spawnThemePortal(p.x, p.y, theme), 120);
+      }
+      if (cfg.dust) {
+        setTimeout(() => dustCloud(x, y, theme, 8), 70);
+      }
+      if (dynamicFxCount % 7 === 0) {
+        setTimeout(() => screenSurprise(theme, cfg), 160);
+      }
+    }
+    function spawnThemeSprite(x, y, cfg, theme, seed, nearKey) {
+      const el = document.createElement('div');
+      const mode = cfg.modes[seed % cfg.modes.length];
+      const icon = cfg.icons[seed % cfg.icons.length];
+      el.className = 'dynamicThemeFx ' + mode + ' neonGlyph ' + icon;
+      el.style.setProperty('--x', x + 'px');
+      el.style.setProperty('--y', y + 'px');
+      el.style.setProperty('--dx', (Math.random() * 160 - 80) + 'px');
+      el.style.setProperty('--dy', (Math.random() * -90 - 20) + 'px');
+      el.style.setProperty('--dx1', (Math.random() * 90 - 45) + 'px');
+      el.style.setProperty('--dx2', (Math.random() * 100 - 50) + 'px');
+      el.style.setProperty('--fxSize', (nearKey ? 34 + (seed % 4) * 8 : 30 + Math.random() * 42) + 'px');
+      el.style.setProperty('--fxDur', (.95 + Math.random() * .72) + 's');
+      el.style.setProperty('--fxColor', theme.vars[3 + (seed % 3)] || 'var(--accent)');
+      el.style.setProperty('--fxColor2', theme.vars[4 + (seed % 2)] || 'var(--accent2)');
+      document.body.appendChild(el);
+      el.addEventListener('animationend', () => el.remove(), { once:true });
+    }
+    function spawnThemeLine(theme) {
+      const p1 = usableScreenPoint();
+      const p2 = usableScreenPoint();
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+      const line = document.createElement('div');
+      line.className = 'screenThemeLine';
+      line.style.setProperty('--x', p1.x + 'px');
+      line.style.setProperty('--y', p1.y + 'px');
+      line.style.setProperty('--lineW', Math.max(90, Math.hypot(dx, dy)) + 'px');
+      line.style.setProperty('--lineR', Math.atan2(dy, dx) + 'rad');
+      line.style.setProperty('--fxColor', theme.vars[5] || 'var(--accent3)');
+      line.style.setProperty('--fxColor2', theme.vars[3] || 'var(--accent)');
+      line.style.setProperty('--fxDur', (.78 + Math.random() * .58) + 's');
+      document.body.appendChild(line);
+      line.addEventListener('animationend', () => line.remove(), { once:true });
+      for (let i = 0; i < 2; i++) {
+        const px = i ? p2.x : p1.x;
+        const py = i ? p2.y : p1.y;
+        spawnThemeSprite(px, py, {modes:['constellationSpark'], icons:['spark','star','burst']}, theme, i + dynamicFxCount, false);
+      }
+    }
+    function spawnThemePortal(x, y, theme) {
+      const portal = document.createElement('div');
+      portal.className = 'screenThemePortal';
+      portal.style.setProperty('--x', x + 'px');
+      portal.style.setProperty('--y', y + 'px');
+      portal.style.setProperty('--portalSize', (90 + Math.random() * 120) + 'px');
+      portal.style.setProperty('--fxColor', theme.vars[3] || 'var(--accent)');
+      portal.style.setProperty('--fxColor2', theme.vars[4] || 'var(--accent2)');
+      portal.style.setProperty('--fxDur', (1 + Math.random() * .7) + 's');
+      document.body.appendChild(portal);
+      portal.addEventListener('animationend', () => portal.remove(), { once:true });
+    }
+    function dustCloud(x, y, theme, amount) {
+      for (let i = 0; i < amount; i++) {
+        const spark = document.createElement('div');
+        spark.className = 'miniSpark';
+        spark.style.left = (x + Math.random()*70 - 35) + 'px';
+        spark.style.top = (y + Math.random()*50 - 25) + 'px';
+        spark.style.setProperty('--dx', (Math.random() * 170 - 85) + 'px');
+        spark.style.setProperty('--dy', (Math.random() * -105 - 12) + 'px');
+        spark.style.setProperty('--size', (Math.random() * 8 + 5) + 'px');
+        spark.style.setProperty('--spark', theme.vars[5] || 'var(--accent3)');
+        document.body.appendChild(spark);
+        spark.addEventListener('animationend', () => spark.remove(), { once:true });
+      }
+    }
+    function screenSurprise(theme, cfg) {
+      const waves = 5 + Math.floor(Math.random() * 4);
+      for (let i = 0; i < waves; i++) {
+        const p = usableScreenPoint();
+        setTimeout(() => spawnThemeSprite(p.x, p.y, cfg, theme, i + dynamicFxCount, false), i * 120);
+      }
+      if (Math.random() < .65) spawnThemeLine(theme);
+      if (Math.random() < .38) {
+        const p = usableScreenPoint();
+        spawnThemePortal(p.x, p.y, theme);
+      }
+    }
+    function addDynamicSkyStickers(theme) {
+      const cfg = THEME_DYNAMIC[currentTheme] || THEME_DYNAMIC.stars;
+      const icons = cfg.icons.concat(theme.decor || []);
+      for (let i = 0; i < 12; i++) {
+        const sticker = document.createElement('div');
+        sticker.className = 'skySticker neonGlyph ' + icons[i % icons.length];
+        sticker.style.left = (4 + Math.random() * 92) + '%';
+        sticker.style.top = (6 + Math.random() * 82) + '%';
+        sticker.style.setProperty('--sx', (Math.random() * 100 - 50) + 'px');
+        sticker.style.setProperty('--sy', (Math.random() * -80 - 15) + 'px');
+        sticker.style.setProperty('--sr', (Math.random() * 44 - 22) + 'deg');
+        sticker.style.setProperty('--dur', (5.5 + Math.random() * 8) + 's');
+        sticker.style.animationDelay = (-Math.random() * 5.5) + 's';
+        decorLayer.appendChild(sticker);
+      }
+    }
+    setInterval(() => {
+      if (document.hidden) return;
+      const cfg = THEME_DYNAMIC[currentTheme] || THEME_DYNAMIC.stars;
+      const theme = THEMES[currentTheme] || THEMES.rocket;
+      const p = usableScreenPoint();
+      spawnThemeSprite(p.x, p.y, cfg, theme, dynamicFxCount++, false);
+      if (Math.random() < .28) spawnThemeLine(theme);
+      if ((cfg.portal || Math.random() < .12) && Math.random() < .24) {
+        const pp = usableScreenPoint();
+        spawnThemePortal(pp.x, pp.y, theme);
+      }
+    }, 1750);
+
+
+    renderActivities();
+    setTheme('rocket');
+  </script>
+<script src="rhythmic-typing-lesson.js"></script>
+<script src="rhythmic-typing-back.js"></script>
+</body>
+</html>
