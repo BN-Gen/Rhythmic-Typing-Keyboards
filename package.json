@@ -1,0 +1,14 @@
+{
+  "name": "rhythmic-typing",
+  "version": "2.0.0",
+  "type": "module",
+  "private": true,
+  "description": "Rhythmic Typing keyboard engine and build system",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "build:watch": "node scripts/build.js --watch"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}
